@@ -132,6 +132,7 @@ test("supports a tenant-safe atomic multi-court booking grid", async () => {
   ]);
   assert.match(booking, /className="pp-schedule"/);
   assert.match(booking, /selectedSlotKeys/);
+  assert.match(booking, /timeRangeLabel/);
   assert.match(booking, /sessions: selectedSlots\.map/);
   assert.match(booking, /atomicMultiSessionBookingV1/);
   assert.match(booking, /refund, and rescheduling policy/);

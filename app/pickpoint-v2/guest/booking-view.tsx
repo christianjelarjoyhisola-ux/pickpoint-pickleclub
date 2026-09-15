@@ -16,6 +16,12 @@ const pad = (value: number) => String(value).padStart(2, "0");
 const isoDate = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 const minutes = (time: string) => { const [hour, minute] = time.slice(0, 5).split(":").map(Number); return hour * 60 + minute; };
 const timeLabel = (time: string) => new Intl.DateTimeFormat("en-PH", { hour: "numeric", minute: "2-digit" }).format(new Date(`2020-01-01T${time}:00`));
+const compactHourLabel = (time: string) => timeLabel(time).replace(":00", "").replaceAll(" ", "");
+const timeRangeLabel = (time: string) => {
+  const endMinutes = (minutes(time) + 60) % (24 * 60);
+  const endTime = `${pad(Math.floor(endMinutes / 60))}:00`;
+  return `${compactHourLabel(time)}-${compactHourLabel(endTime)}`;
+};
 const money = (amount: number, currency = "PHP") => new Intl.NumberFormat("en-PH", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
 
 function numberSetting(value: unknown, fallback: number) {
@@ -265,7 +271,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
             <div className="pp-schedule-scroll" aria-busy={!availability}>
               <table className="pp-schedule">
                 <thead><tr><th scope="col">Time</th>{courts.map((item) => <th scope="col" key={item.id}><strong>{item.name}</strong><small>{item.opensAt}–{item.closesAt}</small></th>)}</tr></thead>
-                <tbody>{scheduleTimes.map((time) => <tr key={time}><th scope="row">{timeLabel(time)}</th>{courts.map((item) => { const key = slotKey(item.id, time); const selected = selectedSet.has(key); const available = slotIsAvailable(item, time); const rate = rateFor(item, time); return <td key={item.id}><button type="button" aria-pressed={selected} disabled={!available} className={selected ? "is-selected" : ""} onClick={() => toggleSlot(item, time)}><span>{selected ? <><Check aria-hidden="true" /> Selected</> : available ? "Available" : "Unavailable"}</span>{available && rate != null && <small>{money(rate, item.currency)}</small>}</button></td>; })}</tr>)}</tbody>
+                <tbody>{scheduleTimes.map((time) => <tr key={time}><th scope="row">{timeRangeLabel(time)}</th>{courts.map((item) => { const key = slotKey(item.id, time); const selected = selectedSet.has(key); const available = slotIsAvailable(item, time); const rate = rateFor(item, time); return <td key={item.id}><button type="button" aria-pressed={selected} disabled={!available} className={selected ? "is-selected" : ""} onClick={() => toggleSlot(item, time)}><span>{selected ? <><Check aria-hidden="true" /> Selected</> : available ? "Available" : "Unavailable"}</span>{available && rate != null && <small>{money(rate, item.currency)}</small>}</button></td>; })}</tr>)}</tbody>
               </table>
               {!availability && <div className="pp-schedule-loading">Checking availability…</div>}
             </div>
@@ -280,7 +286,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
             <button type="button" className="pp-back" onClick={() => setStep("select")}><ArrowLeft /> Change time</button>
             <div className="pp-fields-row"><label>Full name<input value={customer.name} onChange={(event) => setCustomer({ ...customer, name: event.target.value })} autoComplete="name" required /></label><label>Mobile number<input value={customer.phone} onChange={(event) => setCustomer({ ...customer, phone: event.target.value })} autoComplete="tel" inputMode="tel" required /></label></div>
             <label>Email address<input type="email" value={customer.email} onChange={(event) => setCustomer({ ...customer, email: event.target.value })} autoComplete="email" required /></label>
-            <section className="pp-selection-review" aria-labelledby="selection-review-title"><div><strong id="selection-review-title">Your selected court times</strong><span>{selectedSlots.length} court-hour{selectedSlots.length === 1 ? "" : "s"} · {money(estimatedTotal, primaryCourt?.currency)}</span></div><ul>{selectedSlots.map((selection) => { const selectedCourt = courts.find((item) => item.id === selection.courtId); return <li key={slotKey(selection.courtId, selection.startTime)}><span>{timeLabel(selection.startTime)}</span><strong>{selectedCourt?.name}</strong></li>; })}</ul></section>
+            <section className="pp-selection-review" aria-labelledby="selection-review-title"><div><strong id="selection-review-title">Your selected court times</strong><span>{selectedSlots.length} court-hour{selectedSlots.length === 1 ? "" : "s"} · {money(estimatedTotal, primaryCourt?.currency)}</span></div><ul>{selectedSlots.map((selection) => { const selectedCourt = courts.find((item) => item.id === selection.courtId); return <li key={slotKey(selection.courtId, selection.startTime)}><span>{timeRangeLabel(selection.startTime)}</span><strong>{selectedCourt?.name}</strong></li>; })}</ul></section>
             {policy ? <details className="pp-policy"><summary>{policy.title}</summary><div><span>{policy.intro}</span><p>{policy.content}</p></div></details> : <p className="pp-form-message" role="alert">The current booking policy could not be loaded. Please refresh before reserving.</p>}
             <label className="pp-check"><input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} required disabled={!policy?.version} /><span><strong>I have read and agree to the current booking, cancellation, refund, and rescheduling policy.</strong><small>Your selected times are held only after the server accepts the complete request.</small></span></label>
             {message && <p className="pp-form-message" role="alert">{message}</p>}
