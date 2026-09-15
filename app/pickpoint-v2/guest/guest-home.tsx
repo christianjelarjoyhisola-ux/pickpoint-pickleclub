@@ -20,7 +20,10 @@ export function GuestHome() {
       <section className="pp-hero">
         <div className="pp-hero-copy">
           <p className="pp-kicker"><span /> Court reservations, made clear</p>
-          <h1>Your court.<br /><em>Your time.</em></h1>
+          <div className="pp-hero-title">
+            <h1>Play.<br /><em>Rally.</em><br />Connect.</h1>
+            <Image src="/pickpoint-mark-v2.png" alt="PickPoint location-pin logo" width={150} height={180} priority unoptimized />
+          </div>
           <p className="pp-lede">Choose one court, lock in a continuous playing time, and keep everything under one booking reference.</p>
           <div className="pp-actions">
             {live
@@ -33,7 +36,6 @@ export function GuestHome() {
         </div>
         <div className="pp-board" aria-label="PickPoint venue status">
           <div className="pp-board-top"><span>PickPoint court desk</span><span className={live ? "pp-status live" : "pp-status"}>{live ? "Booking open" : "Opening soon"}</span></div>
-          <Image src="/pickpoint-mark-v2.png" alt="" width={210} height={240} priority unoptimized />
           <dl>
             <div><dt><MapPin /></dt><dd><strong>{locationName}</strong><span>{address}</span><a className="pp-directions" href={mapsUrl} target="_blank" rel="noreferrer">Open in Google Maps <ArrowRight /></a></dd></div>
             <div><dt><CalendarDays /></dt><dd><strong>Courts</strong><span>{loading ? "Checking setup…" : courtCount ? `${courtCount} configured` : "Being prepared"}</span></dd></div>
