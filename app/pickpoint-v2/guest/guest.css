@@ -242,12 +242,10 @@
 
   .pp-kicker { margin-bottom: 12px; font-size: .66rem; letter-spacing: .115em; }
   .pp-hero { min-height: auto; grid-template-columns: 1fr; gap: 28px; padding: 36px 0 48px; }
-  .pp-hero-copy { text-align: center; }
-  .pp-hero .pp-kicker { display: flex; align-items: center; justify-content: center; }
   .pp-hero h1 { max-width: 360px; font-size: clamp(3.15rem, 15.2vw, 4.45rem); line-height: .91; letter-spacing: -.065em; }
   .pp-hero-title { grid-template-columns: auto 126px; align-items: center; justify-content: center; gap: 14px; }
   .pp-hero-title > img { width: 126px; }
-  .pp-lede { max-width: 34ch; margin: 22px auto 0; font-size: .98rem; line-height: 1.62; text-wrap: balance; }
+  .pp-lede { margin-top: 22px; font-size: .98rem; line-height: 1.62; }
   .pp-actions { width: 100%; margin-top: 25px; align-items: stretch; flex-direction: column; gap: 15px; }
   .pp-actions .pp-button { width: 100%; min-height: 54px; border-radius: 12px; }
   .pp-actions .pp-text-link, .pp-actions .pp-closed-note { align-self: center; min-height: 44px; display: inline-flex; align-items: center; text-align: center; }
