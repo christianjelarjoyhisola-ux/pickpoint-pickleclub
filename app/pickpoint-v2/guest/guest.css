@@ -284,7 +284,8 @@
   .pp-hero { min-height: auto; grid-template-columns: 1fr; gap: 28px; padding: 36px 0 48px; }
   .pp-hero h1 { max-width: 100%; gap: .045em; font-size: clamp(3.6rem, 17vw, 4.35rem); line-height: .91; letter-spacing: -.065em; }
   .pp-hero-title { position: relative; display: block; }
-  .pp-hero-title > img { position: absolute; top: 27%; right: 6%; display: block; width: clamp(62px, 18vw, 72px); }
+  .pp-hero-title::before { content: ""; position: absolute; z-index: 0; top: 48%; right: 0; width: 94px; height: 50px; border: 1px solid rgba(17,106,209,.42); border-radius: 3px; background: linear-gradient(90deg, transparent 49%, rgba(17,106,209,.32) 49%, rgba(17,106,209,.32) 51%, transparent 51%), linear-gradient(0deg, transparent 32%, rgba(17,106,209,.25) 32%, rgba(17,106,209,.25) 34%, transparent 34%, transparent 66%, rgba(17,106,209,.25) 66%, rgba(17,106,209,.25) 68%, transparent 68%); transform: perspective(110px) rotateX(62deg); transform-origin: top center; }
+  .pp-hero-title > img { position: absolute; z-index: 1; top: 27%; right: 6%; display: block; width: clamp(62px, 18vw, 72px); }
   .pp-lede { margin-top: 22px; font-size: .98rem; line-height: 1.62; }
   .pp-actions { width: 100%; margin-top: 25px; align-items: stretch; flex-direction: column; gap: 15px; }
   .pp-actions .pp-button { width: 100%; min-height: 54px; border-radius: 12px; }
