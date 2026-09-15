@@ -118,11 +118,14 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     const availabilityCourt = availability.courts.find((item) => item.id === court.id);
     if (!availabilityCourt) return [];
     const opening = Math.ceil(minutes(court.opensAt) / 60);
-    const closing = Math.floor(minutes(court.closesAt) / 60);
+    const closingMinutes = minutes(court.closesAt);
+    const closing = Math.floor((closingMinutes === 0 ? 24 * 60 : closingMinutes) / 60);
+    const followingDate = isoDate(addDays(new Date(`${date}T12:00:00`), 1));
     const result: string[] = [];
     for (let hour = opening; hour + duration <= closing; hour += 1) {
       const slotStart = `${date}T${pad(hour)}:00:00`;
-      const slotEnd = `${date}T${pad(hour + duration)}:00:00`;
+      const endHour = hour + duration;
+      const slotEnd = endHour === 24 ? `${followingDate}T00:00:00` : `${date}T${pad(endHour)}:00:00`;
       const blocked = availabilityCourt.unavailable.some((entry) => entry.startsAt < slotEnd && entry.endsAt > slotStart);
       const leadTime = new Date(slotStart).getTime() - bookingClock;
       if (!blocked && leadTime >= minimumLeadMinutes * 60_000) result.push(`${pad(hour)}:00`);
