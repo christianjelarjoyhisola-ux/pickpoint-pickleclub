@@ -97,7 +97,6 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   const courts = useMemo(() => data?.courts ?? [], [data]);
   const selectedCourtId = courtId || courts.find((item) => item.slug === initialCourtSlug)?.id || courts[0]?.id || "";
   const court = courts.find((item) => item.id === selectedCourtId);
-  const blockingReasons = data?.readiness.blockingReasons ?? [];
   const live = isPublicBookingReady(data);
   const minDuration = court ? numberSetting((court.pricingConfig?.regular as { minimumHours?: unknown } | undefined)?.minimumHours, 1) : 1;
   const maxDuration = court ? numberSetting((court.pricingConfig?.regular as { maximumHours?: unknown } | undefined)?.maximumHours, 3) : 3;
@@ -205,10 +204,10 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     <GuestShell current="book">
       <section className="pp-book-head"><p className="pp-kicker">Book a court</p><h1>{step === "select" ? "When do you want to play?" : step === "details" ? "Who is the booking for?" : step === "payment" ? "Complete your payment." : "Your booking is recorded."}</h1><p>One court. One continuous time. No account required.</p></section>
       <div className="pp-book-layout">
-        <nav className="pp-steps" aria-label="Booking progress">{["Time", "Details", "Payment", "Done"].map((label, index) => <span key={label} className={index <= ["select", "details", "payment", "done"].indexOf(step) ? "is-active" : ""}><i>{index + 1}</i>{label}</span>)}</nav>
+        <ol className="pp-steps" aria-label="Booking progress">{["Time", "Details", "Payment", "Done"].map((label, index) => { const activeIndex = ["select", "details", "payment", "done"].indexOf(step); return <li key={label} aria-current={index === activeIndex ? "step" : undefined} className={index <= activeIndex ? "is-active" : ""}><i>{index < activeIndex ? <Check aria-hidden="true" /> : index + 1}</i><b>{label}</b></li>; })}</ol>
 
         {(loading || tenantError) && <div className="pp-state">{loading ? "Checking venue setup…" : tenantError}</div>}
-        {data && !live && <div className="pp-setup"><span>Reservations are not open yet</span><h2>PickPoint is completing its court setup.</h2><p>Booking will switch on only after the venue confirms its courts, prices, payment method, policies, and public domain.</p>{blockingReasons.length > 0 && <ul>{blockingReasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>}<Link className="pp-button pp-button-outline" href="/">Return home</Link></div>}
+        {data && !live && <div className="pp-setup"><span>Reservations are not open yet</span><h2>PickPoint is completing its court setup.</h2><p>Online booking will open after the venue confirms its courts, prices, payment details, and booking rules.</p><Link className="pp-button pp-button-outline" href="/">Return home</Link></div>}
 
         {data && live && step === "select" && (
           <section className="pp-book-card">

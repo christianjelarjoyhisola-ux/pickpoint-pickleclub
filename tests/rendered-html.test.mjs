@@ -170,6 +170,24 @@ test("uses the supplied transparent PickPoint brand assets and palette", async (
   assert.equal(logo[25], 6, "PNG must use RGBA color type");
 });
 
+test("keeps the guest booking flow phone-safe and understandable", async () => {
+  const [css, shell, booking, home] = await Promise.all([
+    source("app/pickpoint-v2/guest/guest.css"),
+    source("app/pickpoint-v2/guest/guest-shell.tsx"),
+    source("app/pickpoint-v2/guest/booking-view.tsx"),
+    source("app/pickpoint-v2/guest/guest-home.tsx"),
+  ]);
+  assert.match(css, /safe-area-inset-bottom/);
+  assert.match(css, /\.pp-nav\s*\{[\s\S]*position:\s*fixed/);
+  assert.match(css, /font-size:\s*16px/);
+  assert.match(css, /overflow-x:\s*clip/);
+  assert.match(shell, /aria-current=/);
+  assert.match(booking, /<ol className="pp-steps"/);
+  assert.doesNotMatch(booking, /blockingReasons\.map/);
+  assert.match(home, /Get directions/);
+  assert.match(home, /Online booking is opening soon/);
+});
+
 test("keeps hardened production response headers", async () => {
   const response = await render("/", "https://pickpoint-pickleclub.christianjelarjoyhisola.workers.dev");
   assert.match(response.headers.get("content-security-policy") ?? "", /default-src 'self'/);

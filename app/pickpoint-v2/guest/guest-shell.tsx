@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { CalendarPlus, House, Map, TicketCheck } from "lucide-react";
 import type { ReactNode } from "react";
 
 type GuestShellProps = { children: ReactNode; current?: "home" | "courts" | "book" | "manage" };
@@ -14,9 +15,10 @@ export function GuestShell({ children, current }: GuestShellProps) {
           <Image src="/pickpoint-wordmark-v3.png" alt="PickPoint Pickle Club" width={420} height={140} priority unoptimized />
         </Link>
         <nav className="pp-nav" aria-label="Main navigation">
-          <Link aria-current={current === "courts" ? "page" : undefined} className={current === "courts" ? "is-current" : ""} href="/courts">Courts</Link>
-          <Link aria-current={current === "manage" ? "page" : undefined} className={current === "manage" ? "is-current" : ""} href="/book?mode=manage">My booking</Link>
-          <Link aria-current={current === "book" ? "page" : undefined} className="pp-nav-cta" href="/book">Book a court</Link>
+          <Link aria-current={current === "home" ? "page" : undefined} className={`pp-mobile-home${current === "home" ? " is-current" : ""}`} href="/"><House aria-hidden="true" /><span>Home</span></Link>
+          <Link aria-current={current === "courts" ? "page" : undefined} className={current === "courts" ? "is-current" : ""} href="/courts"><Map aria-hidden="true" /><span>Courts</span></Link>
+          <Link aria-current={current === "manage" ? "page" : undefined} className={`pp-manage${current === "manage" ? " is-current" : ""}`} href="/book?mode=manage"><TicketCheck aria-hidden="true" /><span>My booking</span></Link>
+          <Link aria-current={current === "book" ? "page" : undefined} className={`pp-nav-cta${current === "book" ? " is-current" : ""}`} href="/book"><CalendarPlus aria-hidden="true" /><span>Book</span></Link>
         </nav>
       </header>
       <main id="main-content">{children}</main>

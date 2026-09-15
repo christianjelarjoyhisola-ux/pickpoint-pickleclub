@@ -23,15 +23,19 @@ export function GuestHome() {
           <h1>Your court.<br /><em>Your time.</em></h1>
           <p className="pp-lede">Choose one court, lock in a continuous playing time, and keep everything under one booking reference.</p>
           <div className="pp-actions">
-            <Link className="pp-button pp-button-lime" href="/book">Check available times <ArrowRight /></Link>
-            <Link className="pp-text-link" href="/book?mode=manage">Already booked? Find it</Link>
+            {live
+              ? <Link className="pp-button pp-button-lime" href="/book">Check available times <ArrowRight /></Link>
+              : <a className="pp-button pp-button-lime" href={mapsUrl} target="_blank" rel="noreferrer">Get directions <MapPin /></a>}
+            {live
+              ? <Link className="pp-text-link" href="/book?mode=manage">Already booked? Find it</Link>
+              : <span className="pp-closed-note">Online booking is opening soon</span>}
           </div>
         </div>
         <div className="pp-board" aria-label="PickPoint venue status">
           <div className="pp-board-top"><span>PickPoint court desk</span><span className={live ? "pp-status live" : "pp-status"}>{live ? "Booking open" : "Opening soon"}</span></div>
           <Image src="/pickpoint-mark-v2.png" alt="" width={210} height={240} priority unoptimized />
           <dl>
-            <div><dt><MapPin /></dt><dd><strong>{locationName}</strong><a href={mapsUrl} target="_blank" rel="noreferrer">{address}</a></dd></div>
+            <div><dt><MapPin /></dt><dd><strong>{locationName}</strong><span>{address}</span><a className="pp-directions" href={mapsUrl} target="_blank" rel="noreferrer">Open in Google Maps <ArrowRight /></a></dd></div>
             <div><dt><CalendarDays /></dt><dd><strong>Courts</strong><span>{loading ? "Checking setup…" : courtCount ? `${courtCount} configured` : "Being prepared"}</span></dd></div>
             <div><dt><Clock3 /></dt><dd><strong>Reservations</strong><span>{live ? "Available online" : "Not open yet"}</span></dd></div>
           </dl>
