@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { CalendarPlus, House, Map, TicketCheck } from "lucide-react";
+import { CalendarPlus, House, Map, ShieldCheck, TicketCheck } from "lucide-react";
 import type { ReactNode } from "react";
 
 type GuestShellProps = { children: ReactNode; current?: "home" | "courts" | "book" | "manage" };
@@ -20,12 +20,13 @@ export function GuestShell({ children, current }: GuestShellProps) {
           <Link aria-current={current === "manage" ? "page" : undefined} className={`pp-manage${current === "manage" ? " is-current" : ""}`} href="/book?mode=manage"><TicketCheck aria-hidden="true" /><span>My booking</span></Link>
           <Link aria-current={current === "book" ? "page" : undefined} className={`pp-nav-cta${current === "book" ? " is-current" : ""}`} href="/book"><CalendarPlus aria-hidden="true" /><span>Book</span></Link>
         </nav>
+        <Link className="pp-admin-login" href="/manage"><ShieldCheck aria-hidden="true" /><span>Admin login</span></Link>
       </header>
       <main id="main-content">{children}</main>
       <footer className="pp-footer">
         <div><Image src="/pickpoint-mark-v4.png" alt="" width={56} height={50} unoptimized /><strong>PickPoint Pickle Club</strong></div>
         <p>Play. Rally. Connect.</p>
-        <Link href="/manage">Staff sign in</Link>
+        <Link href="/manage">Admin login</Link>
       </footer>
     </div>
   );

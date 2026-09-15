@@ -182,6 +182,7 @@ test("keeps the guest booking flow phone-safe and understandable", async () => {
   assert.match(css, /font-size:\s*16px/);
   assert.match(css, /overflow-x:\s*clip/);
   assert.match(shell, /aria-current=/);
+  assert.match(shell, /className="pp-admin-login" href="\/manage"/);
   assert.match(booking, /<ol className="pp-steps"/);
   assert.doesNotMatch(booking, /blockingReasons\.map/);
   assert.match(home, /Get directions/);
