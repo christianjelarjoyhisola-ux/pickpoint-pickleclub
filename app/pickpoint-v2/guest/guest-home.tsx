@@ -19,18 +19,18 @@ export function GuestHome() {
     <GuestShell current="home">
       <section className="pp-hero">
         <div className="pp-hero-copy">
-          <p className="pp-kicker"><span /> Court reservations, made clear</p>
+          <p className="pp-kicker"><span /> PickPoint court booking</p>
           <div className="pp-hero-title">
             <h1>Play.<br /><em>Rally.</em><br />Connect.</h1>
             <Image src="/pickpoint-mark-v4.png" alt="PickPoint location-pin logo" width={180} height={161} priority unoptimized />
           </div>
-          <p className="pp-lede">Choose one court, lock in a continuous playing time, and keep everything under one booking reference.</p>
+          <p className="pp-lede">Choose your court, select a time, and confirm your booking in a few simple steps.</p>
           <div className="pp-actions">
             {live
-              ? <Link className="pp-button pp-button-lime" href="/book">Check available times <ArrowRight /></Link>
+              ? <Link className="pp-button pp-button-lime" href="/book">Book a court <ArrowRight /></Link>
               : <a className="pp-button pp-button-lime" href={mapsUrl} target="_blank" rel="noreferrer">Get directions <MapPin /></a>}
             {live
-              ? <Link className="pp-text-link" href="/book?mode=manage">Already booked? Find it</Link>
+              ? <Link className="pp-text-link" href="/book?mode=manage">Manage my booking</Link>
               : <span className="pp-closed-note">Online booking is opening soon</span>}
           </div>
         </div>
