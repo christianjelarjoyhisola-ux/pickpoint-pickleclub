@@ -131,6 +131,9 @@ test("supports a tenant-safe atomic multi-court booking grid", async () => {
     source("supabase/migrations/20260916010000_pickpoint_public_booking_policy.sql"),
   ]);
   assert.match(booking, /className="pp-schedule"/);
+  assert.match(booking, /className="pp-date-picker"/);
+  assert.match(booking, /Previous day/);
+  assert.match(booking, /Next day/);
   assert.match(booking, /selectedSlotKeys/);
   assert.match(booking, /timeRangeLabel/);
   assert.match(booking, /sessions: selectedSlots\.map/);

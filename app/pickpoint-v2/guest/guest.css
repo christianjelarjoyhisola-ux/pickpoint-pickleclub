@@ -112,7 +112,20 @@
 .pp-book-card input:focus, .pp-book-card select:focus, .pp-lookup input:focus { border-color: var(--pp-blue); box-shadow: 0 0 0 3px rgba(17,106,209,.1); }
 .pp-book-card fieldset { margin: 24px 0; padding: 0; border: 0; }
 .pp-book-card legend { margin-bottom: 12px; font-size: .76rem; font-weight: 800; }
-.pp-date-field { max-width: 330px; }
+.pp-date-field { max-width: 440px; }
+.pp-field-label { display: block; margin-bottom: 8px; font-size: .76rem; font-weight: 800; }
+.pp-date-picker { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; gap: 7px; }
+.pp-date-picker > button { min-height: 48px; display: grid; place-items: center; border: 1px solid #cbd5e2; border-radius: 10px; background: #f8fafc; color: var(--pp-navy); cursor: pointer; }
+.pp-date-picker > button:hover:not(:disabled) { border-color: var(--pp-blue); background: #eff6ff; color: var(--pp-blue); }
+.pp-date-picker > button:disabled { color: #b7c1ce; cursor: not-allowed; }
+.pp-date-picker > button svg { width: 18px; height: 18px; }
+.pp-date-trigger { position: relative; min-width: 0; min-height: 48px; display: flex !important; align-items: center; gap: 11px !important; margin: 0 !important; padding: 6px 12px; overflow: hidden; border: 1px solid #cbd5e2; border-radius: 10px; background: white; cursor: pointer; }
+.pp-date-trigger:focus-within { border-color: var(--pp-blue); box-shadow: 0 0 0 3px rgba(17,106,209,.1); }
+.pp-date-trigger > svg { width: 18px; height: 18px; flex: 0 0 auto; color: var(--pp-blue); }
+.pp-date-trigger > span { min-width: 0; display: grid; gap: 1px; }
+.pp-date-trigger small { color: #758399; font-size: .6rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.pp-date-trigger strong { overflow: hidden; font-size: .79rem; text-overflow: ellipsis; white-space: nowrap; }
+.pp-date-trigger input { position: absolute; inset: 0; width: 100%; min-height: 0 !important; opacity: 0; cursor: pointer; }
 .pp-schedule-heading { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin: 28px 0 12px; }
 .pp-schedule-heading > div { display: grid; gap: 4px; }
 .pp-schedule-heading strong { font-size: .82rem; }
@@ -129,8 +142,8 @@
 .pp-schedule thead strong { font-size: .8rem; }
 .pp-schedule thead small { margin-top: 3px; color: #738197; font-weight: 600; }
 .pp-schedule tbody th { position: sticky; left: 0; z-index: 1; width: 92px; padding: 10px 8px; background: #fbfcfe; font-size: .75rem; white-space: nowrap; }
-.pp-schedule td { height: 66px; padding: 5px; background: white; }
-.pp-schedule td button { width: 100%; min-height: 54px; display: grid; place-content: center; gap: 3px; padding: 5px; border: 1px solid transparent; border-radius: 8px; background: white; color: var(--pp-navy); cursor: pointer; font-size: .72rem; font-weight: 800; }
+.pp-schedule td { height: 60px; padding: 4px; background: white; }
+.pp-schedule td button { width: 100%; min-height: 50px; display: grid; place-content: center; gap: 3px; padding: 4px; border: 1px solid transparent; border-radius: 8px; background: white; color: var(--pp-navy); cursor: pointer; font-size: .72rem; font-weight: 800; }
 .pp-schedule td button:hover:not(:disabled) { border-color: var(--pp-blue); background: #eff6ff; }
 .pp-schedule td button.is-selected { border-color: var(--pp-navy); background: var(--pp-navy); color: white; box-shadow: 0 6px 16px rgba(4,22,48,.16); }
 .pp-schedule td button:disabled { background: #f1f4f7; color: #9aa5b4; cursor: not-allowed; }
@@ -332,6 +345,9 @@
   .pp-book-card input, .pp-book-card select, .pp-lookup input { min-height: 52px; border-radius: 10px; font-size: 16px; }
   .pp-book-card fieldset { margin: 20px 0; }
   .pp-date-field { max-width: none; }
+  .pp-date-picker { grid-template-columns: 42px minmax(0, 1fr) 42px; gap: 6px; }
+  .pp-date-picker > button, .pp-date-trigger { min-height: 46px; }
+  .pp-date-trigger { padding-inline: 10px; }
   .pp-schedule-heading { align-items: center; margin-top: 24px; }
   .pp-schedule-heading span { max-width: 220px; line-height: 1.4; }
   .pp-schedule-scroll { max-height: 490px; border-radius: 11px; }
@@ -341,8 +357,8 @@
   .pp-schedule thead strong { font-size: .72rem; }
   .pp-schedule thead small { font-size: .56rem; }
   .pp-schedule tbody th { padding-inline: 3px; font-size: .66rem; }
-  .pp-schedule td { height: 64px; padding: 4px; }
-  .pp-schedule td button { min-height: 54px; padding: 3px 1px; border-radius: 8px; font-size: .65rem; }
+  .pp-schedule td { height: 58px; padding: 3px; }
+  .pp-schedule td button { min-height: 50px; padding: 3px 1px; border-radius: 8px; font-size: .65rem; }
   .pp-schedule td button small { font-size: .6rem; }
   .pp-grid-note { font-size: .71rem; }
   .pp-selection-review { padding: 14px; border-radius: 11px; }

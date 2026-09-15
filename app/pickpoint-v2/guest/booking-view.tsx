@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Check, Search, Upload } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, Check, ChevronLeft, ChevronRight, Search, Upload } from "lucide-react";
 import { bookingStatus, cancelUnpaidBooking, createBooking, getAvailability, submitPaymentReceipt } from "../../lib/platform/client";
 import type { AvailabilityResponse, BookingConfirmation, PaymentMethod, PublicCourt } from "../../lib/platform/types";
 import { GuestShell } from "./guest-shell";
@@ -110,7 +110,21 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   const policy = publishedPolicy(data?.refundReschedulePolicy);
   const primaryCourt = courts.find((item) => item.slug === initialCourtSlug) ?? courts[0];
   const maximumAdvanceDays = primaryCourt ? numberSetting(primaryCourt.publicConfig?.maximumAdvanceDays, 30) : 30;
+  const minimumDate = isoDate(new Date());
   const maximumDate = isoDate(addDays(new Date(), maximumAdvanceDays));
+  const selectedDateLabel = new Intl.DateTimeFormat("en-PH", { weekday: "short", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${date}T12:00:00`));
+
+  function chooseDate(nextDate: string) {
+    setAvailability(null);
+    setMessage("");
+    setDate(nextDate);
+    setSelectedSlotKeys([]);
+    bookingAttemptId.current = null;
+  }
+
+  function moveDate(days: number) {
+    chooseDate(isoDate(addDays(new Date(`${date}T12:00:00`), days)));
+  }
 
   useEffect(() => {
     if (!live || !date) return;
@@ -266,7 +280,18 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
 
         {data && live && step === "select" && (
           <section className="pp-book-card">
-            <label className="pp-date-field">Date<input type="date" value={date} min={isoDate(new Date())} max={maximumDate} onChange={(event) => { setAvailability(null); setMessage(""); setDate(event.target.value); setSelectedSlotKeys([]); bookingAttemptId.current = null; }} /></label>
+            <div className="pp-date-field">
+              <span className="pp-field-label">Date</span>
+              <div className="pp-date-picker">
+                <button type="button" aria-label="Previous day" disabled={date <= minimumDate} onClick={() => moveDate(-1)}><ChevronLeft aria-hidden="true" /></button>
+                <label className="pp-date-trigger">
+                  <CalendarDays aria-hidden="true" />
+                  <span><small>Playing on</small><strong>{selectedDateLabel}</strong></span>
+                  <input aria-label="Choose booking date" type="date" value={date} min={minimumDate} max={maximumDate} onChange={(event) => chooseDate(event.target.value)} />
+                </label>
+                <button type="button" aria-label="Next day" disabled={date >= maximumDate} onClick={() => moveDate(1)}><ChevronRight aria-hidden="true" /></button>
+              </div>
+            </div>
             <div className="pp-schedule-heading"><div><strong>Choose court times</strong><span>Select one or more available one-hour slots.</span></div>{selectedSlots.length > 0 && <button type="button" onClick={() => setSelectedSlotKeys([])}>Clear</button>}</div>
             <div className="pp-schedule-scroll" aria-busy={!availability}>
               <table className="pp-schedule">
