@@ -265,7 +265,7 @@ async function rpc<T>(
   return responseJson<T>(response);
 }
 
-const REGISTERED_MANAGEMENT_ORIGIN = "https://pickpoint-pickleclub.boothsandbeyondoffic.chatgpt.site";
+const REGISTERED_MANAGEMENT_ORIGIN = "https://pickpoint-pickleclub.christianjelarjoyhisola.workers.dev";
 
 function managementHostname(options: { mutation?: boolean } = {}): string {
   if (typeof window === "undefined") {

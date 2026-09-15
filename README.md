@@ -17,7 +17,7 @@ A premium, mobile-first court booking site and owner workspace for the isolated
 
 - Supabase project: `neqvrwtofiolcuxewdze` only.
 - Immutable tenant slug: `pickpoint-pickleclub`.
-- Registered origin: `pickpoint-pickleclub.boothsandbeyondoffic.chatgpt.site`.
+- Registered origin: `pickpoint-pickleclub.christianjelarjoyhisola.workers.dev`.
 - The browser never accepts a tenant UUID and cannot switch tenants.
 - Live reads and writes use the platform's tenant-aware RPCs, Edge Functions,
   Row Level Security, origin checks, and overlap constraints.
@@ -46,7 +46,7 @@ Only browser-safe configuration belongs in the frontend:
 ```text
 NEXT_PUBLIC_SUPABASE_URL=https://neqvrwtofiolcuxewdze.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable-or-anon-key>
-NEXT_PUBLIC_SITE_URL=https://pickpoint-pickleclub.boothsandbeyondoffic.chatgpt.site
+NEXT_PUBLIC_SITE_URL=https://pickpoint-pickleclub.christianjelarjoyhisola.workers.dev
 ```
 
 Never add service-role keys, database passwords, payment secrets, receipt

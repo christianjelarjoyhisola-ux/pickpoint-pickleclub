@@ -2327,7 +2327,7 @@ export function BookingExperience({
       "VERSION:2.0",
       "PRODID:-//PickPoint//Court Booking//EN",
       "BEGIN:VEVENT",
-      `UID:${escapeCalendar(confirmedBooking.reference)}@pickpoint-pickleclub.boothsandbeyondoffic.chatgpt.site`,
+      `UID:${escapeCalendar(confirmedBooking.reference)}@pickpoint-pickleclub.christianjelarjoyhisola.workers.dev`,
       `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z")}`,
       `DTSTART;TZID=Asia/Manila:${calendarDate}T${String(earliestHour).padStart(2, "0")}0000`,
       `DTEND;TZID=Asia/Manila:${calendarDate}T${String(latestHour).padStart(2, "0")}0000`,

@@ -33,7 +33,7 @@ tenant UUIDs or expose a service-role key.
    court names/types, operating hours, rates, booking limits, cancellation and
    reschedule policy, contact details, and payment/remittance destinations.
 3. Completed for the private Sites origin:
-   `pickpoint-pickleclub.boothsandbeyondoffic.chatgpt.site`. Add only any future
+   `pickpoint-pickleclub.christianjelarjoyhisola.workers.dev`. Add only any future
    owner-approved custom hostname through `provision_tenant_domain`; add the
    same exact URLs to the Supabase Auth redirect allowlist. Do not use wildcards.
 4. Provision the first owner membership through

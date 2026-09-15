@@ -58,9 +58,9 @@ test("pins the browser to one tenant and one Supabase project", async () => {
   ]);
   assert.match(registry, /ACTIVE_TENANT_SLUG = "pickpoint-pickleclub" as const/);
   assert.match(registry, /"pickpoint-pickleclub": pickPointConfig/);
-  assert.match(config, /productionDomain: "pickpoint-pickleclub\.boothsandbeyondoffic\.chatgpt\.site"/);
+  assert.match(config, /productionDomain: "pickpoint-pickleclub\.christianjelarjoyhisola\.workers\.dev"/);
   assert.match(client, /SHARED_SUPABASE_ORIGIN = "https:\/\/neqvrwtofiolcuxewdze\.supabase\.co"/);
-  assert.match(client, /REGISTERED_MANAGEMENT_ORIGIN = "https:\/\/pickpoint-pickleclub\.boothsandbeyondoffic\.chatgpt\.site"/);
+  assert.match(client, /REGISTERED_MANAGEMENT_ORIGIN = "https:\/\/pickpoint-pickleclub\.christianjelarjoyhisola\.workers\.dev"/);
   assert.doesNotMatch(client, /service[_-]?role|SUPABASE_SERVICE/i);
 });
 
@@ -110,7 +110,7 @@ test("adds focused WebMCP tools and hardened response headers", async () => {
   assert.match(booking, /name: "check_pickpoint_availability"/);
   assert.match(booking, /readOnlyHint: true/);
   assert.match(booking, /name: "start_pickpoint_booking"/);
-  const response = await render("/", "https://pickpoint-pickleclub.boothsandbeyondoffic.chatgpt.site");
+  const response = await render("/", "https://pickpoint-pickleclub.christianjelarjoyhisola.workers.dev");
   assert.match(response.headers.get("content-security-policy") ?? "", /default-src 'self'/);
   assert.equal(response.headers.get("x-content-type-options"), "nosniff");
   assert.equal(response.headers.get("x-frame-options"), "DENY");
