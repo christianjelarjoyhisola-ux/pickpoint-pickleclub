@@ -238,8 +238,8 @@
   .pp-kicker { margin-bottom: 12px; font-size: .66rem; letter-spacing: .115em; }
   .pp-hero { min-height: auto; grid-template-columns: 1fr; gap: 28px; padding: 36px 0 48px; }
   .pp-hero h1 { max-width: 360px; font-size: clamp(3.15rem, 15.2vw, 4.45rem); line-height: .91; letter-spacing: -.065em; }
-  .pp-hero-title { grid-template-columns: auto 88px; align-items: center; justify-content: center; gap: 12px; }
-  .pp-hero-title > img { width: 88px; }
+  .pp-hero-title { grid-template-columns: auto 126px; align-items: center; justify-content: center; gap: 14px; }
+  .pp-hero-title > img { width: 126px; }
   .pp-lede { margin-top: 22px; font-size: .98rem; line-height: 1.62; }
   .pp-actions { width: 100%; margin-top: 25px; align-items: stretch; flex-direction: column; gap: 15px; }
   .pp-actions .pp-button { width: 100%; min-height: 54px; border-radius: 12px; }
@@ -336,8 +336,8 @@
   .pp-nav { right: 6px; left: 6px; }
   .pp-nav > a, .pp-nav .pp-mobile-home, .pp-nav .pp-nav-cta { font-size: .59rem; }
   .pp-hero h1 { font-size: 2.9rem; }
-  .pp-hero-title { grid-template-columns: auto 76px; justify-content: center; }
-  .pp-hero-title > img { width: 76px; }
+  .pp-hero-title { grid-template-columns: auto 112px; justify-content: center; gap: 10px; }
+  .pp-hero-title > img { width: 112px; }
   .pp-time-choice > div { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
 
