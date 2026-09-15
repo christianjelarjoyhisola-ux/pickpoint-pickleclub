@@ -173,6 +173,7 @@ test("uses the supplied transparent PickPoint brand assets and palette", async (
 test("keeps hardened production response headers", async () => {
   const response = await render("/", "https://pickpoint-pickleclub.christianjelarjoyhisola.workers.dev");
   assert.match(response.headers.get("content-security-policy") ?? "", /default-src 'self'/);
+  assert.match(response.headers.get("content-security-policy") ?? "", /frame-src[^;]+https:\/\/\*\.supabase\.co/);
   assert.equal(response.headers.get("x-content-type-options"), "nosniff");
   assert.equal(response.headers.get("x-frame-options"), "DENY");
   assert.match(response.headers.get("strict-transport-security") ?? "", /max-age=31536000/);
