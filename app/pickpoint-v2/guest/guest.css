@@ -282,9 +282,9 @@
 
   .pp-kicker { margin-bottom: 12px; font-size: .66rem; letter-spacing: .115em; }
   .pp-hero { min-height: auto; grid-template-columns: 1fr; gap: 28px; padding: 36px 0 48px; }
-  .pp-hero h1 { max-width: 100%; gap: .045em; font-size: clamp(4.5rem, 23vw, 5.65rem); line-height: .91; letter-spacing: -.065em; }
+  .pp-hero h1 { max-width: 100%; gap: .045em; font-size: clamp(3.6rem, 17vw, 4.35rem); line-height: .91; letter-spacing: -.065em; }
   .pp-hero-title { position: relative; display: block; }
-  .pp-hero-title > img { position: absolute; top: 29%; right: 4%; display: block; width: clamp(74px, 21vw, 88px); }
+  .pp-hero-title > img { position: absolute; top: 27%; right: 6%; display: block; width: clamp(62px, 18vw, 72px); }
   .pp-lede { margin-top: 22px; font-size: .98rem; line-height: 1.62; }
   .pp-actions { width: 100%; margin-top: 25px; align-items: stretch; flex-direction: column; gap: 15px; }
   .pp-actions .pp-button { width: 100%; min-height: 54px; border-radius: 12px; }
