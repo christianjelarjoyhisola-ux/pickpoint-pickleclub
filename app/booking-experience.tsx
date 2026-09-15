@@ -2429,10 +2429,10 @@ export function BookingExperience({
           <Link className="wordmark" href="/" aria-label="PickPoint home">
             <Image
               className="brand-logo"
-              src="/pickpoint-pickleclub-logo.png"
+              src="/pickpoint-pickleclub-wordmark.png"
               alt=""
-              width={2046}
-              height={769}
+              width={1184}
+              height={352}
               sizes="(max-width: 390px) 128px, (max-width: 779px) 132px, 164px"
               unoptimized
               priority
@@ -3126,7 +3126,7 @@ export function BookingExperience({
 
       <footer className="site-footer">
         <div className="site-container footer-grid">
-          <div><Link className="wordmark wordmark-footer" href="/" aria-label="PickPoint home"><Image className="brand-logo" src="/pickpoint-pickleclub-logo.png" alt="" width={2172} height={724} sizes="212px" unoptimized /></Link><p>Pick your court. Lock your time.</p></div>
+          <div><Link className="wordmark wordmark-footer" href="/" aria-label="PickPoint home"><Image className="brand-logo" src="/pickpoint-pickleclub-wordmark.png" alt="" width={1184} height={352} sizes="212px" unoptimized /></Link><p>Pick your court. Lock your time.</p></div>
           <div><h2>Play</h2><Link href="/courts">Courts</Link><Link href="/book">Book a court</Link><Link href="/book?mode=manage">My booking</Link></div>
           <div><h2>Club hours</h2><p>Daily<br /><strong>6:00 AM–10:00 PM</strong></p><small>Asia/Manila · PHP</small></div>
           <div><h2>Setup status</h2><p>Preview booking experience.<br />Venue details coming next.</p></div>

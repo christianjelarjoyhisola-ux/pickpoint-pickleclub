@@ -3616,8 +3616,8 @@ function SignInGate({ onSignedIn }: { onSignedIn: () => Promise<void> }) {
               className={styles.brandLogo}
               src="/pickpoint-pickleclub-logo.png"
               alt=""
-              width={2046}
-              height={769}
+              width={1254}
+              height={1254}
               sizes="180px"
               unoptimized
               priority
@@ -4079,10 +4079,10 @@ export default function ManagePage() {
           <span className={styles.logoPlate}>
             <Image
               className={styles.brandLogo}
-              src="/pickpoint-pickleclub-logo.png"
+              src="/pickpoint-pickleclub-wordmark.png"
               alt=""
-              width={2046}
-              height={769}
+              width={1184}
+              height={352}
               sizes="180px"
               unoptimized
               priority
@@ -4138,10 +4138,10 @@ export default function ManagePage() {
             <span className={styles.logoPlate}>
               <Image
                 className={styles.brandLogo}
-                src="/pickpoint-pickleclub-logo.png"
+                src="/pickpoint-pickleclub-mark.png"
                 alt=""
-                width={2046}
-                height={769}
+                width={517}
+                height={650}
                 sizes="136px"
                 unoptimized
                 priority

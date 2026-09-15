@@ -99,10 +99,10 @@ test("applies the premium PickPoint palette and generated logo", async () => {
     source("../app/pickpoint-pickleclub.css"),
     readFile(new URL("../public/pickpoint-pickleclub-logo.png", import.meta.url)),
   ]);
-  assert.match(globalCss, /--ink: #102019/);
-  assert.match(publicCss, /--lime: #c9f24a/);
-  assert.equal(logo.readUInt32BE(16), 2172);
-  assert.equal(logo.readUInt32BE(20), 724);
+  assert.match(globalCss, /--ink: #041630/);
+  assert.match(publicCss, /--lime: #b8f000/);
+  assert.equal(logo.readUInt32BE(16), 1254);
+  assert.equal(logo.readUInt32BE(20), 1254);
 });
 
 test("adds focused WebMCP tools and hardened response headers", async () => {

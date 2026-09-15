@@ -102,11 +102,11 @@ export const pickPointConfig = {
   brand: {
     direction: "Private-club scorecard with crisp court-line geometry",
     tagline: "Pick your court. Lock your time.",
-    primary: "#102019",
-    paper: "#F4F0E6",
-    electric: "#315C46",
-    citrus: "#C9F24A",
-    coral: "#C75D45",
+    primary: "#041630",
+    paper: "#F4F7FB",
+    electric: "#1478D4",
+    citrus: "#B8F000",
+    coral: "#168DEC",
   },
   previewCourts: [
     {

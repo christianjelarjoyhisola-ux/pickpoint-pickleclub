@@ -1,25 +1,25 @@
 .manageShell {
-  --ink: #12211d;
-  --ink-2: #20302b;
-  --paper: #f4f0e6;
-  --paper-deep: #f0eee7;
-  --brand-surface: #fffdf7;
-  --hero: #10261f;
-  --surface: #fffdf7;
-  --white: #fffdf7;
-  --blue: #6558e8;
-  --blue-soft: #ebe9ff;
-  --citrus: #7dd7b8;
-  --coral: #ff6b55;
+  --ink: #041630;
+  --ink-2: #0a2b5a;
+  --paper: #f4f7fb;
+  --paper-deep: #e8eef7;
+  --brand-surface: #ffffff;
+  --hero: #020e25;
+  --surface: #ffffff;
+  --white: #ffffff;
+  --blue: #1478d4;
+  --blue-soft: #e6f2ff;
+  --citrus: #b8f000;
+  --coral: #168dec;
   --danger: #c94c3b;
   --positive: #16845b;
   --positive-soft: #e4f7f0;
   --warning: #9a6410;
   --warning-soft: #fff6df;
-  --muted: #71807a;
-  --line: #d8d8ce;
-  --line-dark: rgba(18, 33, 29, .16);
-  --shadow: 0 1px 2px rgba(18,33,29,.04), 0 12px 32px rgba(18,33,29,.055);
+  --muted: #627086;
+  --line: #ccd6e4;
+  --line-dark: rgba(4, 22, 48, .16);
+  --shadow: 0 1px 2px rgba(4,22,48,.05), 0 12px 32px rgba(4,22,48,.07);
   --admin-sidebar: 258px;
   --admin-gutter: clamp(24px, 3vw, 48px);
   --admin-panel-pad: clamp(20px, 1.6vw, 24px);
@@ -109,7 +109,7 @@
 .rallyMetrics article:nth-child(2)::after { background: #ebe9ff; }.rallyMetrics article:nth-child(3)::after { background: #fff0ec; }.rallyMetrics article:nth-child(4)::after { background: #fff6df; }
 .rallyMetrics article > div { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: .65rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .rallyMetrics article i { width: 29px; height: 29px; display: grid; place-items: center; border-radius: 8px; font-style: normal; }
-.rallyMetrics article i svg { width: 15px; }.metricMint { background:#e4f7f0;color:#16845b }.metricViolet { background:#ebe9ff;color:#6558e8 }.metricCoral { background:#fff0ec;color:#d5443d }.metricAmber { background:#fff6df;color:#9a6410 }
+.rallyMetrics article i svg { width: 15px; }.metricMint { background:#e4f7f0;color:#16845b }.metricViolet { background:#ebe9ff;color:#1478d4 }.metricCoral { background:#fff0ec;color:#d5443d }.metricAmber { background:#fff6df;color:#9a6410 }
 .rallyMetrics article > strong { display: block; margin-top: 8px; font-size: 1.95rem; letter-spacing: -.06em; line-height: 1; }
 .rallyMetrics article p { margin: 7px 0 0; color: var(--muted); font-size: .69rem; }
 .rallyMetrics article > b { position: absolute; left: 21px; right: 21px; bottom: 15px; height: 5px; overflow: hidden; border-radius: 99px; background: var(--paper-deep); }
@@ -838,7 +838,7 @@
 .moreButton { white-space: nowrap; }
 
 .bookingsWorkspace {
-  --booking-violet: #6558e8;
+  --booking-violet: #1478d4;
   --booking-violet-soft: #eeecff;
   --booking-mint: #5ed8b6;
   display: grid;
@@ -1199,7 +1199,7 @@
 .dayEmpty > p:last-of-type { max-width: 430px; margin: 8px 0 19px; color: var(--muted); font-size: var(--text-meta); }
 
 .courtBlocksWorkspace {
-  --block-violet: #6558e8;
+  --block-violet: #1478d4;
   --block-violet-soft: #eeecff;
   display: grid;
   min-width: 0;
@@ -1325,20 +1325,20 @@
 .customerProfileHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; border-bottom: 1px solid var(--line); padding-bottom: 20px; }
 .customerProfileIdentity { display: flex; min-width: 0; align-items: flex-start; gap: 13px; }
 .customerProfileIdentity > div:last-child { min-width: 0; }
-.customerProfileEyebrow { color: #6558e8; font-size: var(--text-micro); font-weight: 800; letter-spacing: var(--tracking-label); text-transform: uppercase; }
+.customerProfileEyebrow { color: #1478d4; font-size: var(--text-micro); font-weight: 800; letter-spacing: var(--tracking-label); text-transform: uppercase; }
 .customerProfileIdentity h2 { margin: 5px 0 0; font-size: 1.38rem; letter-spacing: -.045em; }
 .customerProfileIdentity p { margin: 6px 0 0; color: var(--muted); font-size: var(--text-caption); line-height: 1.55; }
-.customerDrawerClose { display: grid; width: 38px; height: 38px; flex: 0 0 auto; place-items: center; border: 1px solid var(--line); border-radius: 10px; background: #fffdf7; color: var(--ink); cursor: pointer; }
+.customerDrawerClose { display: grid; width: 38px; height: 38px; flex: 0 0 auto; place-items: center; border: 1px solid var(--line); border-radius: 10px; background: #ffffff; color: var(--ink); cursor: pointer; }
 .customerDrawerClose:hover { border-color: #b9bdb6; background: #fff; }
 
 .customerContactCard { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 18px; }
-.customerContactCard > div { display: grid; min-width: 0; grid-template-columns: 22px 1fr; border: 1px solid var(--line); border-radius: 12px; background: #fffdf7; padding: 13px; }
+.customerContactCard > div { display: grid; min-width: 0; grid-template-columns: 22px 1fr; border: 1px solid var(--line); border-radius: 12px; background: #ffffff; padding: 13px; }
 .customerContactCard svg { grid-row: 1 / span 2; color: #16845b; }
 .customerContactCard span { color: var(--muted); font-size: var(--text-micro); }
 .customerContactCard strong { overflow: hidden; margin-top: 4px; font-size: var(--text-caption); text-overflow: ellipsis; white-space: nowrap; }
 
 .customerProfileMetrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
-.customerProfileMetrics > div { border: 1px solid var(--line); border-radius: 12px; background: #fffdf7; padding: 12px; }
+.customerProfileMetrics > div { border: 1px solid var(--line); border-radius: 12px; background: #ffffff; padding: 12px; }
 .customerProfileMetrics span, .customerProfileMetrics strong { display: block; }
 .customerProfileMetrics span { color: var(--muted); font-size: var(--text-micro); }
 .customerProfileMetrics strong { margin-top: 6px; font-size: 1rem; letter-spacing: -.035em; }
@@ -1362,7 +1362,7 @@
 .customerHistoryEmpty { color: var(--muted); font-size: var(--text-caption); }
 .customerProfileFooter { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: auto; border-top: 1px solid var(--line); padding-top: 18px; }
 .customerProfileFooter > span { max-width: 230px; color: var(--muted); font-size: var(--text-micro); line-height: 1.5; }
-.customerProfileFooter button { display: inline-flex; min-height: 40px; align-items: center; gap: 8px; border: 0; border-radius: 10px; background: #6558e8; padding: 0 15px; color: #fff; font-size: var(--text-caption); font-weight: 750; cursor: pointer; box-shadow: 0 8px 18px rgba(101,88,232,.18); }
+.customerProfileFooter button { display: inline-flex; min-height: 40px; align-items: center; gap: 8px; border: 0; border-radius: 10px; background: #1478d4; padding: 0 15px; color: #fff; font-size: var(--text-caption); font-weight: 750; cursor: pointer; box-shadow: 0 8px 18px rgba(101,88,232,.18); }
 
 @keyframes customerFadeIn { from { opacity: 0; } }
 @keyframes customerSlideIn { from { transform: translateX(24px); opacity: .72; } }
@@ -1613,16 +1613,16 @@
 .fatalState .statePanel { width: min(680px, 100%); min-height: 430px; }
 
 .signInShell {
-  --ink: #102019;
+  --ink: #041630;
   --paper: #f4f7fa;
   --paper-deep: #eaf0f6;
   --surface: #fff;
   --white: #fff;
-  --blue: #315c46;
+  --blue: #1478d4;
   --blue-soft: #eaf0f6;
-  --citrus: #c9f24a;
-  --coral: #c75d45;
-  --danger: #c75d45;
+  --citrus: #b8f000;
+  --coral: #168dec;
+  --danger: #168dec;
   --muted: #526678;
   --line: #cfdae5;
   min-height: 100svh;
@@ -1930,16 +1930,16 @@
 .compactFormActions > span { color: var(--muted); font-size: var(--text-caption); }
 .compactFields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .compactFormActions { margin-top: 15px; border-top: 1px solid var(--line); padding-top: 14px; }
-.rescheduleWorkspace { border-color: #d5d0ff; background: linear-gradient(145deg, #fffdf7 0%, #faf9f4 100%); box-shadow: 0 14px 34px rgba(27, 39, 34, .055); }
+.rescheduleWorkspace { border-color: #d5d0ff; background: linear-gradient(145deg, #ffffff 0%, #faf9f4 100%); box-shadow: 0 14px 34px rgba(27, 39, 34, .055); }
 .rescheduleWorkspace .compactFormHeading { align-items: flex-start; }
 .rescheduleWorkspace .compactFormHeading h3 { font-size: 1.08rem; letter-spacing: -.035em; }
 .rescheduleWorkspace .compactFormHeading > div > span { display: block; margin-top: 5px; color: var(--muted); font-size: var(--text-caption); }
 .rescheduleControls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-.rescheduleControls > div { display: grid; align-content: center; border: 1px solid var(--line); border-radius: 11px; background: #fffdf7; padding: 10px 12px; }
+.rescheduleControls > div { display: grid; align-content: center; border: 1px solid var(--line); border-radius: 11px; background: #ffffff; padding: 10px 12px; }
 .rescheduleControls > div span { color: var(--muted); font-size: var(--text-micro); font-weight: 750; text-transform: uppercase; letter-spacing: var(--tracking-label); }
 .rescheduleControls > div strong { margin-top: 5px; font-size: var(--text-meta); }
 .rescheduleControls > div small { margin-top: 3px; color: var(--muted); font-size: var(--text-micro); }
-.rescheduleAvailability { margin-top: 14px; border: 1px solid var(--line); border-radius: 14px; background: #fffdf7; padding: 15px; }
+.rescheduleAvailability { margin-top: 14px; border: 1px solid var(--line); border-radius: 14px; background: #ffffff; padding: 15px; }
 .rescheduleAvailabilityHeader { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
 .rescheduleAvailabilityHeader h4 { margin: 3px 0 0; font-size: var(--text-subheading); letter-spacing: -.035em; }
 .rescheduleLegend { display: flex; flex-wrap: wrap; gap: 11px; color: var(--muted); font-size: var(--text-micro); }
@@ -1947,7 +1947,7 @@
 .rescheduleLegend i { width: 8px; height: 8px; border-radius: 3px; }
 .slotOpenDot { border: 1px solid #89c6b0; background: #e9f7f2; }
 .slotBookedDot { background: #d9d9d5; }
-.slotSelectedDot { background: #6558e8; }
+.slotSelectedDot { background: #1478d4; }
 .rescheduleSlotGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; margin-top: 13px; }
 .rescheduleSlot { min-width: 0; min-height: 78px; border: 1px solid #b9d9cd; border-radius: 11px; background: #f5fbf8; padding: 10px; color: #173d31; text-align: left; cursor: pointer; transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease, transform 140ms ease; }
 .rescheduleSlot:hover:not(:disabled) { border-color: #16845b; background: #edf9f4; transform: translateY(-1px); box-shadow: 0 7px 16px rgba(22,132,91,.09); }
@@ -1955,7 +1955,7 @@
 .rescheduleSlot strong { font-size: var(--text-meta); }
 .rescheduleSlot span { margin-top: 3px; color: var(--muted); font-size: var(--text-micro); }
 .rescheduleSlot small { margin-top: 8px; color: #16845b; font-size: var(--text-micro); font-weight: 750; text-transform: capitalize; }
-.rescheduleSlotSelected { border-color: #6558e8; background: #eeebff; color: #4539bb; box-shadow: 0 0 0 3px rgba(101,88,232,.12); }
+.rescheduleSlotSelected { border-color: #1478d4; background: #eeebff; color: #4539bb; box-shadow: 0 0 0 3px rgba(101,88,232,.12); }
 .rescheduleSlotSelected small { color: #5546d7; }
 .rescheduleSlotUnavailable { border-color: #d8d8ce; background: repeating-linear-gradient(-45deg, #f6f6f3, #f6f6f3 6px, #f0f0ec 6px, #f0f0ec 12px); color: #8e9692; cursor: not-allowed; opacity: .78; }
 .rescheduleSlotUnavailable small { color: #8e9692; }
@@ -2390,13 +2390,13 @@
 .pointAccess {
   border: 1px solid var(--line, #d8d8ce);
   border-radius: 20px;
-  background: #fffdf7;
+  background: #ffffff;
 }
 
-.pointWelcome { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: clamp(24px, 4vw, 46px); background: #102019; color: #f4f0e6; }
-.pointWelcome h2 { margin: 8px 0 10px; color: #f4f0e6; font-family: var(--font-display), serif; font-size: clamp(2rem, 4vw, 3.8rem); font-weight: 500; letter-spacing: -.055em; }
+.pointWelcome { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: clamp(24px, 4vw, 46px); background: #041630; color: #f4f7fb; }
+.pointWelcome h2 { margin: 8px 0 10px; color: #f4f7fb; font-family: var(--font-display), serif; font-size: clamp(2rem, 4vw, 3.8rem); font-weight: 500; letter-spacing: -.055em; }
 .pointWelcome p:last-child { max-width: 520px; margin: 0; color: rgba(244, 240, 230, .7); }
-.pointWelcome .eyebrow { color: #c9f24a; }
+.pointWelcome .eyebrow { color: #b8f000; }
 
 .pointDay > header,
 .pointCourts > header,
@@ -2406,12 +2406,12 @@
 .pointAttention h2,
 .pointSetup h2,
 .pointLaunch h2,
-.pointAccess h2 { margin: 4px 0 0; color: #102019; font-family: var(--font-display), serif; font-size: clamp(1.45rem, 2.2vw, 2.15rem); font-weight: 550; letter-spacing: -.035em; }
-.pointDay > header button { display: inline-flex; align-items: center; gap: 7px; border: 0; background: none; color: #102019; font-weight: 750; cursor: pointer; }
+.pointAccess h2 { margin: 4px 0 0; color: #041630; font-family: var(--font-display), serif; font-size: clamp(1.45rem, 2.2vw, 2.15rem); font-weight: 550; letter-spacing: -.035em; }
+.pointDay > header button { display: inline-flex; align-items: center; gap: 7px; border: 0; background: none; color: #041630; font-weight: 750; cursor: pointer; }
 .pointDay > header button svg { width: 15px; }
 
 .pointBookingList { display: grid; }
-.pointBookingList > button { display: grid; min-height: 76px; grid-template-columns: 145px minmax(0, 1fr) auto 20px; align-items: center; gap: 18px; border: 0; border-bottom: 1px solid var(--line, #d8d8ce); background: transparent; padding: 12px 24px; color: #102019; text-align: left; cursor: pointer; }
+.pointBookingList > button { display: grid; min-height: 76px; grid-template-columns: 145px minmax(0, 1fr) auto 20px; align-items: center; gap: 18px; border: 0; border-bottom: 1px solid var(--line, #d8d8ce); background: transparent; padding: 12px 24px; color: #041630; text-align: left; cursor: pointer; }
 .pointBookingList > button:last-child { border-bottom: 0; }
 .pointBookingList > button:hover { background: #f7f4e9; }
 .pointBookingList time { font-size: .82rem; font-weight: 800; }
@@ -2432,8 +2432,8 @@
 
 .pointAttention { display: grid; grid-template-columns: minmax(220px, .8fr) repeat(2, minmax(210px, 1fr)); overflow: hidden; }
 .pointAttention > div:first-child { display: block; border-right: 1px solid var(--line, #d8d8ce); border-bottom: 0; }
-.pointAttention > button { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; border: 0; border-right: 1px solid var(--line, #d8d8ce); background: #fffdf7; padding: 20px; text-align: left; cursor: pointer; }
-.pointAttention > button > span { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 50%; background: #c9f24a; font-weight: 850; }
+.pointAttention > button { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; border: 0; border-right: 1px solid var(--line, #d8d8ce); background: #ffffff; padding: 20px; text-align: left; cursor: pointer; }
+.pointAttention > button > span { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 50%; background: #b8f000; font-weight: 850; }
 .pointAttention > button small { grid-column: 2; color: #6a746e; }
 .pointAttention > button svg { width: 16px; grid-column: 3; grid-row: 1 / span 2; }
 
@@ -2447,9 +2447,9 @@
 .pointLaunch > header > p:last-child,
 .pointAccess > header > p:last-child { color: #66716b; }
 .pointSetup > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--line, #d8d8ce); border-left: 1px solid var(--line, #d8d8ce); }
-.pointSetup > div > button { display: grid; min-height: 116px; grid-template-columns: auto 1fr auto; align-items: center; gap: 15px; border: 0; border-right: 1px solid var(--line, #d8d8ce); border-bottom: 1px solid var(--line, #d8d8ce); background: transparent; padding: 22px; color: #102019; text-align: left; cursor: pointer; }
+.pointSetup > div > button { display: grid; min-height: 116px; grid-template-columns: auto 1fr auto; align-items: center; gap: 15px; border: 0; border-right: 1px solid var(--line, #d8d8ce); border-bottom: 1px solid var(--line, #d8d8ce); background: transparent; padding: 22px; color: #041630; text-align: left; cursor: pointer; }
 .pointSetup > div > button:hover { background: #f7f4e9; }
-.pointSetup i { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 12px; background: #102019; color: #c9f24a; }
+.pointSetup i { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 12px; background: #041630; color: #b8f000; }
 .pointSetup i svg { width: 19px; }
 .pointSetup button > span { display: grid; gap: 5px; }
 .pointSetup small { color: #66716b; line-height: 1.45; }
@@ -2458,7 +2458,7 @@
 .pointChecklist { display: grid; margin: 26px 0; border-top: 1px solid var(--line, #d8d8ce); }
 .pointChecklist article { display: grid; grid-template-columns: 40px 1fr; gap: 15px; padding: 18px 0; border-bottom: 1px solid var(--line, #d8d8ce); }
 .pointChecklist article > span { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 50%; background: #eee9dc; font-size: .72rem; font-weight: 850; }
-.pointChecklist article[data-complete="true"] > span { background: #c9f24a; }
+.pointChecklist article[data-complete="true"] > span { background: #b8f000; }
 .pointChecklist strong { display: block; }
 .pointChecklist p { margin: 4px 0 0; color: #66716b; }
 .pointLaunch > footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
@@ -2502,6 +2502,10 @@
 .manageShell .mobileNav button span svg{width:15px;height:15px}
 @media (max-width:900px){.manageShell .topbar{position:static;min-height:76px}.manageShell .main{padding:22px 18px 80px}}
 @media (max-width:680px){.manageShell .topbar{flex-direction:row;align-items:center;padding:0 15px}}
+
+@media (max-width: 900px) {
+  .mobileBrand .brandLogo { width: 38px; }
+}
 
 /* Compact PickPoint hierarchy across management. */
 .manageShell {

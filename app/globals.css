@@ -7,16 +7,16 @@
    * The scale deliberately tops out at a restrained 3rem marketing hero;
    * product page titles and section headings stay compact.
    */
-  --ink: #102019;
-  --paper: #f4f0e6;
-  --electric: #315c46;
-  --citrus: #c9f24a;
-  --coral: #c75d45;
-  --mist: #ebe7dd;
-  --white: #fffdf7;
-  --muted: #68736c;
-  --line: #d8d8ce;
-  --shadow-soft: 0 1px 2px rgba(16, 32, 25, 0.04), 0 8px 24px rgba(16, 32, 25, 0.05);
+  --ink: #041630;
+  --paper: #f4f7fb;
+  --electric: #1478d4;
+  --citrus: #b8f000;
+  --coral: #168dec;
+  --mist: #e8eef7;
+  --white: #ffffff;
+  --muted: #627086;
+  --line: #ccd6e4;
+  --shadow-soft: 0 1px 2px rgba(4, 22, 48, 0.05), 0 10px 28px rgba(4, 22, 48, 0.07);
   --text-micro: 0.6875rem;
   --text-caption: 0.75rem;
   --text-meta: 0.8125rem;
