@@ -58,8 +58,8 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
     },
     icons: {
-      icon: [{ url: "/pickpoint-mark-v2.png", type: "image/png" }],
-      apple: [{ url: "/pickpoint-mark-v2.png", type: "image/png" }],
+      icon: [{ url: "/pickpoint-mark-v4.png", type: "image/png" }],
+      apple: [{ url: "/pickpoint-mark-v4.png", type: "image/png" }],
     },
   };
 }

@@ -23,7 +23,7 @@ export function GuestShell({ children, current }: GuestShellProps) {
       </header>
       <main id="main-content">{children}</main>
       <footer className="pp-footer">
-        <div><Image src="/pickpoint-mark-v2.png" alt="" width={56} height={64} unoptimized /><strong>PickPoint Pickle Club</strong></div>
+        <div><Image src="/pickpoint-mark-v4.png" alt="" width={56} height={50} unoptimized /><strong>PickPoint Pickle Club</strong></div>
         <p>Play. Rally. Connect.</p>
         <Link href="/manage">Staff sign in</Link>
       </footer>

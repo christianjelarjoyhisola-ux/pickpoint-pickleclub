@@ -22,7 +22,7 @@ export function GuestHome() {
           <p className="pp-kicker"><span /> Court reservations, made clear</p>
           <div className="pp-hero-title">
             <h1>Play.<br /><em>Rally.</em><br />Connect.</h1>
-            <Image src="/pickpoint-mark-v2.png" alt="PickPoint location-pin logo" width={150} height={180} priority unoptimized />
+            <Image src="/pickpoint-mark-v4.png" alt="PickPoint location-pin logo" width={180} height={161} priority unoptimized />
           </div>
           <p className="pp-lede">Choose one court, lock in a continuous playing time, and keep everything under one booking reference.</p>
           <div className="pp-actions">
