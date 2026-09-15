@@ -4,6 +4,7 @@ import { createClient, type Session, type SupabaseClient } from "@supabase/supab
 import { activeTenant } from "../../tenants/registry";
 import type {
   AvailabilityResponse,
+  BookingCapabilities,
   BookingConfirmation,
   BookingConfirmationSession,
   BookingSessionInput,
@@ -351,7 +352,7 @@ function previewBootstrap(): TenantBootstrap {
 
 export async function getTenantBootstrap(): Promise<TenantBootstrap> {
   if (platformMode() === "preview") return previewBootstrap();
-  const [result, promotions] = await Promise.all([
+  const [result, promotions, pickPointPolicy] = await Promise.all([
     rpc<TenantBootstrap | null>("get_public_tenant_bootstrap", {
       p_tenant_slug: activeTenant.identity.slug,
       p_hostname: currentHostname(),
@@ -363,6 +364,13 @@ export async function getTenantBootstrap(): Promise<TenantBootstrap> {
       if (error instanceof PlatformRequestError && error.code === "PGRST202") return [];
       throw error;
     }),
+    rpc<{
+      publishedPolicy: Record<string, unknown>;
+      capabilities?: BookingCapabilities;
+    } | null>("get_pickpoint_public_booking_policy", {
+      p_tenant_slug: activeTenant.identity.slug,
+      p_hostname: currentHostname(),
+    }),
   ]);
   if (!result) {
     throw new PlatformRequestError(
@@ -371,7 +379,15 @@ export async function getTenantBootstrap(): Promise<TenantBootstrap> {
       "This PickPoint hostname is not registered with the booking platform.",
     );
   }
-  return { ...result, promotions };
+  return {
+    ...result,
+    promotions,
+    refundReschedulePolicy: pickPointPolicy,
+    capabilities: {
+      ...result.capabilities,
+      ...pickPointPolicy?.capabilities,
+    },
+  };
 }
 
 export async function getAvailability(date: string): Promise<AvailabilityResponse> {

@@ -123,6 +123,25 @@ test("keeps booking closed until verified tenant readiness is complete", async (
   assert.match(booking, /policyAccepted/);
 });
 
+test("supports a tenant-safe atomic multi-court booking grid", async () => {
+  const [booking, client, css, migration] = await Promise.all([
+    source("app/pickpoint-v2/guest/booking-view.tsx"),
+    source("app/lib/platform/client.ts"),
+    source("app/pickpoint-v2/guest/guest.css"),
+    source("supabase/migrations/20260916010000_pickpoint_public_booking_policy.sql"),
+  ]);
+  assert.match(booking, /className="pp-schedule"/);
+  assert.match(booking, /selectedSlotKeys/);
+  assert.match(booking, /sessions: selectedSlots\.map/);
+  assert.match(booking, /atomicMultiSessionBookingV1/);
+  assert.match(booking, /refund, and rescheduling policy/);
+  assert.match(client, /get_pickpoint_public_booking_policy/);
+  assert.match(css, /\.pp-schedule-scroll/);
+  assert.match(migration, /<> 'pickpoint-pickleclub'/);
+  assert.match(migration, /request_origin_matches_tenant/);
+  assert.match(migration, /atomicMultiSessionBookingV1/);
+});
+
 test("keeps the admin lean and capability-controlled", async () => {
   const admin = await source("app/pickpoint-v2/admin/PickPointDesk.tsx");
   assert.match(admin, /\["today","schedule","bookings","setup"\]/);

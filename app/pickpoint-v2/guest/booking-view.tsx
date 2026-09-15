@@ -31,21 +31,25 @@ function rateFor(court: PublicCourt, start: string): number | null {
   for (const raw of bands) {
     if (!raw || typeof raw !== "object") continue;
     const band = raw as { start?: unknown; end?: unknown; hourlyRate?: unknown };
-    if (typeof band.start === "string" && typeof band.end === "string" && typeof band.hourlyRate === "number" && minute >= minutes(band.start) && minute < minutes(band.end)) return band.hourlyRate;
+    const bandEnd = typeof band.end === "string" ? minutes(band.end) : -1;
+    const normalizedBandEnd = bandEnd === 0 ? 24 * 60 : bandEnd;
+    if (typeof band.start === "string" && typeof band.hourlyRate === "number" && minute >= minutes(band.start) && minute < normalizedBandEnd) return band.hourlyRate;
   }
   return null;
 }
 
-function estimate(court: PublicCourt | undefined, start: string, duration: number) {
-  if (!court) return null;
-  let total = 0;
-  for (let index = 0; index < duration; index += 1) {
-    const hour = `${pad(Math.floor(minutes(start) / 60) + index)}:00`;
-    const rate = rateFor(court, hour);
-    if (rate == null) return null;
-    total += rate;
-  }
-  return total;
+function closingMinutes(court: PublicCourt) {
+  const value = minutes(court.closesAt);
+  return value === 0 ? 24 * 60 : value;
+}
+
+function slotKey(courtId: string, startTime: string) {
+  return `${courtId}|${startTime}`;
+}
+
+function splitSlotKey(value: string) {
+  const separator = value.indexOf("|");
+  return { courtId: value.slice(0, separator), startTime: value.slice(separator + 1) };
 }
 
 function storedToken(reference: string) {
@@ -68,6 +72,7 @@ function publishedPolicy(value: Record<string, unknown> | null | undefined) {
   if (!content) return null;
   return {
     title: typeof row.title === "string" ? row.title : "Booking and cancellation rules",
+    intro: typeof row.intro === "string" ? row.intro : "Please review these rules before booking.",
     content,
     version: typeof row.version === "string" ? row.version : null,
   };
@@ -78,9 +83,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   const [mode, setMode] = useState(initialMode);
   const [step, setStep] = useState<Step>("select");
   const [date, setDate] = useState(() => isoDate(new Date()));
-  const [duration, setDuration] = useState(1);
-  const [courtId, setCourtId] = useState("");
-  const [startTime, setStartTime] = useState("");
+  const [selectedSlotKeys, setSelectedSlotKeys] = useState<string[]>([]);
   const [availability, setAvailability] = useState<AvailabilityResponse | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -95,15 +98,12 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   const bookingAttemptId = useRef<string | null>(null);
 
   const courts = useMemo(() => data?.courts ?? [], [data]);
-  const selectedCourtId = courtId || courts.find((item) => item.slug === initialCourtSlug)?.id || courts[0]?.id || "";
-  const court = courts.find((item) => item.id === selectedCourtId);
   const live = isPublicBookingReady(data);
-  const minDuration = court ? numberSetting((court.pricingConfig?.regular as { minimumHours?: unknown } | undefined)?.minimumHours, 1) : 1;
-  const maxDuration = court ? numberSetting((court.pricingConfig?.regular as { maximumHours?: unknown } | undefined)?.maximumHours, 3) : 3;
+  const multiSessionEnabled = data?.capabilities?.atomicMultiSessionBookingV1 === true;
   const paymentMethod: PaymentMethod | undefined = data?.paymentMethods[0];
   const policy = publishedPolicy(data?.refundReschedulePolicy);
-  const maximumAdvanceDays = court ? numberSetting(court.publicConfig?.maximumAdvanceDays, 30) : 30;
-  const minimumLeadMinutes = court ? numberSetting(court.publicConfig?.minimumLeadMinutes, 0) : 0;
+  const primaryCourt = courts.find((item) => item.slug === initialCourtSlug) ?? courts[0];
+  const maximumAdvanceDays = primaryCourt ? numberSetting(primaryCourt.publicConfig?.maximumAdvanceDays, 30) : 30;
   const maximumDate = isoDate(addDays(new Date(), maximumAdvanceDays));
 
   useEffect(() => {
@@ -113,42 +113,88 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     return () => { active = false; };
   }, [date, live]);
 
-  const slots = useMemo(() => {
-    if (!court || !availability) return [];
-    const availabilityCourt = availability.courts.find((item) => item.id === court.id);
-    if (!availabilityCourt) return [];
-    const opening = Math.ceil(minutes(court.opensAt) / 60);
-    const closingMinutes = minutes(court.closesAt);
-    const closing = Math.floor((closingMinutes === 0 ? 24 * 60 : closingMinutes) / 60);
-    const followingDate = isoDate(addDays(new Date(`${date}T12:00:00`), 1));
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0 });
+  }, [step]);
+
+  const scheduleTimes = useMemo(() => {
+    if (!courts.length) return [];
+    const opening = Math.min(...courts.map((court) => Math.ceil(minutes(court.opensAt) / 60)));
+    const closing = Math.max(...courts.map((court) => Math.floor(closingMinutes(court) / 60)));
     const result: string[] = [];
-    for (let hour = opening; hour + duration <= closing; hour += 1) {
-      const slotStart = `${date}T${pad(hour)}:00:00`;
-      const endHour = hour + duration;
-      const slotEnd = endHour === 24 ? `${followingDate}T00:00:00` : `${date}T${pad(endHour)}:00:00`;
-      const blocked = availabilityCourt.unavailable.some((entry) => entry.startsAt < slotEnd && entry.endsAt > slotStart);
-      const leadTime = new Date(slotStart).getTime() - bookingClock;
-      if (!blocked && leadTime >= minimumLeadMinutes * 60_000) result.push(`${pad(hour)}:00`);
+    for (let hour = opening; hour < closing; hour += 1) {
+      result.push(`${pad(hour)}:00`);
     }
     return result;
-  }, [availability, bookingClock, court, date, duration, minimumLeadMinutes]);
+  }, [courts]);
 
-  const estimatedTotal = estimate(court, startTime, duration);
-  const resetSelection = () => { setStep("select"); setConfirmation(null); setStartTime(""); setMessage(""); };
+  const selectedSlots = useMemo(() => {
+    const courtOrder = new Map(courts.map((court, index) => [court.id, index]));
+    return selectedSlotKeys.map(splitSlotKey).sort((left, right) =>
+      left.startTime.localeCompare(right.startTime) ||
+      (courtOrder.get(left.courtId) ?? 0) - (courtOrder.get(right.courtId) ?? 0)
+    );
+  }, [courts, selectedSlotKeys]);
+  const selectedSet = useMemo(() => new Set(selectedSlotKeys), [selectedSlotKeys]);
+  const estimatedTotal = selectedSlots.reduce((total, selection) => {
+    const selectedCourt = courts.find((court) => court.id === selection.courtId);
+    return total + (selectedCourt ? rateFor(selectedCourt, selection.startTime) ?? 0 : 0);
+  }, 0);
+
+  function slotIsAvailable(court: PublicCourt, startTime: string, source = availability) {
+    if (!source) return false;
+    const hour = minutes(startTime);
+    if (hour < minutes(court.opensAt) || hour + 60 > closingMinutes(court)) return false;
+    const minimumLeadMinutes = numberSetting(court.publicConfig?.minimumLeadMinutes, 0);
+    const slotStart = `${date}T${startTime}:00`;
+    const endHour = hour + 60;
+    const followingDate = isoDate(addDays(new Date(`${date}T12:00:00`), 1));
+    const slotEnd = endHour === 24 * 60
+      ? `${followingDate}T00:00:00`
+      : `${date}T${pad(Math.floor(endHour / 60))}:00:00`;
+    const availabilityCourt = source.courts.find((item) => item.id === court.id);
+    if (!availabilityCourt) return false;
+    const blocked = availabilityCourt.unavailable.some((entry) => entry.startsAt < slotEnd && entry.endsAt > slotStart);
+    const leadTime = new Date(slotStart).getTime() - bookingClock;
+    return !blocked && leadTime >= minimumLeadMinutes * 60_000 && rateFor(court, startTime) != null;
+  }
+
+  function toggleSlot(court: PublicCourt, startTime: string) {
+    if (!slotIsAvailable(court, startTime)) return;
+    const key = slotKey(court.id, startTime);
+    if (!selectedSet.has(key) && selectedSlotKeys.length >= 18) {
+      setMessage("A booking can contain at most 18 court-hours.");
+      return;
+    }
+    setSelectedSlotKeys((current) => current.includes(key)
+      ? current.filter((item) => item !== key)
+      : multiSessionEnabled ? [...current, key] : [key]);
+    bookingAttemptId.current = null;
+    setMessage("");
+  }
+
+  const resetSelection = () => { setStep("select"); setConfirmation(null); setSelectedSlotKeys([]); setMessage(""); };
 
   async function reserve(event: React.FormEvent) {
     event.preventDefault();
-    if (!court || !startTime || !live || !accepted) return;
+    if (!selectedSlots.length || !live || !accepted || !policy?.version) return;
     setBusy(true); setMessage("");
     try {
       bookingAttemptId.current ||= crypto.randomUUID();
-      const result = await createBooking({ courtId: court.id, bookingDate: date, startTime, durationHours: duration, customer, guestCount: 1, policyAccepted: true, policyVersion: policy?.version, clientRequestId: bookingAttemptId.current });
+      const result = await createBooking({ sessions: selectedSlots.map((selection) => ({ ...selection, bookingDate: date, durationHours: 1 })), customer, guestCount: 1, policyAccepted: true, policyVersion: policy.version, clientRequestId: bookingAttemptId.current });
       setConfirmation(result);
       try { window.localStorage.setItem(`pickpoint-booking:${result.reference.toUpperCase()}`, result.bookingToken); } catch { /* Private browsing may deny storage. */ }
       setStep(paymentMethod ? "payment" : "done");
     } catch (reason) {
       setMessage(reason instanceof Error ? reason.message : "We could not hold that time. Please choose another.");
-      getAvailability(date).then(setAvailability).catch(() => undefined);
+      getAvailability(date).then((result) => {
+        setAvailability(result);
+        setSelectedSlotKeys((current) => current.filter((key) => {
+          const selection = splitSlotKey(key);
+          const selectedCourt = courts.find((item) => item.id === selection.courtId);
+          return selectedCourt ? slotIsAvailable(selectedCourt, selection.startTime, result) : false;
+        }));
+      }).catch(() => undefined);
     }
     finally { setBusy(false); }
   }
@@ -205,7 +251,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
 
   return (
     <GuestShell current="book">
-      <section className="pp-book-head"><p className="pp-kicker">Book a court</p><h1>{step === "select" ? "When do you want to play?" : step === "details" ? "Who is the booking for?" : step === "payment" ? "Complete your payment." : "Your booking is recorded."}</h1><p>One court. One continuous time. No account required.</p></section>
+      <section className="pp-book-head"><p className="pp-kicker">Book a court</p><h1>{step === "select" ? "When do you want to play?" : step === "details" ? "Who is the booking for?" : step === "payment" ? "Complete your payment." : "Your booking is recorded."}</h1><p>Select one or more court times. No account required.</p></section>
       <div className="pp-book-layout">
         <ol className="pp-steps" aria-label="Booking progress">{["Time", "Details", "Payment", "Done"].map((label, index) => { const activeIndex = ["select", "details", "payment", "done"].indexOf(step); return <li key={label} aria-current={index === activeIndex ? "step" : undefined} className={index <= activeIndex ? "is-active" : ""}><i>{index < activeIndex ? <Check aria-hidden="true" /> : index + 1}</i><b>{label}</b></li>; })}</ol>
 
@@ -214,23 +260,31 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
 
         {data && live && step === "select" && (
           <section className="pp-book-card">
-            <div className="pp-fields-row"><label>Date<input type="date" value={date} min={isoDate(new Date())} max={maximumDate} onChange={(event) => { setAvailability(null); setMessage(""); setDate(event.target.value); setStartTime(""); bookingAttemptId.current = null; }} /></label><label>Duration<select value={duration} onChange={(event) => { setDuration(Number(event.target.value)); setStartTime(""); bookingAttemptId.current = null; }}>{Array.from({ length: maxDuration - minDuration + 1 }, (_, index) => minDuration + index).map((value) => <option key={value} value={value}>{value} hour{value === 1 ? "" : "s"}</option>)}</select></label></div>
-            <fieldset className="pp-court-choice"><legend>Choose a court</legend>{courts.map((item) => <button type="button" key={item.id} aria-pressed={item.id === selectedCourtId} className={item.id === selectedCourtId ? "is-selected" : ""} onClick={() => { setCourtId(item.id); setStartTime(""); bookingAttemptId.current = null; }}><span>{item.name}</span><small>{item.opensAt}–{item.closesAt}</small></button>)}</fieldset>
-            <fieldset className="pp-time-choice"><legend>Available start times</legend>{availability ? slots.length ? <div>{slots.map((slot) => <button type="button" key={slot} aria-pressed={slot === startTime} className={slot === startTime ? "is-selected" : ""} onClick={() => { setStartTime(slot); bookingAttemptId.current = null; }}>{timeLabel(slot)}</button>)}</div> : <p>No continuous {duration}-hour times are available for this court.</p> : <p>Checking available times…</p>}</fieldset>
+            <label className="pp-date-field">Date<input type="date" value={date} min={isoDate(new Date())} max={maximumDate} onChange={(event) => { setAvailability(null); setMessage(""); setDate(event.target.value); setSelectedSlotKeys([]); bookingAttemptId.current = null; }} /></label>
+            <div className="pp-schedule-heading"><div><strong>Choose court times</strong><span>Select one or more available one-hour slots.</span></div>{selectedSlots.length > 0 && <button type="button" onClick={() => setSelectedSlotKeys([])}>Clear</button>}</div>
+            <div className="pp-schedule-scroll" aria-busy={!availability}>
+              <table className="pp-schedule">
+                <thead><tr><th scope="col">Time</th>{courts.map((item) => <th scope="col" key={item.id}><strong>{item.name}</strong><small>{item.opensAt}–{item.closesAt}</small></th>)}</tr></thead>
+                <tbody>{scheduleTimes.map((time) => <tr key={time}><th scope="row">{timeLabel(time)}</th>{courts.map((item) => { const key = slotKey(item.id, time); const selected = selectedSet.has(key); const available = slotIsAvailable(item, time); const rate = rateFor(item, time); return <td key={item.id}><button type="button" aria-pressed={selected} disabled={!available} className={selected ? "is-selected" : ""} onClick={() => toggleSlot(item, time)}><span>{selected ? <><Check aria-hidden="true" /> Selected</> : available ? "Available" : "Unavailable"}</span>{available && rate != null && <small>{money(rate, item.currency)}</small>}</button></td>; })}</tr>)}</tbody>
+              </table>
+              {!availability && <div className="pp-schedule-loading">Checking availability…</div>}
+            </div>
+            <p className="pp-grid-note">All selected slots will be reserved together under one booking reference.</p>
             {message && <p className="pp-form-message" role="alert">{message}</p>}
-            <div className="pp-card-action"><span>{startTime ? <><small>Estimated court total</small><strong>{estimatedTotal == null ? "Confirmed next" : money(estimatedTotal, court?.currency)}</strong></> : "Choose a start time to continue"}</span><button className="pp-button pp-button-blue" disabled={!startTime} onClick={() => setStep("details")}>Continue <ArrowRight /></button></div>
+            <div className="pp-card-action"><span>{selectedSlots.length ? <><small>{selectedSlots.length} court-hour{selectedSlots.length === 1 ? "" : "s"} selected</small><strong>{money(estimatedTotal, primaryCourt?.currency)}</strong></> : "Choose at least one court time"}</span><button className="pp-button pp-button-blue" disabled={!selectedSlots.length} onClick={() => setStep("details")}>Continue <ArrowRight /></button></div>
           </section>
         )}
 
-        {step === "details" && court && (
+        {step === "details" && selectedSlots.length > 0 && (
           <form className="pp-book-card pp-details" onSubmit={reserve}>
             <button type="button" className="pp-back" onClick={() => setStep("select")}><ArrowLeft /> Change time</button>
             <div className="pp-fields-row"><label>Full name<input value={customer.name} onChange={(event) => setCustomer({ ...customer, name: event.target.value })} autoComplete="name" required /></label><label>Mobile number<input value={customer.phone} onChange={(event) => setCustomer({ ...customer, phone: event.target.value })} autoComplete="tel" inputMode="tel" required /></label></div>
             <label>Email address<input type="email" value={customer.email} onChange={(event) => setCustomer({ ...customer, email: event.target.value })} autoComplete="email" required /></label>
-            {policy && <details className="pp-policy"><summary>{policy.title}</summary><p>{policy.content}</p></details>}
-            <label className="pp-check"><input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} required /><span><strong>I agree to the booking and cancellation rules shown above.</strong><small>Your court is held only after the server accepts this request.</small></span></label>
+            <section className="pp-selection-review" aria-labelledby="selection-review-title"><div><strong id="selection-review-title">Your selected court times</strong><span>{selectedSlots.length} court-hour{selectedSlots.length === 1 ? "" : "s"} · {money(estimatedTotal, primaryCourt?.currency)}</span></div><ul>{selectedSlots.map((selection) => { const selectedCourt = courts.find((item) => item.id === selection.courtId); return <li key={slotKey(selection.courtId, selection.startTime)}><span>{timeLabel(selection.startTime)}</span><strong>{selectedCourt?.name}</strong></li>; })}</ul></section>
+            {policy ? <details className="pp-policy"><summary>{policy.title}</summary><div><span>{policy.intro}</span><p>{policy.content}</p></div></details> : <p className="pp-form-message" role="alert">The current booking policy could not be loaded. Please refresh before reserving.</p>}
+            <label className="pp-check"><input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} required disabled={!policy?.version} /><span><strong>I have read and agree to the current booking, cancellation, refund, and rescheduling policy.</strong><small>Your selected times are held only after the server accepts the complete request.</small></span></label>
             {message && <p className="pp-form-message" role="alert">{message}</p>}
-            <div className="pp-card-action"><span><small>{court.name}</small><strong>{date} · {timeLabel(startTime)} · {duration}h</strong></span><button className="pp-button pp-button-blue" disabled={busy || !accepted}>{busy ? "Holding your court…" : "Reserve this time"} <ArrowRight /></button></div>
+            <div className="pp-card-action"><span><small>{selectedSlots.length} court-hour{selectedSlots.length === 1 ? "" : "s"}</small><strong>{date} · {money(estimatedTotal, primaryCourt?.currency)}</strong></span><button className="pp-button pp-button-blue" disabled={busy || !accepted || !policy?.version}>{busy ? "Holding your courts…" : selectedSlots.length === 1 ? "Reserve this time" : "Reserve selected times"} <ArrowRight /></button></div>
           </form>
         )}
 
