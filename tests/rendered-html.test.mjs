@@ -105,15 +105,18 @@ test("renders every guest and admin route with PickPoint-only structure", async 
     assert.match(html, /<html[^>]+lang="en-PH"/i);
     assert.match(html, /<main[^>]+id="main-content"/i);
     assert.match(html, /PickPoint/i);
+    assert.doesNotMatch(html, /\/_vinext\/image\?/i, `${route} must use deployable direct image URLs`);
     assert.doesNotMatch(html, forbidden);
   }
 });
 
 test("keeps booking closed until verified tenant readiness is complete", async () => {
   const booking = await source("app/pickpoint-v2/guest/booking-view.tsx");
-  assert.match(booking, /publicBookingEnabled/);
-  assert.match(booking, /blockingReasons/);
-  assert.match(booking, /paymentMethods\.length/);
+  const readiness = await source("app/pickpoint-v2/guest/readiness.ts");
+  assert.match(readiness, /publicBookingEnabled/);
+  assert.match(readiness, /blockingReasons/);
+  assert.match(readiness, /courts\.length/);
+  assert.match(readiness, /paymentMethods\.length/);
   assert.match(booking, /getAvailability/);
   assert.match(booking, /createBooking/);
   assert.match(booking, /clientRequestId/);
@@ -127,14 +130,18 @@ test("keeps the admin lean and capability-controlled", async () => {
     assert.match(admin, new RegExp(action.replace(":", "\\:")));
   }
   assert.match(admin, /session\.capabilities/);
+  for (const operation of ["loadCalendarDay", "loadPaymentReceipt", "payment:reject", "booking:update", "schedule:unblock", "court:create", "business:update", "policy:publish", "remittance:update"]) {
+    assert.match(admin, new RegExp(operation.replace(":", "\\:")));
+  }
   assert.doesNotMatch(admin, /analytics|revenue chart|customer crm/i);
 });
 
 test("pins every browser request to the PickPoint tenant and shared project", async () => {
-  const [registry, config, client] = await Promise.all([
+  const [registry, config, client, adapter] = await Promise.all([
     source("app/tenants/registry.ts"),
     source("app/tenants/pickpoint-pickleclub/config.ts"),
     source("app/lib/platform/client.ts"),
+    source("app/manage/management-adapter.ts"),
   ]);
   assert.match(registry, /ACTIVE_TENANT_SLUG = "pickpoint-pickleclub" as const/);
   assert.match(config, /pickpoint-pickleclub\.christianjelarjoyhisola\.workers\.dev/);
@@ -143,17 +150,21 @@ test("pins every browser request to the PickPoint tenant and shared project", as
   assert.doesNotMatch(client, /reference: `DINK-/);
   assert.doesNotMatch(client, /tenantId\s*:/);
   assert.doesNotMatch(client, /SUPABASE_SERVICE|service[_-]?role/i);
+  assert.match(adapter, /LIVE_TENANT_SCOPE_MISMATCH/);
+  assert.match(adapter, /assertPickPointContext/);
 });
 
 test("uses the supplied transparent PickPoint brand assets and palette", async () => {
   const [guestCss, adminCss, logo] = await Promise.all([
     source("app/pickpoint-v2/guest/guest.css"),
     source("app/pickpoint-v2/admin/admin.module.css"),
-    readFile(path.join(root, "public/pickpoint-pickleclub-logo.png")),
+    readFile(path.join(root, "public/pickpoint-logo-v2.png")),
   ]);
   assert.match(guestCss, /#041630/i);
   assert.match(guestCss, /#b8f000/i);
   assert.match(adminCss, /#041630/i);
+  assert.match(await source("app/pickpoint-v2/guest/guest-shell.tsx"), /pickpoint-wordmark-v3\.png/);
+  assert.match(await source("app/layout.tsx"), /pickpoint-mark-v2\.png/);
   assert.equal(logo.readUInt32BE(16), 1254);
   assert.equal(logo.readUInt32BE(20), 1254);
   assert.equal(logo[25], 6, "PNG must use RGBA color type");

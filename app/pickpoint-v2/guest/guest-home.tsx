@@ -4,11 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Clock3, MapPin } from "lucide-react";
 import { GuestShell } from "./guest-shell";
+import { isPublicBookingReady } from "./readiness";
 import { useTenant } from "./use-tenant";
 
 export function GuestHome() {
   const { data, loading } = useTenant();
-  const live = data?.readiness.publicBookingEnabled === true;
+  const live = isPublicBookingReady(data);
   const courtCount = data?.courts.length ?? 0;
   return (
     <GuestShell current="home">
@@ -24,7 +25,7 @@ export function GuestHome() {
         </div>
         <div className="pp-board" aria-label="PickPoint venue status">
           <div className="pp-board-top"><span>PickPoint court desk</span><span className={live ? "pp-status live" : "pp-status"}>{live ? "Booking open" : "Opening soon"}</span></div>
-          <Image src="/pickpoint-pickleclub-mark.png" alt="" width={210} height={240} priority />
+          <Image src="/pickpoint-mark-v2.png" alt="" width={210} height={240} priority unoptimized />
           <dl>
             <div><dt><MapPin /></dt><dd><strong>Venue</strong><span>{data?.business && typeof data.business.address === "string" ? data.business.address : "Location to be announced"}</span></dd></div>
             <div><dt><CalendarDays /></dt><dd><strong>Courts</strong><span>{loading ? "Checking setup…" : courtCount ? `${courtCount} configured` : "Being prepared"}</span></dd></div>

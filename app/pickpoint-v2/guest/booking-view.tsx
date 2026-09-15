@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, Search, Upload } from "lucide-react";
-import { bookingStatus, createBooking, getAvailability, submitPaymentReceipt } from "../../lib/platform/client";
+import { bookingStatus, cancelUnpaidBooking, createBooking, getAvailability, submitPaymentReceipt } from "../../lib/platform/client";
 import type { AvailabilityResponse, BookingConfirmation, PaymentMethod, PublicCourt } from "../../lib/platform/types";
 import { GuestShell } from "./guest-shell";
+import { isPublicBookingReady } from "./readiness";
 import { useTenant } from "./use-tenant";
 
 type Step = "select" | "details" | "payment" | "done";
@@ -51,6 +52,27 @@ function storedToken(reference: string) {
   try { return window.localStorage.getItem(`pickpoint-booking:${reference.trim().toUpperCase()}`) || ""; } catch { return ""; }
 }
 
+function addDays(value: Date, days: number) {
+  const result = new Date(value);
+  result.setDate(result.getDate() + days);
+  return result;
+}
+
+function publishedPolicy(value: Record<string, unknown> | null | undefined) {
+  if (!value) return null;
+  const nested = value.publishedPolicy;
+  const row = nested && typeof nested === "object" && !Array.isArray(nested)
+    ? nested as Record<string, unknown>
+    : value;
+  const content = typeof row.content === "string" ? row.content : "";
+  if (!content) return null;
+  return {
+    title: typeof row.title === "string" ? row.title : "Booking and cancellation rules",
+    content,
+    version: typeof row.version === "string" ? row.version : null,
+  };
+}
+
 export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps) {
   const { data, error: tenantError, loading } = useTenant();
   const [mode, setMode] = useState(initialMode);
@@ -69,17 +91,21 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   const [paymentReference, setPaymentReference] = useState("");
   const [lookupReference, setLookupReference] = useState("");
   const [lookupResult, setLookupResult] = useState<Record<string, unknown> | null>(null);
+  const [bookingClock] = useState(() => Date.now());
+  const bookingAttemptId = useRef<string | null>(null);
 
   const courts = useMemo(() => data?.courts ?? [], [data]);
   const selectedCourtId = courtId || courts.find((item) => item.slug === initialCourtSlug)?.id || courts[0]?.id || "";
   const court = courts.find((item) => item.id === selectedCourtId);
   const blockingReasons = data?.readiness.blockingReasons ?? [];
-  const live = data?.readiness.publicBookingEnabled === true
-    && blockingReasons.length === 0
-    && data.paymentMethods.length > 0;
+  const live = isPublicBookingReady(data);
   const minDuration = court ? numberSetting((court.pricingConfig?.regular as { minimumHours?: unknown } | undefined)?.minimumHours, 1) : 1;
   const maxDuration = court ? numberSetting((court.pricingConfig?.regular as { maximumHours?: unknown } | undefined)?.maximumHours, 3) : 3;
   const paymentMethod: PaymentMethod | undefined = data?.paymentMethods[0];
+  const policy = publishedPolicy(data?.refundReschedulePolicy);
+  const maximumAdvanceDays = court ? numberSetting(court.publicConfig?.maximumAdvanceDays, 30) : 30;
+  const minimumLeadMinutes = court ? numberSetting(court.publicConfig?.minimumLeadMinutes, 0) : 0;
+  const maximumDate = isoDate(addDays(new Date(), maximumAdvanceDays));
 
   useEffect(() => {
     if (!live || !date) return;
@@ -99,10 +125,11 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
       const slotStart = `${date}T${pad(hour)}:00:00`;
       const slotEnd = `${date}T${pad(hour + duration)}:00:00`;
       const blocked = availabilityCourt.unavailable.some((entry) => entry.startsAt < slotEnd && entry.endsAt > slotStart);
-      if (!blocked) result.push(`${pad(hour)}:00`);
+      const leadTime = new Date(slotStart).getTime() - bookingClock;
+      if (!blocked && leadTime >= minimumLeadMinutes * 60_000) result.push(`${pad(hour)}:00`);
     }
     return result;
-  }, [availability, court, date, duration]);
+  }, [availability, bookingClock, court, date, duration, minimumLeadMinutes]);
 
   const estimatedTotal = estimate(court, startTime, duration);
   const resetSelection = () => { setStep("select"); setConfirmation(null); setStartTime(""); setMessage(""); };
@@ -112,11 +139,15 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     if (!court || !startTime || !live || !accepted) return;
     setBusy(true); setMessage("");
     try {
-      const result = await createBooking({ courtId: court.id, bookingDate: date, startTime, durationHours: duration, customer, guestCount: 1, policyAccepted: true, clientRequestId: crypto.randomUUID() });
+      bookingAttemptId.current ||= crypto.randomUUID();
+      const result = await createBooking({ courtId: court.id, bookingDate: date, startTime, durationHours: duration, customer, guestCount: 1, policyAccepted: true, policyVersion: policy?.version, clientRequestId: bookingAttemptId.current });
       setConfirmation(result);
       try { window.localStorage.setItem(`pickpoint-booking:${result.reference.toUpperCase()}`, result.bookingToken); } catch { /* Private browsing may deny storage. */ }
       setStep(paymentMethod ? "payment" : "done");
-    } catch (reason) { setMessage(reason instanceof Error ? reason.message : "We could not hold that time. Please choose another."); }
+    } catch (reason) {
+      setMessage(reason instanceof Error ? reason.message : "We could not hold that time. Please choose another.");
+      getAvailability(date).then(setAvailability).catch(() => undefined);
+    }
     finally { setBusy(false); }
   }
 
@@ -142,6 +173,19 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     finally { setBusy(false); }
   }
 
+  async function cancelBooking() {
+    const reference = lookupReference.trim().toUpperCase();
+    const token = storedToken(reference);
+    if (!token || !window.confirm(`Cancel unpaid booking ${reference}?`)) return;
+    setBusy(true); setMessage("");
+    try {
+      await cancelUnpaidBooking(reference, token);
+      setLookupResult(await bookingStatus(reference, token));
+      setMessage("The unpaid booking was cancelled.");
+    } catch (reason) { setMessage(reason instanceof Error ? reason.message : "The booking could not be cancelled."); }
+    finally { setBusy(false); }
+  }
+
   if (mode === "manage") return (
     <GuestShell current="manage">
       <section className="pp-book-head"><p className="pp-kicker">My booking</p><h1>Find your reservation.</h1><p>For privacy, bookings can be opened only on the browser used to make them.</p></section>
@@ -151,7 +195,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
           <div><input id="booking-reference" value={lookupReference} onChange={(event) => setLookupReference(event.target.value)} placeholder="e.g. PP-123456" autoCapitalize="characters" required /><button className="pp-button pp-button-blue" disabled={busy}><Search /> {busy ? "Checking…" : "Find booking"}</button></div>
         </form>
         {message && <p className="pp-form-message" role="alert">{message}</p>}
-        {lookupResult && <div className="pp-found"><Check /><div><span>Booking found</span><strong>{lookupReference.toUpperCase()}</strong><p>Status: {String((lookupResult.booking as Record<string, unknown> | undefined)?.status ?? "Available")}</p></div></div>}
+        {lookupResult && <div className="pp-found"><Check /><div><span>Booking found</span><strong>{lookupReference.toUpperCase()}</strong><p>Status: {String((lookupResult.booking as Record<string, unknown> | undefined)?.status ?? "Available")}</p>{(lookupResult.booking as Record<string, unknown> | undefined)?.paymentStatus === "unpaid" && !["cancelled", "expired"].includes(String((lookupResult.booking as Record<string, unknown> | undefined)?.status)) && <button className="pp-text-button" disabled={busy} onClick={cancelBooking}>Cancel unpaid booking</button>}</div></div>}
         <button className="pp-text-button" onClick={() => { setMode("book"); setMessage(""); }}>Make a new booking instead <ArrowRight /></button>
       </section>
     </GuestShell>
@@ -168,9 +212,9 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
 
         {data && live && step === "select" && (
           <section className="pp-book-card">
-            <div className="pp-fields-row"><label>Date<input type="date" value={date} min={isoDate(new Date())} onChange={(event) => { setDate(event.target.value); setStartTime(""); }} /></label><label>Duration<select value={duration} onChange={(event) => { setDuration(Number(event.target.value)); setStartTime(""); }}>{Array.from({ length: maxDuration - minDuration + 1 }, (_, index) => minDuration + index).map((value) => <option key={value} value={value}>{value} hour{value === 1 ? "" : "s"}</option>)}</select></label></div>
-            <fieldset className="pp-court-choice"><legend>Choose a court</legend>{courts.map((item) => <button type="button" key={item.id} className={item.id === selectedCourtId ? "is-selected" : ""} onClick={() => { setCourtId(item.id); setStartTime(""); }}><span>{item.name}</span><small>{item.opensAt}–{item.closesAt}</small></button>)}</fieldset>
-            <fieldset className="pp-time-choice"><legend>Available start times</legend>{availability ? slots.length ? <div>{slots.map((slot) => <button type="button" key={slot} className={slot === startTime ? "is-selected" : ""} onClick={() => setStartTime(slot)}>{timeLabel(slot)}</button>)}</div> : <p>No continuous {duration}-hour times are available for this court.</p> : <p>Checking available times…</p>}</fieldset>
+            <div className="pp-fields-row"><label>Date<input type="date" value={date} min={isoDate(new Date())} max={maximumDate} onChange={(event) => { setAvailability(null); setMessage(""); setDate(event.target.value); setStartTime(""); bookingAttemptId.current = null; }} /></label><label>Duration<select value={duration} onChange={(event) => { setDuration(Number(event.target.value)); setStartTime(""); bookingAttemptId.current = null; }}>{Array.from({ length: maxDuration - minDuration + 1 }, (_, index) => minDuration + index).map((value) => <option key={value} value={value}>{value} hour{value === 1 ? "" : "s"}</option>)}</select></label></div>
+            <fieldset className="pp-court-choice"><legend>Choose a court</legend>{courts.map((item) => <button type="button" key={item.id} aria-pressed={item.id === selectedCourtId} className={item.id === selectedCourtId ? "is-selected" : ""} onClick={() => { setCourtId(item.id); setStartTime(""); bookingAttemptId.current = null; }}><span>{item.name}</span><small>{item.opensAt}–{item.closesAt}</small></button>)}</fieldset>
+            <fieldset className="pp-time-choice"><legend>Available start times</legend>{availability ? slots.length ? <div>{slots.map((slot) => <button type="button" key={slot} aria-pressed={slot === startTime} className={slot === startTime ? "is-selected" : ""} onClick={() => { setStartTime(slot); bookingAttemptId.current = null; }}>{timeLabel(slot)}</button>)}</div> : <p>No continuous {duration}-hour times are available for this court.</p> : <p>Checking available times…</p>}</fieldset>
             {message && <p className="pp-form-message" role="alert">{message}</p>}
             <div className="pp-card-action"><span>{startTime ? <><small>Estimated court total</small><strong>{estimatedTotal == null ? "Confirmed next" : money(estimatedTotal, court?.currency)}</strong></> : "Choose a start time to continue"}</span><button className="pp-button pp-button-blue" disabled={!startTime} onClick={() => setStep("details")}>Continue <ArrowRight /></button></div>
           </section>
@@ -181,7 +225,8 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
             <button type="button" className="pp-back" onClick={() => setStep("select")}><ArrowLeft /> Change time</button>
             <div className="pp-fields-row"><label>Full name<input value={customer.name} onChange={(event) => setCustomer({ ...customer, name: event.target.value })} autoComplete="name" required /></label><label>Mobile number<input value={customer.phone} onChange={(event) => setCustomer({ ...customer, phone: event.target.value })} autoComplete="tel" inputMode="tel" required /></label></div>
             <label>Email address<input type="email" value={customer.email} onChange={(event) => setCustomer({ ...customer, email: event.target.value })} autoComplete="email" required /></label>
-            <label className="pp-check"><input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} required /><span><strong>I agree to the published booking and cancellation rules.</strong><small>Your court is held only after the server accepts this request.</small></span></label>
+            {policy && <details className="pp-policy"><summary>{policy.title}</summary><p>{policy.content}</p></details>}
+            <label className="pp-check"><input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} required /><span><strong>I agree to the booking and cancellation rules shown above.</strong><small>Your court is held only after the server accepts this request.</small></span></label>
             {message && <p className="pp-form-message" role="alert">{message}</p>}
             <div className="pp-card-action"><span><small>{court.name}</small><strong>{date} · {timeLabel(startTime)} · {duration}h</strong></span><button className="pp-button pp-button-blue" disabled={busy || !accepted}>{busy ? "Holding your court…" : "Reserve this time"} <ArrowRight /></button></div>
           </form>

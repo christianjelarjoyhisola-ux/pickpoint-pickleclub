@@ -11,6 +11,7 @@
 }
 
 .pp-app a { text-decoration: none; }
+.pp-app :is(a, button, input, select, summary):focus-visible { outline: 3px solid var(--pp-blue); outline-offset: 3px; }
 .pp-header, .pp-hero, .pp-how, .pp-opening-note, .pp-page-head, .pp-court-list, .pp-book-head, .pp-book-layout, .pp-footer { width: min(1180px, calc(100% - 40px)); margin-inline: auto; }
 .pp-header { height: 92px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--pp-line); }
 .pp-brand { width: 210px; height: 62px; display: flex; align-items: center; overflow: hidden; }
@@ -122,6 +123,9 @@
 .pp-check input { width: 18px; min-height: 18px; margin-top: 2px; accent-color: var(--pp-blue); }
 .pp-check span { display: grid; }
 .pp-check small { margin-top: 3px; color: #6c798d; font-weight: 500; }
+.pp-policy { margin: 18px 0; padding: 16px; border: 1px solid var(--pp-line); border-radius: 7px; background: #f7f9fc; }
+.pp-policy summary { cursor: pointer; color: var(--pp-navy); font-weight: 800; }
+.pp-policy p { max-height: 220px; overflow: auto; margin: 12px 0 0; color: #536278; white-space: pre-wrap; line-height: 1.6; }
 .pp-form-message { padding: 12px 14px; border-left: 4px solid #d95656; background: #fff1f1; color: #792d2d; font-size: .84rem; }
 .pp-setup { text-align: center; }
 .pp-setup > span { color: var(--pp-blue); font-size: .7rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
@@ -165,12 +169,14 @@
 
 @media (max-width: 780px) {
   .pp-header, .pp-hero, .pp-how, .pp-opening-note, .pp-page-head, .pp-court-list, .pp-book-head, .pp-book-layout, .pp-footer { width: min(100% - 28px, 1180px); }
-  .pp-header { height: 76px; }
-  .pp-brand { width: 150px; }
-  .pp-nav > a:not(.pp-nav-cta) { display: none; }
-  .pp-nav .pp-nav-cta { padding: 10px 13px; font-size: .76rem; }
+  .pp-header { height: auto; min-height: 112px; display: grid; grid-template-columns: 1fr auto; padding-block: 10px; }
+  .pp-brand { width: 145px; height: 50px; }
+  .pp-nav { grid-column: 1 / -1; justify-content: space-between; gap: 3px; }
+  .pp-nav > a { padding: 8px 9px; font-size: .72rem; }
+  .pp-nav .pp-nav-cta { margin-left: 0; padding: 9px 11px; font-size: .72rem; }
   .pp-hero { min-height: auto; grid-template-columns: 1fr; gap: 45px; padding: 52px 0 65px; }
-  .pp-hero h1 { font-size: clamp(3.2rem, 18vw, 5.4rem); }
+  .pp-hero h1 { font-size: clamp(3rem, 15vw, 4.5rem); letter-spacing: -.06em; }
+  .pp-actions { align-items: flex-start; flex-direction: column; gap: 18px; }
   .pp-board { min-height: 500px; }
   .pp-how, .pp-opening-note { grid-template-columns: 1fr; gap: 30px; padding-block: 60px; }
   .pp-opening-note { padding: 28px; }
