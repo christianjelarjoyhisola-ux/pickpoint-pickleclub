@@ -190,6 +190,7 @@ test("uses the supplied transparent PickPoint brand assets and palette", async (
   assert.match(adminCss, /#041630/i);
   assert.match(await source("app/pickpoint-v2/guest/guest-shell.tsx"), /pickpoint-wordmark-v3\.png/);
   assert.match(await source("app/layout.tsx"), /pickpoint-mark-v4\.png/);
+  assert.doesNotMatch(guestCss, /\.pp-hero-title > img \{ display: none/);
   assert.equal(logo.readUInt32BE(16), 1327);
   assert.equal(logo.readUInt32BE(20), 1186);
   assert.equal(logo[25], 6, "PNG must use RGBA color type");
