@@ -1,0 +1,369 @@
+@import "tailwindcss";
+
+:root {
+  /*
+   * PickPoint interface system
+   * Display: Sora 600/700. UI and copy: DM Sans 400/500/600/700.
+   * The scale deliberately tops out at a restrained 3rem marketing hero;
+   * product page titles and section headings stay compact.
+   */
+  --ink: #102019;
+  --paper: #f4f0e6;
+  --electric: #315c46;
+  --citrus: #c9f24a;
+  --coral: #c75d45;
+  --mist: #ebe7dd;
+  --white: #fffdf7;
+  --muted: #68736c;
+  --line: #d8d8ce;
+  --shadow-soft: 0 1px 2px rgba(16, 32, 25, 0.04), 0 8px 24px rgba(16, 32, 25, 0.05);
+  --text-micro: 0.6875rem;
+  --text-caption: 0.75rem;
+  --text-meta: 0.8125rem;
+  --text-small: 0.875rem;
+  --text-nav: 0.8125rem;
+  --text-body: 0.9375rem;
+  --text-lede: 1rem;
+  --text-panel: clamp(1.125rem, 1rem + 0.6vw, 1.375rem);
+  --text-card: clamp(1rem, 0.95rem + 0.35vw, 1.125rem);
+  --text-section: clamp(1.65rem, 1.45rem + 0.8vw, 2rem);
+  --text-hero: clamp(2.35rem, 2rem + 1.75vw, 3rem);
+  --text-metric: clamp(1.65rem, 1.4rem + 1vw, 2rem);
+  --text-title: clamp(1.4rem, 1.25rem + 0.6vw, 1.625rem);
+  --text-report: clamp(2rem, 1.7rem + 1.4vw, 2.75rem);
+  /* Compact product typography, matched to the RallyOS interface rhythm. */
+  --type-label: 0.6875rem;
+  --type-caption: 0.75rem;
+  --type-ui: 0.8125rem;
+  --type-body: 0.875rem;
+  --type-card-title: 1rem;
+  --type-section-title: 1.125rem;
+  --type-page-title: clamp(1.25rem, 1.15rem + 0.45vw, 1.55rem);
+  --type-metric: clamp(1.55rem, 1.35rem + 0.8vw, 2rem);
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --leading-tight: 1.1;
+  --leading-snug: 1.4;
+  --leading-copy: 1.55;
+  --tracking-label: 0.08em;
+  --tracking-heading: -0.035em;
+  --radius-control: 11px;
+  --radius-card: 16px;
+  --radius-panel: 18px;
+  --card-padding: clamp(18px, 1.6vw, 22px);
+  --section-space: clamp(52px, 6vw, 72px);
+  --background: var(--paper);
+  --foreground: var(--ink);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-display);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 0;
+  background: var(--paper);
+  color-scheme: light;
+  scroll-behavior: smooth;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
+  font-synthesis: none;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display), var(--font-body), "Segoe UI", sans-serif;
+  font-weight: var(--weight-semibold);
+  line-height: 1.18;
+  letter-spacing: var(--tracking-heading);
+}
+
+button,
+input,
+select,
+textarea {
+  color: inherit;
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  border: 0;
+}
+
+a {
+  color: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+::selection {
+  background: var(--citrus);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 3px solid var(--citrus);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px var(--ink);
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 10000;
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  background: var(--citrus);
+  color: var(--ink);
+  font-weight: 800;
+  text-decoration: none;
+  transform: translateY(-180%);
+  transition: transform 160ms ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.route-loading-screen {
+  position: fixed;
+  z-index: 12000;
+  inset: 0;
+  display: grid;
+  min-width: 0;
+  min-height: 100dvh;
+  place-items: center;
+  padding:
+    max(20px, env(safe-area-inset-top))
+    max(20px, env(safe-area-inset-right))
+    max(20px, env(safe-area-inset-bottom))
+    max(20px, env(safe-area-inset-left));
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 34%, rgba(37, 76, 132, 0.34), transparent 38%),
+    rgba(11, 33, 53, 0.94);
+  color: var(--white);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  animation: pickpoint-pickleclub-route-reveal 140ms ease both;
+}
+
+body:has(> .route-loading-portal)
+  .route-loading-screen[data-loading-source="boundary"] {
+  display: none;
+}
+
+.route-loading-card {
+  width: min(320px, 100%);
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: clamp(24px, 7vw, 34px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 28px;
+  background: rgba(16, 32, 25, 0.82);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.32);
+  text-align: center;
+}
+
+.route-loading-card > p {
+  margin: 8px 0 0;
+  color: var(--citrus);
+  font-family: var(--font-display), var(--font-body), Arial, sans-serif;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  line-height: 1.2;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.route-loading-card > strong {
+  color: var(--white);
+  font-size: clamp(1.15rem, 4.8vw, 1.4rem);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-snug);
+  letter-spacing: -0.025em;
+}
+
+.route-loading-card > span {
+  color: #c8d3df;
+  font-size: var(--text-small);
+  line-height: var(--leading-snug);
+}
+
+.route-loading-court {
+  position: relative;
+  width: 132px;
+  height: 92px;
+  display: grid;
+  place-items: center;
+}
+
+.route-loading-court-line {
+  position: absolute;
+  top: 48%;
+  right: 2px;
+  left: 2px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.78) 18%,
+    rgba(255, 255, 255, 0.78) 82%,
+    transparent
+  );
+}
+
+.route-loading-ball-wrap {
+  position: relative;
+  z-index: 2;
+  display: block;
+  animation: pickpoint-pickleclub-ball-hop 1.05s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+  will-change: transform;
+}
+
+.route-loading-ball {
+  display: block;
+  width: clamp(52px, 15vw, 64px);
+  aspect-ratio: 1;
+  border: 3px solid rgba(255, 255, 255, 0.88);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 29% 24%, var(--ink) 0 3px, transparent 3.8px),
+    radial-gradient(circle at 68% 19%, var(--ink) 0 3px, transparent 3.8px),
+    radial-gradient(circle at 76% 54%, var(--ink) 0 3px, transparent 3.8px),
+    radial-gradient(circle at 45% 72%, var(--ink) 0 3px, transparent 3.8px),
+    radial-gradient(circle at 20% 58%, var(--ink) 0 3px, transparent 3.8px),
+    var(--citrus);
+  box-shadow:
+    0 0 0 8px rgba(130, 245, 0, 0.08),
+    0 13px 28px rgba(0, 0, 0, 0.28);
+  animation: pickpoint-pickleclub-ball-roll 760ms linear infinite;
+  will-change: transform;
+}
+
+.route-loading-shadow {
+  position: absolute;
+  z-index: 1;
+  bottom: 6px;
+  width: 58px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.34);
+  filter: blur(4px);
+  animation: pickpoint-pickleclub-ball-shadow 1.05s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes pickpoint-pickleclub-route-reveal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pickpoint-pickleclub-ball-roll {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pickpoint-pickleclub-ball-hop {
+  0%,
+  100% { transform: translateY(8px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pickpoint-pickleclub-ball-shadow {
+  0%,
+  100% {
+    opacity: 0.52;
+    transform: scaleX(1);
+  }
+  50% {
+    opacity: 0.24;
+    transform: scaleX(0.66);
+  }
+}
+
+@media (prefers-contrast: more) {
+  .route-loading-screen {
+    background: #0b1712;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .route-loading-card {
+    border-color: var(--white);
+    background: var(--ink);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .route-loading-screen {
+    animation: none !important;
+  }
+
+  .route-loading-ball-wrap,
+  .route-loading-ball,
+  .route-loading-shadow {
+    animation: none !important;
+    transform: none !important;
+    will-change: auto;
+  }
+}
