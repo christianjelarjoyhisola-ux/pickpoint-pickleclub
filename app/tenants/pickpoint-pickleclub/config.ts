@@ -24,7 +24,9 @@ export type PickPointTenantConfig = {
   };
   venue: {
     locationLabel: string;
-    address: null;
+    address: string | null;
+    mapsUrl: string | null;
+    coordinates: { latitude: number; longitude: number } | null;
     opensAt: string;
     closesAt: string;
   };
@@ -78,8 +80,10 @@ export const pickPointConfig = {
     provisional: true,
   },
   venue: {
-    locationLabel: "Philippines · venue details coming soon",
-    address: null,
+    locationLabel: "Teves Residence Chicote",
+    address: "Tibanban, Governor Generoso, Davao Oriental, Philippines",
+    mapsUrl: "https://maps.app.goo.gl/XmD7VMpTBQJinTeP7",
+    coordinates: { latitude: 6.6159493, longitude: 126.0849283 },
     opensAt: "06:00",
     closesAt: "22:00",
   },

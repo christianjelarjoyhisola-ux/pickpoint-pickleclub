@@ -11,6 +11,10 @@ export function GuestHome() {
   const { data, loading } = useTenant();
   const live = isPublicBookingReady(data);
   const courtCount = data?.courts.length ?? 0;
+  const publicConfig = data?.tenant.publicConfig;
+  const locationName = typeof publicConfig?.locationName === "string" ? publicConfig.locationName : "Teves Residence Chicote";
+  const address = typeof publicConfig?.address === "string" ? publicConfig.address : "Tibanban, Governor Generoso, Davao Oriental";
+  const mapsUrl = typeof publicConfig?.mapsUrl === "string" ? publicConfig.mapsUrl : "https://maps.app.goo.gl/XmD7VMpTBQJinTeP7";
   return (
     <GuestShell current="home">
       <section className="pp-hero">
@@ -27,7 +31,7 @@ export function GuestHome() {
           <div className="pp-board-top"><span>PickPoint court desk</span><span className={live ? "pp-status live" : "pp-status"}>{live ? "Booking open" : "Opening soon"}</span></div>
           <Image src="/pickpoint-mark-v2.png" alt="" width={210} height={240} priority unoptimized />
           <dl>
-            <div><dt><MapPin /></dt><dd><strong>Venue</strong><span>{data?.business && typeof data.business.address === "string" ? data.business.address : "Location to be announced"}</span></dd></div>
+            <div><dt><MapPin /></dt><dd><strong>{locationName}</strong><a href={mapsUrl} target="_blank" rel="noreferrer">{address}</a></dd></div>
             <div><dt><CalendarDays /></dt><dd><strong>Courts</strong><span>{loading ? "Checking setup…" : courtCount ? `${courtCount} configured` : "Being prepared"}</span></dd></div>
             <div><dt><Clock3 /></dt><dd><strong>Reservations</strong><span>{live ? "Available online" : "Not open yet"}</span></dd></div>
           </dl>
