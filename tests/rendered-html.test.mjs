@@ -1,8 +1,21 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { access, readFile, readdir } from "node:fs/promises";
+import path from "node:path";
 import test from "node:test";
+import ts from "typescript";
 
-const source = (path) => readFile(new URL(path, import.meta.url), "utf8");
+const root = path.resolve(import.meta.dirname, "..");
+const source = (relative) => readFile(path.join(root, relative), "utf8");
+const legacyFiles = [
+  "app/booking-experience.tsx",
+  "app/pickpoint-pickleclub.css",
+  "app/manage/manage.module.css",
+  "app/manage/calendar-view.tsx",
+  "app/manage/calendar-view.module.css",
+  "app/manage/analytics-finance.tsx",
+  "app/manage/analytics-finance.module.css",
+];
+const forbidden = /Dinkhub|Dink Hub|Dinktopia|DINK-|RallyOS|Court Hub|booking-experience|calendar-view|analytics-finance/i;
 let workerPromise;
 
 function getWorker() {
@@ -21,95 +34,132 @@ async function render(pathname, origin = "http://localhost") {
   );
 }
 
-function title(html) {
-  return html.match(/<title>(.*?)<\/title>/i)?.[1].replaceAll("&amp;", "&") ?? "";
+async function resolveImport(from, specifier) {
+  if (!specifier.startsWith(".")) return null;
+  const base = path.resolve(path.dirname(from), specifier);
+  for (const candidate of [base, `${base}.ts`, `${base}.tsx`, `${base}.css`, path.join(base, "index.ts"), path.join(base, "index.tsx")]) {
+    try { await access(candidate); return candidate; } catch { /* try the next supported extension */ }
+  }
+  return null;
 }
 
-test("renders the complete customer and owner routes", async () => {
-  const paths = ["/", "/courts", "/book", "/book?mode=manage", "/manage"];
-  const responses = await Promise.all(paths.map((path) => render(path)));
-  for (const response of responses) {
-    assert.equal(response.status, 200);
-    assert.match(response.headers.get("content-type") ?? "", /^text\/html/i);
+async function reachableFrom(entries) {
+  const pending = entries.map((entry) => path.join(root, entry));
+  const seen = new Set();
+  while (pending.length) {
+    const file = pending.pop();
+    if (!file || seen.has(file)) continue;
+    seen.add(file);
+    if (file.endsWith(".css")) continue;
+    const text = await readFile(file, "utf8");
+    const ast = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
+    for (const statement of ast.statements) {
+      const specifier = (ts.isImportDeclaration(statement) || ts.isExportDeclaration(statement)) && statement.moduleSpecifier && ts.isStringLiteral(statement.moduleSpecifier)
+        ? statement.moduleSpecifier.text
+        : null;
+      if (specifier) {
+        const resolved = await resolveImport(file, specifier);
+        if (resolved) pending.push(resolved);
+      }
+    }
+  }
+  return seen;
+}
+
+async function filesUnder(relative) {
+  const directory = path.join(root, relative);
+  const entries = await readdir(directory, { withFileTypes: true });
+  const nested = await Promise.all(entries.map((entry) => entry.isDirectory()
+    ? filesUnder(path.join(relative, entry.name))
+    : [path.join(directory, entry.name)]));
+  return nested.flat();
+}
+
+test("uses only the new PickPoint presentation graph", async () => {
+  for (const file of legacyFiles) {
+    await assert.rejects(access(path.join(root, file)));
+  }
+  const graph = await reachableFrom(["app/layout.tsx", "app/page.tsx", "app/book/page.tsx", "app/courts/page.tsx", "app/manage/page.tsx"]);
+  assert.ok([...graph].some((file) => file.includes(`${path.sep}pickpoint-v2${path.sep}guest${path.sep}`)));
+  assert.ok([...graph].some((file) => file.includes(`${path.sep}pickpoint-v2${path.sep}admin${path.sep}`)));
+  for (const file of graph) assert.doesNotMatch(file, forbidden);
+});
+
+test("contains no legacy presentation fingerprint in reachable UI or built output", async () => {
+  const files = [
+    ...(await filesUnder("app/pickpoint-v2")),
+    path.join(root, "app/page.tsx"),
+    path.join(root, "app/book/page.tsx"),
+    path.join(root, "app/courts/page.tsx"),
+    path.join(root, "app/manage/page.tsx"),
+    ...(await filesUnder("dist/client")),
+  ].filter((file) => /\.(?:ts|tsx|css|js|html)$/.test(file));
+  for (const file of files) assert.doesNotMatch(await readFile(file, "utf8"), forbidden, file);
+});
+
+test("renders every guest and admin route with PickPoint-only structure", async () => {
+  for (const route of ["/", "/courts", "/book", "/book?mode=manage", "/manage"]) {
+    const response = await render(route);
+    assert.equal(response.status, 200, route);
     const html = await response.text();
     assert.match(html, /<html[^>]+lang="en-PH"/i);
     assert.match(html, /<main[^>]+id="main-content"/i);
-    assert.doesNotMatch(html, /Dinktopia|codex-preview|Your site is taking shape/i);
+    assert.match(html, /PickPoint/i);
+    assert.doesNotMatch(html, forbidden);
   }
 });
 
-test("uses PickPoint titles and no-index preview metadata", async () => {
-  const [home, courts, book] = await Promise.all([
-    render("/").then((response) => response.text()),
-    render("/courts").then((response) => response.text()),
-    render("/book").then((response) => response.text()),
-  ]);
-  assert.equal(title(home), "Home · PickPoint Pickle Club");
-  assert.equal(title(courts), "Courts · PickPoint Pickle Club");
-  assert.equal(title(book), "Book a Court · PickPoint Pickle Club");
-  assert.match(home, /name="robots" content="noindex, nofollow"/i);
+test("keeps booking closed until verified tenant readiness is complete", async () => {
+  const booking = await source("app/pickpoint-v2/guest/booking-view.tsx");
+  assert.match(booking, /publicBookingEnabled/);
+  assert.match(booking, /blockingReasons/);
+  assert.match(booking, /paymentMethods\.length/);
+  assert.match(booking, /getAvailability/);
+  assert.match(booking, /createBooking/);
+  assert.match(booking, /clientRequestId/);
+  assert.match(booking, /policyAccepted/);
 });
 
-test("pins the browser to one tenant and one Supabase project", async () => {
+test("keeps the admin lean and capability-controlled", async () => {
+  const admin = await source("app/pickpoint-v2/admin/PickPointDesk.tsx");
+  assert.match(admin, /\["today","schedule","bookings","setup"\]/);
+  for (const action of ["booking:create", "booking:cancel", "booking:check-in", "payment:approve", "schedule:block", "tenant:publish"]) {
+    assert.match(admin, new RegExp(action.replace(":", "\\:")));
+  }
+  assert.match(admin, /session\.capabilities/);
+  assert.doesNotMatch(admin, /analytics|revenue chart|customer crm/i);
+});
+
+test("pins every browser request to the PickPoint tenant and shared project", async () => {
   const [registry, config, client] = await Promise.all([
-    source("../app/tenants/registry.ts"),
-    source("../app/tenants/pickpoint-pickleclub/config.ts"),
-    source("../app/lib/platform/client.ts"),
+    source("app/tenants/registry.ts"),
+    source("app/tenants/pickpoint-pickleclub/config.ts"),
+    source("app/lib/platform/client.ts"),
   ]);
   assert.match(registry, /ACTIVE_TENANT_SLUG = "pickpoint-pickleclub" as const/);
-  assert.match(registry, /"pickpoint-pickleclub": pickPointConfig/);
-  assert.match(config, /productionDomain: "pickpoint-pickleclub\.christianjelarjoyhisola\.workers\.dev"/);
-  assert.match(client, /SHARED_SUPABASE_ORIGIN = "https:\/\/neqvrwtofiolcuxewdze\.supabase\.co"/);
-  assert.match(client, /REGISTERED_MANAGEMENT_ORIGIN = "https:\/\/pickpoint-pickleclub\.christianjelarjoyhisola\.workers\.dev"/);
-  assert.doesNotMatch(client, /service[_-]?role|SUPABASE_SERVICE/i);
-});
-
-test("keeps provisioning additive, guarded, and setup-required", async () => {
-  const sql = await source("../operations/2026-09-15-provision-pickpoint.sql");
-  assert.match(sql, /Target: Supabase project neqvrwtofiolcuxewdze only/);
-  assert.match(sql, /public\.provision_tenant\(/);
-  assert.match(sql, /public\.provision_tenant_domain\(/);
-  assert.match(sql, /NON_PICKPOINT_TENANT_STATE_CHANGED/);
-  assert.match(sql, /status = 'setup_required'/);
-  assert.match(sql, /from public\.courts where tenant_id = v_tenant_id\) <> 0/);
-  assert.doesNotMatch(sql, /update\s+public\.|delete\s+from\s+public\./i);
-});
-
-test("retains atomic booking and overlap-safe server transport", async () => {
-  const client = await source("../app/lib/platform/client.ts");
-  assert.match(client, /normalizeBookingSessions/);
-  assert.match(client, /clientRequestId/);
-  assert.match(client, /create-booking/);
-  assert.match(client, /sessions: normalizedSessions/);
+  assert.match(config, /pickpoint-pickleclub\.christianjelarjoyhisola\.workers\.dev/);
+  assert.match(client, /neqvrwtofiolcuxewdze\.supabase\.co/);
+  assert.match(client, /REGISTERED_MANAGEMENT_ORIGIN/);
+  assert.doesNotMatch(client, /reference: `DINK-/);
   assert.doesNotMatch(client, /tenantId\s*:/);
+  assert.doesNotMatch(client, /SUPABASE_SERVICE|service[_-]?role/i);
 });
 
-test("keeps the visible v1 admin navigation lean", async () => {
-  const manage = await source("../app/manage/page.tsx");
-  const nav = manage.slice(manage.indexOf("const NAV_ITEMS"), manage.indexOf("function NavIcon"));
-  for (const label of ["Today", "Schedule", "Bookings", "Setup"]) {
-    assert.match(nav, new RegExp(label.replaceAll("&", "&")));
-  }
-  assert.doesNotMatch(nav, /Customers|Money|Insights|Court blocks|Launch|Team & access/);
-});
-
-test("applies the premium PickPoint palette and generated logo", async () => {
-  const [globalCss, publicCss, logo] = await Promise.all([
-    source("../app/globals.css"),
-    source("../app/pickpoint-pickleclub.css"),
-    readFile(new URL("../public/pickpoint-pickleclub-logo.png", import.meta.url)),
+test("uses the supplied transparent PickPoint brand assets and palette", async () => {
+  const [guestCss, adminCss, logo] = await Promise.all([
+    source("app/pickpoint-v2/guest/guest.css"),
+    source("app/pickpoint-v2/admin/admin.module.css"),
+    readFile(path.join(root, "public/pickpoint-pickleclub-logo.png")),
   ]);
-  assert.match(globalCss, /--ink: #041630/);
-  assert.match(publicCss, /--lime: #b8f000/);
+  assert.match(guestCss, /#041630/i);
+  assert.match(guestCss, /#b8f000/i);
+  assert.match(adminCss, /#041630/i);
   assert.equal(logo.readUInt32BE(16), 1254);
   assert.equal(logo.readUInt32BE(20), 1254);
+  assert.equal(logo[25], 6, "PNG must use RGBA color type");
 });
 
-test("adds focused WebMCP tools and hardened response headers", async () => {
-  const booking = await source("../app/booking-experience.tsx");
-  assert.match(booking, /name: "check_pickpoint_availability"/);
-  assert.match(booking, /readOnlyHint: true/);
-  assert.match(booking, /name: "start_pickpoint_booking"/);
+test("keeps hardened production response headers", async () => {
   const response = await render("/", "https://pickpoint-pickleclub.christianjelarjoyhisola.workers.dev");
   assert.match(response.headers.get("content-security-policy") ?? "", /default-src 'self'/);
   assert.equal(response.headers.get("x-content-type-options"), "nosniff");

@@ -428,7 +428,7 @@ export async function createBooking(
       0,
     );
     return {
-      reference: `DINK-${clientRequestId.slice(0, 8).toUpperCase()}`,
+      reference: `PICK-${clientRequestId.slice(0, 8).toUpperCase()}`,
       status: "preview_only",
       expiresAt: null,
       courtName: primary.courtName,

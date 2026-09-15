@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { BookingExperience } from "../booking-experience";
-import "../pickpoint-pickleclub.css";
+import { BookingView } from "../pickpoint-v2/guest/booking-view";
+import "../pickpoint-v2/guest/guest.css";
 
 type BookPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -13,29 +13,18 @@ export async function generateMetadata({ searchParams }: BookPageProps): Promise
   return isManageMode
     ? {
         title: "Manage Booking",
-        description: "Find and manage an existing PickPoint court booking.",
+        description: "Check a PickPoint booking on this device.",
       }
     : {
         title: "Book a Court",
-        description: "Choose a PickPoint time, review the booking details, and reserve your court.",
+        description: "Choose one court and one continuous playing time.",
       };
 }
 
 export default async function BookPage({ searchParams }: BookPageProps) {
   const params = await searchParams;
-  const requestedCourt = typeof params.court === "string" ? params.court.trim() : undefined;
-  const courtSlug =
-    requestedCourt && /^[a-z0-9][a-z0-9_-]{0,79}$/i.test(requestedCourt)
-      ? requestedCourt
-      : undefined;
-  const initialMode = params.mode === "manage" ? "manage" : "book";
-
-  return (
-    <BookingExperience
-      key={`${initialMode}:${courtSlug ?? "default"}`}
-      surface="booking"
-      initialCourtSlug={courtSlug}
-      initialMode={initialMode}
-    />
-  );
+  const courtSlug = typeof params.court === "string" && /^[a-z0-9_-]{1,80}$/i.test(params.court)
+    ? params.court
+    : undefined;
+  return <BookingView initialMode={params.mode === "manage" ? "manage" : "book"} initialCourtSlug={courtSlug} />;
 }

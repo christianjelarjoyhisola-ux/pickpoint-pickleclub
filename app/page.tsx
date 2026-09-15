@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { BookingExperience } from "./booking-experience";
-import "./pickpoint-pickleclub.css";
+import { GuestHome } from "./pickpoint-v2/guest/guest-home";
+import "./pickpoint-v2/guest/guest.css";
 
 export const metadata: Metadata = {
   title: "Home",
-  description: "Discover PickPoint courts and plan your next pickleball rally.",
+  description: "Pick a court and reserve a time at PickPoint Pickle Club.",
 };
 
 export default function HomePage() {
-  return <BookingExperience surface="home" />;
+  return <GuestHome />;
 }
