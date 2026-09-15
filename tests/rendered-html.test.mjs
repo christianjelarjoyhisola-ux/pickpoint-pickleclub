@@ -130,6 +130,8 @@ test("keeps the admin lean and capability-controlled", async () => {
     assert.match(admin, new RegExp(action.replace(":", "\\:")));
   }
   assert.match(admin, /session\.capabilities/);
+  assert.match(admin, /x\.id!=="setup-status"&&x\.id!=="public-booking"/);
+  assert.match(admin, /disabled=\{!activationReady\}/);
   for (const operation of ["loadCalendarDay", "loadPaymentReceipt", "payment:reject", "booking:update", "schedule:unblock", "court:create", "business:update", "policy:publish", "remittance:update"]) {
     assert.match(admin, new RegExp(operation.replace(":", "\\:")));
   }
