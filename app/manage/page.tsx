@@ -3,7 +3,6 @@
 import Image from "next/image";
 import {
   ArrowRight,
-  Bell,
   CalendarDays,
   ChartNoAxesColumnIncreasing,
   CircleCheck,
@@ -84,6 +83,7 @@ type View =
   | "overview"
   | "bookings"
   | "schedule"
+  | "setup"
   | "blocks"
   | "customers"
   | "reports"
@@ -121,10 +121,7 @@ const NAV_ITEMS: { id: View; label: string; short: string }[] = [
   { id: "overview", label: "Today", short: "OV" },
   { id: "schedule", label: "Schedule", short: "CA" },
   { id: "bookings", label: "Bookings", short: "BK" },
-  { id: "blocks", label: "Court blocks", short: "BL" },
-  { id: "settings", label: "Venue & settings", short: "ST" },
-  { id: "launch", label: "Launch", short: "GO" },
-  { id: "access", label: "Team & access", short: "AC" },
+  { id: "setup", label: "Setup", short: "ST" },
 ];
 
 function NavIcon({ view }: { view: View }) {
@@ -151,8 +148,8 @@ const VIEW_CAPABILITY: Partial<Record<View, ManagementCapability>> = {
 
 const VIEW_COPY: Record<View, { title: string; description: string }> = {
   overview: {
-    title: "Good afternoon, Alex.",
-    description: "Your courts are moving well. Here’s what needs your attention next.",
+    title: "Today at PickPoint",
+    description: "Bookings and court status for today.",
   },
   bookings: {
     title: "Bookings",
@@ -161,6 +158,10 @@ const VIEW_COPY: Record<View, { title: string; description: string }> = {
   schedule: {
     title: "Calendar",
     description: "Bookings, payment holds and court blocks by day.",
+  },
+  setup: {
+    title: "Setup",
+    description: "Courts, hours, rates, payments, rules and launch readiness.",
   },
   blocks: {
     title: "Court blocks",
@@ -204,6 +205,10 @@ const LIVE_VIEW_COPY: Record<View, { title: string; description: string }> = {
   schedule: {
     title: "Calendar",
     description: "Bookings, payment holds and court blocks by day.",
+  },
+  setup: {
+    title: "Setup",
+    description: "Keep the club details customers rely on in one place.",
   },
   blocks: {
     title: "Court blocks",
@@ -370,13 +375,6 @@ function blockCalendarParts(dateValue: string | null, fallback: string) {
     }).format(candidate),
   };
 }
-
-const ROLE_TEAM: { name: string; initials: string; role: TenantRole; activity: string }[] = [
-  { name: "Alex Rivera", initials: "AR", role: "owner", activity: "Active now" },
-  { name: "Mara Villanueva", initials: "MV", role: "admin", activity: "Today, 1:42 PM" },
-  { name: "Jules Ramos", initials: "JR", role: "staff", activity: "Yesterday" },
-  { name: "Sam Flores", initials: "SF", role: "host", activity: "Aug 6" },
-];
 
 const CAPABILITY_LABEL: Record<ManagementCapability, string> = {
   "booking:create": "Create bookings",
@@ -581,6 +579,7 @@ function PermissionPanel({
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function RallyOverview({
   snapshot,
   can,
@@ -664,7 +663,7 @@ function RallyOverview({
       <section className={styles.rallyHero}>
         <div>
           <span>{dateLine} · {snapshot.tenant.venueLabel}</span>
-          <h2>The club is moving well.</h2>
+          <h2>Today at PickPoint.</h2>
           <p>{paymentReviews.length || attentionCourts.length ? `${paymentReviews.length + attentionCourts.length} item${paymentReviews.length + attentionCourts.length === 1 ? "" : "s"} need a quick decision.` : "Today’s court operations are clear and up to date."}</p>
         </div>
         <div className={styles.rallyHeroActions}>
@@ -729,6 +728,95 @@ function RallyOverview({
   );
 }
 
+function PickPointToday({
+  snapshot,
+  can,
+  goTo,
+  openNeedsReview,
+}: {
+  snapshot: ManagementSnapshot;
+  can: (capability: ManagementCapability) => boolean;
+  goTo: (view: View) => void;
+  openNeedsReview: () => void;
+}) {
+  const today = manilaCalendarDate();
+  const bookings = snapshot.bookings
+    .filter((booking) => booking.bookingDate === today && booking.status !== "cancelled" && booking.status !== "expired")
+    .sort((left, right) => (left.startTime ?? "").localeCompare(right.startTime ?? ""));
+  const reviews = snapshot.bookings.filter((booking) =>
+    booking.paymentEvidence?.reviewable === true || booking.status === "payment_attention"
+  );
+  const unavailableCourts = snapshot.courts.filter((court) => court.status !== "active");
+  const date = new Intl.DateTimeFormat("en-PH", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    timeZone: activeTenant.identity.timezone,
+  }).format(new Date());
+
+  return (
+    <div className={styles.pointToday}>
+      <section className={styles.pointWelcome}>
+        <div>
+          <p className={styles.eyebrow}>{date}</p>
+          <h2>Ready for today.</h2>
+          <p>{bookings.length ? `${bookings.length} booking${bookings.length === 1 ? "" : "s"} on the court list.` : "The schedule is clear. New bookings will appear here."}</p>
+        </div>
+        <ActionButton disabled={!can("booking:create")} onClick={() => goTo("schedule")}><Plus /> Add booking</ActionButton>
+      </section>
+
+      {(reviews.length > 0 || unavailableCourts.length > 0) && (
+        <section className={styles.pointAttention} aria-labelledby="attention-title">
+          <div><p className={styles.eyebrow}>Needs attention</p><h2 id="attention-title">A quick check before play</h2></div>
+          {reviews.length > 0 && <button type="button" onClick={openNeedsReview}><span>{reviews.length}</span><strong>Payment review</strong><small>Open bookings</small><ArrowRight /></button>}
+          {unavailableCourts.length > 0 && <button type="button" onClick={() => goTo("schedule")}><span>{unavailableCourts.length}</span><strong>Court unavailable</strong><small>Open schedule</small><ArrowRight /></button>}
+        </section>
+      )}
+
+      <section className={styles.pointDay} aria-labelledby="today-list-title">
+        <header><div><p className={styles.eyebrow}>Court list</p><h2 id="today-list-title">Today’s bookings</h2></div><button type="button" onClick={() => goTo("schedule")}>Full schedule <ArrowRight /></button></header>
+        {bookings.length ? (
+          <div className={styles.pointBookingList}>
+            {bookings.map((booking) => (
+              <button type="button" key={booking.bookingId} onClick={() => goTo("bookings")}>
+                <time>{booking.time}</time>
+                <span><strong>{booking.customer}</strong><small>{booking.court}</small></span>
+                <StatusPill status={booking.status} />
+                <ArrowRight aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className={styles.pointEmpty}><CalendarDays /><strong>No bookings today</strong><p>Use Add booking for a walk-in or phone reservation.</p></div>
+        )}
+      </section>
+
+      <section className={styles.pointCourts} aria-labelledby="court-status-title">
+        <header><p className={styles.eyebrow}>At a glance</p><h2 id="court-status-title">Courts</h2></header>
+        <div>{snapshot.courts.map((court, index) => <article key={court.id}><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{court.name}</strong><small>{court.surface || court.description || "Pickleball court"}</small></div><b data-status={court.status}>{court.status === "active" ? "Open" : court.status === "maintenance" ? "Maintenance" : "Closed"}</b></article>)}</div>
+      </section>
+    </div>
+  );
+}
+
+function SetupLanding({ snapshot, goTo, openSettings }: { snapshot: ManagementSnapshot; goTo: (view: View) => void; openSettings: (section: "courts" | "schedule" | "business" | "rules") => void }) {
+  const complete = snapshot.setup.filter((item) => item.complete).length;
+  const items: Array<{ title: string; detail: string; open: () => void; icon: ReactNode }> = [
+    { title: "Courts", detail: "Names, availability and playing surfaces", open: () => openSettings("courts"), icon: <MapPin /> },
+    { title: "Hours & rates", detail: "Opening times, duration and court prices", open: () => openSettings("schedule"), icon: <Clock3 /> },
+    { title: "Payments", detail: "Customer payment methods and instructions", open: () => openSettings("business"), icon: <WalletCards /> },
+    { title: "Booking rules", detail: "Notice, cancellations and customer policy", open: () => openSettings("rules"), icon: <CircleCheck /> },
+    { title: "Team access", detail: "Your current role and permissions", open: () => goTo("access"), icon: <Users /> },
+    { title: "Launch", detail: `${complete} of ${snapshot.setup.length} checks ready`, open: () => goTo("launch"), icon: <Sparkles /> },
+  ];
+  return (
+    <section className={styles.pointSetup} aria-labelledby="setup-title">
+      <header><p className={styles.eyebrow}>Club essentials</p><h2 id="setup-title">Set up PickPoint</h2><p>Everything the booking page needs, kept in one place.</p></header>
+      <div>{items.map((item) => <button type="button" key={item.title} onClick={item.open}><i>{item.icon}</i><span><strong>{item.title}</strong><small>{item.detail}</small></span><ArrowRight /></button>)}</div>
+    </section>
+  );
+}
+
 function OverviewView({
   snapshot,
   can,
@@ -744,7 +832,7 @@ function OverviewView({
   request: (action: ConfirmAction) => void;
   loadPaymentReceipt: (verificationId: string) => Promise<PaymentReceiptView>;
 }) {
-  return <RallyOverview snapshot={snapshot} can={can} goTo={goTo} openNeedsReview={openNeedsReview} />;
+  return <PickPointToday snapshot={snapshot} can={can} goTo={goTo} openNeedsReview={openNeedsReview} />;
   /* Legacy dashboard markup is retained below temporarily while the remaining
      management views continue to share its payment-review workspace. */
   const [reviewingBookingId, setReviewingBookingId] = useState<string | null>(null);
@@ -881,8 +969,8 @@ function OverviewView({
                   <dt>Receipt submitted</dt>
                   <dd>
                     {inboxBooking.paymentEvidence?.submittedAt ? (
-                      <time dateTime={inboxBooking.paymentEvidence.submittedAt}>
-                        {new Date(inboxBooking.paymentEvidence.submittedAt).toLocaleString("en-PH", {
+                      <time dateTime={inboxBooking.paymentEvidence?.submittedAt}>
+                        {new Date(inboxBooking.paymentEvidence?.submittedAt ?? "").toLocaleString("en-PH", {
                           timeZone: activeTenant.identity.timezone,
                         })}
                       </time>
@@ -927,8 +1015,8 @@ function OverviewView({
 
       {!isPreview && canReviewPayments && reviewing?.paymentEvidence && (
         <PaymentReviewWorkspace
-          key={reviewing.paymentEvidence.verificationId}
-          booking={reviewing}
+          key={reviewing!.paymentEvidence!.verificationId}
+          booking={reviewing!}
           can={can}
           request={request}
           loadPaymentReceipt={loadPaymentReceipt}
@@ -3221,7 +3309,9 @@ function SettingsView({
   uploadPaymentQr: (methodCode: string, file: File) => Promise<{ url: string; contentType: string; tenantRevision: string }>;
   onLiveSectionChange: (section: "courts" | "schedule" | "business" | "rules") => void;
 }) {
-  const [section, setSection] = useState<"courts" | "rates" | "hours" | "rules">("courts");
+  const [section, setSection] = useState<"courts" | "rates" | "hours" | "rules">(
+    initialLiveSection === "schedule" ? "hours" : initialLiveSection === "rules" ? "rules" : initialLiveSection === "business" ? "rates" : "courts"
+  );
   if (snapshot.tenant.mode === "live") {
     return (
       <LiveSettingsView
@@ -3316,6 +3406,31 @@ function SettingsView({
   );
 }
 
+function PickPointLaunch({ snapshot, request }: { snapshot: ManagementSnapshot; request: (action: ConfirmAction) => void }) {
+  const checks = snapshot.setup.filter((item) => item.id !== "setup-status" && item.id !== "public-booking");
+  const done = checks.filter((item) => item.complete).length;
+  const ready = checks.length > 0 && done === checks.length;
+  const isLive = snapshot.setup.find((item) => item.id === "public-booking")?.complete === true;
+  return (
+    <section className={styles.pointLaunch} aria-labelledby="launch-title">
+      <header><p className={styles.eyebrow}>Launch</p><h2 id="launch-title">{isLive ? "PickPoint is accepting bookings" : ready ? "Ready to open" : "Finish the essentials"}</h2><p>{done} of {checks.length} checks complete. Nothing goes public until every item is ready.</p></header>
+      <div className={styles.pointChecklist}>{checks.map((item) => <article key={item.id} data-complete={item.complete}><span>{item.complete ? "✓" : String(checks.indexOf(item) + 1).padStart(2, "0")}</span><div><strong>{item.label}</strong><p>{item.detail}</p></div></article>)}</div>
+      <footer><p>{isLive ? "Customers can use the public booking page." : "Review the guest booking page once more before opening."}</p><ActionButton disabled={isLive || !ready || !snapshot.session.isSystemOwner} onClick={() => request({ title: "Open PickPoint for booking?", detail: "The club will become available on the public booking page after one final readiness check.", confirmLabel: "Open bookings", actionType: "tenant:publish" })}>{isLive ? "Bookings are open" : "Open bookings"}</ActionButton></footer>
+    </section>
+  );
+}
+
+function PickPointAccess({ role, capabilities, isPreview, session }: { role: TenantRole; capabilities: ManagementCapability[]; isPreview: boolean; session?: ManagementSnapshot["session"] }) {
+  return (
+    <section className={styles.pointAccess} aria-labelledby="access-title">
+      <header><p className={styles.eyebrow}>Team access</p><h2 id="access-title">Current access</h2><p>Only verified PickPoint team members can manage club bookings and setup.</p></header>
+      <article><Avatar initials={session?.isSystemOwner ? "SO" : "PP"} /><div><strong>{isPreview ? "PickPoint owner" : session?.displayName ?? "Club team member"}</strong><span>{session?.isSystemOwner ? "Owner access" : ROLE_LABEL[role]}</span></div><b>{capabilities.length} permissions</b></article>
+      <p className={styles.pointAccessNote}>{isPreview ? "Team invitations will be available after the owner account is connected." : "Access is checked again whenever a change is saved."}</p>
+    </section>
+  );
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function LaunchView({
   snapshot,
   request,
@@ -3432,6 +3547,7 @@ function LaunchView({
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function AccessView({
   role,
   capabilities,
@@ -3452,17 +3568,7 @@ function AccessView({
     <section className={cx(styles.accessGrid, !isPreview && styles.accessGridLive)}>
       <article className={styles.panel}>
         <div className={styles.panelHeading}><div><p className={styles.eyebrow}>{isPreview ? "PickPoint team" : "Tenant memberships"}</p><h2>{isPreview ? "4 preview people" : "Membership details unavailable"}</h2></div><span className={styles.previewTag}>{isPreview ? "UI preview" : "Protected"}</span></div>
-        {isPreview ? <div className={styles.teamList}>
-          {ROLE_TEAM.map((member, index) => (
-            <div className={styles.teamRow} key={member.name}>
-              <Avatar initials={member.initials} tone={index} />
-              <div><strong>{member.name}</strong><span>{member.activity}</span></div>
-              <span className={styles.roleBadge}>{ROLE_LABEL[member.role]}</span>
-              <button type="button" className={styles.moreButton} aria-label={`Open access options for ${member.name}`}>•••</button>
-            </div>
-          ))}
-        </div> : <div className={styles.statePanel} role="status"><p className={styles.eyebrow}>Membership directory protected</p><h3>No membership records were returned.</h3><p>Invite and membership management will appear only when the shared platform returns an authorized tenant-scoped contract.</p></div>}
-        {isPreview && <button type="button" className={styles.inviteButton} disabled>＋ Invite teammate <small>Preview control only</small></button>}
+        <div className={styles.statePanel} role="status"><p className={styles.eyebrow}>Team directory</p><h3>No team list is available yet.</h3><p>Verified PickPoint members will appear here after owner access is connected.</p></div>
       </article>
       <aside className={cx(styles.panel, styles.capabilityPanel)}>
         <p className={styles.eyebrow}>{isPreview ? "Current preview session" : "Current authenticated session"}</p>
@@ -3892,12 +3998,12 @@ export default function ManagePage() {
   const requiredCapability = VIEW_CAPABILITY[view];
   const viewPermitted = !requiredCapability || can(requiredCapability);
   const completedSetup = snapshot?.setup.filter((item) => item.complete).length ?? 0;
-  const paymentReviewCount = snapshot?.bookings.filter((booking) =>
-    booking.paymentEvidence?.reviewable === true || booking.status === "payment_attention"
-  ).length ?? 0;
   const visibleNavItems = NAV_ITEMS.filter((item) =>
     item.id !== "launch" || snapshot?.session.isSystemOwner === true
   );
+  const navIsActive = (item: View) => item === view ||
+    (item === "schedule" && view === "blocks") ||
+    (item === "setup" && ["settings", "launch", "access"].includes(view));
 
   const renderView = () => {
     if (!snapshot) return <DashboardSkeleton />;
@@ -3908,6 +4014,7 @@ export default function ManagePage() {
     if (!viewPermitted) return <PermissionPanel role={sessionRole} view={view} isPreview={isPreview} />;
     switch (view) {
       case "overview": return <OverviewView snapshot={snapshot} can={can} goTo={navigateTo} openNeedsReview={openNeedsReview} request={request} loadPaymentReceipt={loadPaymentReceipt} />;
+      case "setup": return <SetupLanding snapshot={snapshot} goTo={setView} openSettings={(section) => { setSettingsSection(section); setView("settings"); }} />;
       case "bookings": return <BookingsView key={`bookings-${bookingFilter}`} bookings={snapshot.bookings} courts={snapshot.courts} can={can} request={request} goTo={setView} isPreview={isPreview} initialStatus={bookingFilter} loadPaymentReceipt={loadPaymentReceipt} loadReschedulePreview={loadReschedulePreview} />;
       case "schedule": return snapshot.tenant.mode === "live" ? (
         <CalendarView
@@ -3944,8 +4051,8 @@ export default function ManagePage() {
         onRetry={retryInsights}
       />;
       case "settings": return <SettingsView snapshot={snapshot} can={can} request={request} initialLiveSection={settingsSection} uploadPaymentQr={uploadPaymentQr} onLiveSectionChange={setSettingsSection} />;
-      case "launch": return <LaunchView snapshot={snapshot} request={request} openSettings={(section) => { setSettingsSection(section); setView("settings"); }} />;
-      case "access": return <AccessView role={sessionRole} capabilities={context.capabilities} isPreview={isPreview} session={snapshot.session} toolAvailability={snapshot.configuration.toolAvailability} />;
+      case "launch": return <PickPointLaunch snapshot={snapshot} request={request} />;
+      case "access": return <PickPointAccess role={sessionRole} capabilities={context.capabilities} isPreview={isPreview} session={snapshot.session} />;
     }
   };
 
@@ -3990,22 +4097,8 @@ export default function ManagePage() {
         </div>
         <nav className={styles.desktopNav} aria-label="Management navigation">
           <p>Operations</p>
-          {visibleNavItems.slice(0, 5).map((item) => (
-            <button type="button" key={item.id} onClick={() => navigateTo(item.id)} className={view === item.id ? styles.navActive : undefined} aria-current={view === item.id ? "page" : undefined}>
-              <span aria-hidden="true"><NavIcon view={item.id} /></span>{item.label}
-              {VIEW_CAPABILITY[item.id] && !can(VIEW_CAPABILITY[item.id]!) && <i aria-label="Limited by role">•</i>}
-            </button>
-          ))}
-          <p>Business</p>
-          {visibleNavItems.slice(5, 8).map((item) => (
-            <button type="button" key={item.id} onClick={() => navigateTo(item.id)} className={view === item.id ? styles.navActive : undefined} aria-current={view === item.id ? "page" : undefined}>
-              <span aria-hidden="true"><NavIcon view={item.id} /></span>{item.label}
-              {VIEW_CAPABILITY[item.id] && !can(VIEW_CAPABILITY[item.id]!) && <i aria-label="Limited by role">•</i>}
-            </button>
-          ))}
-          {visibleNavItems.length > 8 && <p>Platform</p>}
-          {visibleNavItems.slice(8).map((item) => (
-            <button type="button" key={item.id} onClick={() => navigateTo(item.id)} className={view === item.id ? styles.navActive : undefined} aria-current={view === item.id ? "page" : undefined}>
+          {visibleNavItems.map((item) => (
+            <button type="button" key={item.id} onClick={() => navigateTo(item.id)} className={navIsActive(item.id) ? styles.navActive : undefined} aria-current={navIsActive(item.id) ? "page" : undefined}>
               <span aria-hidden="true"><NavIcon view={item.id} /></span>{item.label}
               {VIEW_CAPABILITY[item.id] && !can(VIEW_CAPABILITY[item.id]!) && <i aria-label="Limited by role">•</i>}
             </button>
@@ -4024,8 +4117,8 @@ export default function ManagePage() {
             )}
           </div>
           <div className={styles.userCard}>
-            <Avatar initials={isPreview ? "AR" : snapshot?.session.isSystemOwner ? "SO" : "TM"} tone={0} />
-            <div><strong>{isPreview ? "Alex Rivera" : snapshot?.session.displayName ?? "Authenticated user"}</strong><span>{isPreview ? `${ROLE_LABEL[role]} preview session` : `${ROLE_LABEL[sessionRole]} server session`}</span></div>
+            <Avatar initials={snapshot?.session.isSystemOwner ? "SO" : "PP"} tone={0} />
+            <div><strong>{isPreview ? "PickPoint owner" : snapshot?.session.displayName ?? "Club team"}</strong><span>{isPreview ? "Private setup preview" : ROLE_LABEL[sessionRole]}</span></div>
             <button
               type="button"
               disabled={isPreview || accountPending}
@@ -4065,12 +4158,12 @@ export default function ManagePage() {
             onClick={switchAccount}
             aria-label={isPreview ? "Preview account control unavailable" : "Sign out and use another account"}
           >
-            {accountPending ? "…" : isPreview ? "AR" : "↪"}
+            {accountPending ? "…" : isPreview ? "PP" : "↪"}
           </button>
         </header>
         <nav className={styles.mobileNav} aria-label="Mobile management navigation">
           {visibleNavItems.map((item) => (
-            <button type="button" key={item.id} onClick={() => navigateTo(item.id)} className={view === item.id ? styles.navActive : undefined} aria-current={view === item.id ? "page" : undefined}>
+            <button type="button" key={item.id} onClick={() => navigateTo(item.id)} className={navIsActive(item.id) ? styles.navActive : undefined} aria-current={navIsActive(item.id) ? "page" : undefined}>
               <span aria-hidden="true"><NavIcon view={item.id} /></span>{item.label}
             </button>
           ))}
@@ -4078,12 +4171,11 @@ export default function ManagePage() {
 
         <div className={styles.topbar}>
           <div className={styles.topbarTitle}>
-            <span>{view === "overview" ? "Today’s operations" : view === "reports" ? "Venue performance" : "PickPoint operations"}</span>
-            <h1>{view === "overview" ? "Today" : selectedCopy.title}</h1>
+            <span>PickPoint Pickle Club</span>
+            <h1>{view === "overview" ? "Today" : ["settings", "launch", "access"].includes(view) ? "Setup" : selectedCopy.title}</h1>
           </div>
           <div className={styles.rallyTopActions}>
-            <button type="button" className={styles.rallySearch} onClick={() => navigateTo("bookings")} aria-label="Search bookings and players"><Search /><span>Search anything</span><kbd>⌘ K</kbd></button>
-            <button type="button" className={styles.rallyTopIcon} onClick={() => paymentReviewCount ? openNeedsReview() : navigateTo("bookings")} aria-label="Notifications"><Bell />{paymentReviewCount > 0 && <span>{paymentReviewCount}</span>}</button>
+            <button type="button" className={styles.rallySearch} onClick={() => navigateTo("bookings")} aria-label="Search bookings"><Search /><span>Find a booking</span></button>
             {!isPreview && (
               <button
                 type="button"
@@ -4109,9 +4201,6 @@ export default function ManagePage() {
               <p>{selectedCopy.description}</p>
             </div>
             <div className={styles.pageActions}>
-              {isPreview && <button type="button" className={styles.iconButton} aria-label="Preview search control">⌕</button>}
-              {isPreview && <button type="button" className={styles.iconButton} aria-label="Preview notifications">◎<span>2</span></button>}
-              {isPreview && view === "overview" && <ActionButton disabled={!can("booking:create")} onClick={() => setView("schedule")}><span aria-hidden="true">＋</span> New booking</ActionButton>}
               {view === "settings" && snapshot?.session.isSystemOwner && (
                 <ActionButton
                   variant="secondary"

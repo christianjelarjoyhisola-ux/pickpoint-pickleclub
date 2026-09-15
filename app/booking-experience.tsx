@@ -11,9 +11,7 @@ import {
   WalletCards,
 } from "lucide-react";
 import {
-  CSSProperties,
   FormEvent,
-  Fragment,
   useEffect,
   useId,
   useMemo,
@@ -57,13 +55,6 @@ type Court = {
   descriptor: string;
   mood: string;
   color: "blue" | "coral";
-};
-
-type GalleryPhoto = {
-  id: string;
-  src: string;
-  alt: string;
-  caption: string;
 };
 
 type SlotStatus = "available" | "limited" | "unavailable";
@@ -184,8 +175,6 @@ const previewCourts: Court[] = activeTenant.previewCourts.map((court, index) => 
   color: index % 2 === 0 ? "blue" : "coral",
 }));
 
-const tickerPhrases = ["PLAY MORE", "RALLY OFTEN", "STAY FOCUSED", "NEW HABIT"] as const;
-
 function displayCourtsFromPlatform(publicCourts: PublicCourt[]): Court[] {
   return publicCourts.map((court, index) => ({
     id: court.id,
@@ -196,77 +185,6 @@ function displayCourtsFromPlatform(publicCourts: PublicCourt[]): Court[] {
     mood: court.description || "Configured for PickPoint play",
     color: index % 2 === 0 ? "blue" : "coral",
   }));
-}
-
-function compactCourtSurface(court: Court) {
-  const descriptor = court.descriptor.toLowerCase();
-  if (descriptor.includes("covered")) return "Covered";
-  if (descriptor.includes("outdoor")) return "Outdoor";
-  if (descriptor.includes("indoor")) return "Indoor";
-  return "Court";
-}
-
-function trustedGallerySource(value: unknown) {
-  if (typeof value !== "string" || !value.trim()) return null;
-  const source = value.trim();
-  try {
-    const localOrigin = "https://pickpoint-pickleclub.invalid";
-    const localUrl = new URL(source, localOrigin);
-    if (
-      source.startsWith("/") &&
-      !source.startsWith("//") &&
-      !source.includes("\\") &&
-      localUrl.origin === localOrigin
-    ) {
-      return `${localUrl.pathname}${localUrl.search}${localUrl.hash}`;
-    }
-    if (!/^https:\/\//i.test(source) || source.includes("\\")) return null;
-    const url = new URL(source);
-    if (
-      url.protocol === "https:" &&
-      !url.username &&
-      !url.password &&
-      !url.port &&
-      url.hostname.endsWith(".supabase.co") &&
-      url.pathname.includes("/storage/v1/object/")
-    ) {
-      return url.href;
-    }
-  } catch {
-    return null;
-  }
-  return null;
-}
-
-function galleryText(value: unknown, fallback: string, maxLength: number) {
-  if (typeof value !== "string") return fallback;
-  const normalized = value.trim().replace(/\s+/g, " ");
-  return normalized ? normalized.slice(0, maxLength) : fallback;
-}
-
-function galleryPhotosFromPlatform(tenantBootstrap: TenantBootstrap | null) {
-  if (!tenantBootstrap) return [];
-  return tenantBootstrap.courts
-    .flatMap<GalleryPhoto>((court) => {
-      const config = (court.publicConfig ?? {}) as {
-        photoUrl?: unknown;
-        photoAlt?: unknown;
-        photoCaption?: unknown;
-      };
-      const src = trustedGallerySource(config.photoUrl);
-      if (!src) return [];
-      return [{
-        id: court.id,
-        src,
-        alt: galleryText(
-          config.photoAlt,
-          `${court.name} at ${tenantBootstrap.tenant.name}`,
-          180,
-        ),
-        caption: galleryText(config.photoCaption, court.name, 80),
-      }];
-    })
-    .slice(0, 5);
 }
 
 const seededCustomer: CustomerDetails = {
@@ -284,10 +202,6 @@ function formatHour(hour: number) {
   const period = normalizedHour >= 12 ? "PM" : "AM";
   const value = normalizedHour % 12 || 12;
   return `${value}:00 ${period}`;
-}
-
-function formatHourWithDay(hour: number) {
-  return hour >= 24 ? `${formatHour(hour)} (next day)` : formatHour(hour);
 }
 
 function formatHourRange(startHour: number, endHour: number) {
@@ -1189,7 +1103,7 @@ const platformAdapter: BookingAdapter = {
   async completeDetails(request) {
     const parsed = readStoredBooking(request.booking.reference);
     if (!parsed) {
-      throw new Error("This court hold is no longer available. Choose your slots again.");
+      throw new Error("This court hold is no longer available. Choose another time.");
     }
     if (parsed.record.status !== "pending_payment") {
       throw new Error("This booking is no longer awaiting player details.");
@@ -1320,11 +1234,11 @@ const platformAdapter: BookingAdapter = {
     await delay(450);
     if (
       platformMode() !== "preview" ||
-      normalizedReference !== "DT-260808-018" ||
+      normalizedReference !== "PP-260808-018" ||
       email.trim().toLowerCase() !== "mika@example.com"
     ) return null;
     return {
-      reference: "DT-260808-018",
+      reference: "PP-260808-018",
       status: "pending_payment",
       date: "2026-08-16",
       courtId: previewCourts[0].id,
@@ -1533,6 +1447,7 @@ export function BookingExperience({
   const [mode, setMode] = useState<"book" | "manage">(initialMode);
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [selectedDate, setSelectedDate] = useState(dates[1]?.iso ?? "");
+  const [durationHours, setDurationHours] = useState<1 | 2 | 3>(1);
   const [, setSelectedCourtId] = useState(() => {
     if (isLive) return previewCourts[0].id;
     return previewCourts.find((court) => court.slug === initialCourtSlug)?.id ?? previewCourts[0].id;
@@ -1591,7 +1506,6 @@ export function BookingExperience({
     if (bootstrapState !== "ready") return [];
     return displayCourtsFromPlatform(bootstrap?.courts ?? []);
   }, [bootstrap, bootstrapState, isLive]);
-  const galleryPhotos = useMemo(() => galleryPhotosFromPlatform(bootstrap), [bootstrap]);
   const startingHourlyRate = useMemo(
     () =>
       isLive
@@ -1625,10 +1539,32 @@ export function BookingExperience({
       : " into the next day"
     : "";
   const selectedBookingDateLabel = `${selectedBaseDateLabel}${selectedNextDayDateSuffix}`;
-  const availableCount = schedule.reduce(
-    (count, court) => count + court.slots.filter((slot) => slot.status !== "unavailable").length,
-    0,
-  );
+  const bookingOptions = useMemo(() => displayCourts.flatMap((court) => {
+    const publicCourt = bootstrap?.courts.find((candidate) => candidate.id === court.id);
+    const pricing = publicCourt?.pricingConfig as
+      | { regular?: { minimumHours?: number; maximumHours?: number } }
+      | undefined;
+    const minimumHours = pricing?.regular?.minimumHours ?? 1;
+    const maximumHours = pricing?.regular?.maximumHours ?? 18;
+    if (isLive && (durationHours < minimumHours || durationHours > maximumHours)) return [];
+    const courtSlots = [...(schedule.find((item) => item.courtId === court.id)?.slots ?? [])]
+      .sort((left, right) => left.hour - right.hour);
+    return courtSlots.flatMap((slot) => {
+      const run = Array.from({ length: durationHours }, (_, index) =>
+        courtSlots.find((candidate) => candidate.hour === slot.hour + index),
+      );
+      if (run.some((candidate) => !candidate || candidate.status === "unavailable")) return [];
+      const slots = run.filter((candidate): candidate is AvailabilitySlot => Boolean(candidate));
+      return [{
+        key: `${court.id}:${slot.hour}:${durationHours}`,
+        court,
+        slots,
+        startHour: slot.hour,
+        endHour: slot.hour + durationHours,
+        total: slots.reduce((sum, candidate) => sum + candidate.price, 0),
+      }];
+    });
+  }).sort((left, right) => left.startHour - right.startHour || left.court.number.localeCompare(right.court.number)), [bootstrap, displayCourts, durationHours, isLive, schedule]);
   const courtSubtotal = selectedSlots.reduce((sum, item) => sum + item.amount, 0);
   const selectedCourtCount = new Set(selectedSlots.map((item) => item.courtId)).size;
   const canonicalSelection = canonicalizeSelection(selectedSlots);
@@ -1655,12 +1591,9 @@ export function BookingExperience({
             canonicalSelection.durationHours <=
               (canonicalPricing?.regular?.maximumHours ?? 18),
         ));
-  const selectedKeys = new Set(
-    selectedSlots.map((item) => selectionKey(item.courtId, item.startHour)),
-  );
-  const scheduleHours = Array.from(
-    new Set(schedule.flatMap((court) => court.slots.map((slot) => slot.hour))),
-  ).sort((left, right) => left - right);
+  const selectedOptionKey = canonicalSelection
+    ? `${canonicalSelection.courtId}:${canonicalSelection.startHour}:${canonicalSelection.durationHours}`
+    : "";
   const paymentMethod: PaymentMethod | null = bootstrap?.paymentMethods.find(
     (method) => (method.methodCode ?? method.code ?? "").toLowerCase() === "gcash",
   ) ?? null;
@@ -2045,35 +1978,19 @@ export function BookingExperience({
     setSelectedCourtId(courtId);
   }
 
-  function chooseSlot(court: Court, slot: AvailabilitySlot) {
-    if (slot.status === "unavailable") return;
-    const publicCourt = bootstrap?.courts.find((candidate) => candidate.id === court.id);
-    const pricingConfig = publicCourt?.pricingConfig as
-      | { regular?: { maximumHours?: number } }
-      | undefined;
-    const configuredMaximum = pricingConfig?.regular?.maximumHours;
-    const singleRunMaximumHours =
-      isLive && typeof configuredMaximum === "number" && Number.isFinite(configuredMaximum)
-        ? Math.min(18, Math.max(1, Math.floor(configuredMaximum)))
-        : isLive
-          ? 18
-          : undefined;
+  function chooseBookingOption(court: Court, slots: AvailabilitySlot[]) {
+    if (!slots.length || slots.some((slot) => slot.status === "unavailable")) return;
+    setSelectedCourtId(court.id);
     dispatchSelection({
-      type: "toggle",
-      item: {
+      type: "replace",
+      items: slots.map((slot) => ({
         courtId: court.id,
         startHour: slot.hour,
         durationHours: 1,
         amount: slot.price,
-      },
-      courtName: court.name,
-      startsAt: slot.startsAt,
-      endsAt: slot.endsAt,
-      restrictToSingleRun: isLive && !atomicMultiSessionBooking,
-      maximumTotalHours: isLive && atomicMultiSessionBooking ? 18 : undefined,
-      singleRunMaximumHours:
-        isLive && !atomicMultiSessionBooking ? singleRunMaximumHours : undefined,
+      })),
     });
+    setLiveMessage(`${court.name}, ${formatHourRange(slots[0].hour, slots[0].hour + slots.length)} selected.`);
   }
 
   function clearSelection() {
@@ -2146,7 +2063,7 @@ export function BookingExperience({
       setPaymentError(
         atomicMultiSessionBooking
           ? "Check the minimum and maximum hours for each selected court session."
-          : "Live group checkout is not active yet. Choose adjacent hours on one court; no partial reservation will be created.",
+          : "This booking is not available. Choose one of the listed court times.",
       );
       return;
     }
@@ -2333,7 +2250,7 @@ export function BookingExperience({
       `DTEND;TZID=Asia/Manila:${calendarDate}T${String(latestHour).padStart(2, "0")}0000`,
       `SUMMARY:${escapeCalendar(`Pickleball at PickPoint · ${courtNames}`)}`,
       `DESCRIPTION:${escapeCalendar(`Booking reference: ${confirmedBooking.reference}`)}`,
-      `LOCATION:${escapeCalendar(bootstrap?.tenant.locationLabel || "PickPoint Court Hub")}`,
+      `LOCATION:${escapeCalendar(activeTenant.venue.locationLabel || "PickPoint Pickle Club")}`,
       "END:VEVENT",
       "END:VCALENDAR",
     ].join("\r\n");
@@ -2495,57 +2412,8 @@ export function BookingExperience({
   const confirmationEarliestHour = selectedSlots.length ? Math.min(...selectedSlots.map((item) => item.startHour)) : confirmedBooking?.startHour ?? 0;
   const confirmationLatestHour = selectedSlots.length ? Math.max(...selectedSlots.map((item) => item.startHour + item.durationHours)) : (confirmedBooking?.startHour ?? 0) + (confirmedBooking?.durationHours ?? 1);
   const confirmationTimeLabel = selectedSlots.length ? formatHourRange(confirmationEarliestHour, confirmationLatestHour) : "Time in booking record";
-  const gallerySection = (
-    <section className="club-gallery section-pad" id="gallery" aria-labelledby="gallery-heading">
-      <div className="site-container">
-        <div className="gallery-heading">
-          <div>
-            <p className="eyebrow eyebrow-dark">Court gallery</p>
-            <h2 id="gallery-heading">See the space before you play.</h2>
-          </div>
-          <p>Fresh photos published by the PickPoint team.</p>
-        </div>
-
-        {galleryPhotos.length ? (
-          <div
-            className={`gallery-grid${galleryPhotos.length === 5 ? " is-bento" : ""}`}
-            aria-label="PickPoint court gallery"
-            role="region"
-            tabIndex={0}
-          >
-            {galleryPhotos.map((photo) => (
-              <figure className="gallery-card" key={photo.id}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={photo.src}
-                  alt={photo.alt}
-                  width={1200}
-                  height={900}
-                  loading="lazy"
-                  decoding="async"
-                />
-                <figcaption>{photo.caption}</figcaption>
-              </figure>
-            ))}
-          </div>
-        ) : (
-          <div className="gallery-empty">
-            <div className="gallery-empty-frames" aria-hidden="true">
-              <span>01</span><span>02</span><span>+</span>
-            </div>
-            <div>
-              <p className="eyebrow eyebrow-dark">Gallery ready</p>
-              <h3>Court photos are coming soon.</h3>
-              <p>Fresh court photos will appear here after the PickPoint team publishes them.</p>
-            </div>
-          </div>
-        )}
-      </div>
-    </section>
-  );
-
   return (
-    <div className={`pickpoint-pickleclub-site${isBookingPage ? " booking-route" : ""}${isBookingPage && mode === "book" ? " booking-new-route rallyos-player-shell player-mode" : ""}`}>
+    <div className={`pickpoint-pickleclub-site${isBookingPage ? " booking-route" : ""}${isBookingPage && mode === "book" ? " booking-new-route point-player-shell player-mode" : ""}`}>
       {isBookingPage ? (
         <div className="preview-ribbon" role="status">
           <strong>{isLive ? "Live booking" : "Setup preview"}</strong>
@@ -2556,48 +2424,7 @@ export function BookingExperience({
           <strong>Setup preview</strong><span>No live reservations or payments are created.</span>
         </div>
       )}
-      {isBookingPage && (
-        <header className={`booking-app-header ${!isLive ? "has-preview-ribbon" : ""}`}>
-          <div className="booking-app-mobile-bar">
-            <button
-              className="booking-app-menu-button"
-              type="button"
-              aria-expanded={mobileNavOpen}
-              aria-controls="primary-navigation"
-              aria-label={mobileNavOpen ? "Close navigation" : "Open navigation"}
-              onClick={() => setMobileNavOpen((open) => !open)}
-            >
-              <span className="menu-lines" aria-hidden="true" />
-            </button>
-            <strong>Book a court</strong>
-          </div>
-          <div className="booking-app-desktop-bar">
-            <div className="booking-app-title">
-              <small>PickPoint Court Hub</small>
-              <strong>Book a court</strong>
-            </div>
-            <div className="booking-app-actions">
-              <label className="booking-app-search">
-                <span aria-hidden="true">⌕</span>
-                <input type="search" placeholder="Search bookings and players" aria-label="Search bookings and players" />
-                <kbd>⌘ K</kbd>
-              </label>
-              <Link className="booking-app-notification" href="/book?mode=manage" aria-label="Manage booking notifications">♧<b>2</b></Link>
-            </div>
-          </div>
-          <nav
-            id="primary-navigation"
-            className={`primary-nav booking-app-navigation ${mobileNavOpen ? "is-open" : ""}`}
-            aria-label="Primary navigation"
-          >
-            <Link href="/" onClick={() => setMobileNavOpen(false)}>Home</Link>
-            <Link href="/courts" onClick={() => setMobileNavOpen(false)}>Courts</Link>
-            <Link href="/book" aria-current={mode === "book" ? "page" : undefined} onClick={() => setMobileNavOpen(false)}>New booking</Link>
-            <Link href="/book?mode=manage" aria-current={mode === "manage" ? "page" : undefined} onClick={() => setMobileNavOpen(false)}>Manage booking</Link>
-          </nav>
-        </header>
-      )}
-      {!isBookingPage && <header className={`site-header ${!isLive ? "has-preview-ribbon" : ""}`}>
+      <header className={`site-header point-header ${!isLive ? "has-preview-ribbon" : ""}`}>
         <div className="site-container header-inner">
           <Link className="wordmark" href="/" aria-label="PickPoint home">
             <Image
@@ -2632,15 +2459,6 @@ export function BookingExperience({
             <Link href="/courts" aria-current={isCourtsPage ? "page" : undefined} onClick={() => setMobileNavOpen(false)}>
               Courts
             </Link>
-            {isHome ? (
-              <a href="#how-it-works" onClick={() => setMobileNavOpen(false)}>
-                How it works
-              </a>
-            ) : (
-              <Link href="/#how-it-works" onClick={() => setMobileNavOpen(false)}>
-                How it works
-              </Link>
-            )}
             <Link
               className="nav-text-button"
               href="/book?mode=manage"
@@ -2654,102 +2472,44 @@ export function BookingExperience({
             </Link>
           </nav>
         </div>
-      </header>}
+      </header>
 
-      <main id="main-content" className={isHome ? undefined : isBookingPage && mode === "book" ? "route-main rallyos-main-content" : "route-main"}>
-        {isHome && <section className="hero" id="top">
-          <div className="hero-grid site-container">
-            <div className="hero-copy">
-              <p className="eyebrow hero-eyebrow"><span aria-hidden="true">●</span><span>Welcome to your next favorite habit</span></p>
-              <h1>
-                Your next rally
-                <span>starts here.</span>
-              </h1>
-              <p className="hero-lede">
-                Good games should be easy to find. Pick your court, lock in an hour,
-                and meet your crew on the bright side of the net.
-              </p>
+      <main id="main-content" className={isHome ? undefined : isBookingPage && mode === "book" ? "route-main point-main-content" : "route-main"}>
+        {isHome && <section className="hero point-hero" id="top">
+          <div className="site-container point-hero-grid">
+            <div className="point-hero-copy">
+              <p className="eyebrow hero-eyebrow"><span aria-hidden="true">●</span><span>PickPoint Pickle Club</span></p>
+              <h1>Pick a court.<br /><span>Make your point.</span></h1>
+              <p className="hero-lede">Choose a date, see real court availability, and reserve your game in a few clear steps.</p>
               <div className="hero-actions">
-                <Link className="button button-lime button-large" href="/book">
-                  Book a court <span aria-hidden="true">→</span>
-                </Link>
-                <a className="text-link" href="#how-it-works">
-                  How booking works <span aria-hidden="true">↓</span>
-                </a>
-              </div>
-              <ul className="hero-proof" aria-label="Booking highlights">
-                <li><strong>{displayCourts.length}</strong><span>{isLive ? "bookable courts" : "preview courts"}</span></li>
-                <li><strong>{startingHourlyRate === null ? "Rates soon" : `From ${peso(startingHourlyRate)}`}</strong><span>per court-hour</span></li>
-                <li><strong>24/7</strong><span>live availability</span></li>
-              </ul>
-            </div>
-
-            <div className="hero-visual" aria-hidden="true">
-              <div className="court-art" aria-hidden="true">
-                <div className="court-net" />
-                <div className="court-service-line court-service-line-one" />
-                <div className="court-service-line court-service-line-two" />
-                <div className="court-center-line court-center-line-one" />
-                <div className="court-center-line court-center-line-two" />
-                <div className="court-player court-player-one" />
-                <div className="court-player court-player-two" />
-                <div className="court-ball" />
-                <span className="court-label court-label-one">DINK</span>
-                <span className="court-label court-label-two">TOPIA</span>
-              </div>
-              <div className="score-card">
-                <div><span>COURT</span><strong>01</strong></div>
-                <div><span>NEXT OPEN</span><strong>07:00</strong></div>
-                <span className="score-live"><i aria-hidden="true" /> LIVE</span>
-              </div>
-              <div className="floating-note">
-                <span className="floating-note-icon" aria-hidden="true">↗</span>
-                <p><strong>One tap closer</strong><br />to your next game</p>
+                <Link className="button button-lime button-large" href="/book">Book a court <span aria-hidden="true">→</span></Link>
+                <Link className="text-link" href="/courts">View courts</Link>
               </div>
             </div>
-          </div>
-          <div className="ticker">
-            <p id={`${formId}-ticker-copy`} className="sr-only">
-              Play more. Rally often. Stay focused. New habit.
-            </p>
-            <input
-              id={`${formId}-ticker-motion`}
-              className="ticker-motion-toggle sr-only"
-              type="checkbox"
-              aria-label="Pause or resume moving club phrases"
-            />
-            <label className="ticker-viewport" htmlFor={`${formId}-ticker-motion`}>
-              <span className="ticker-track" aria-hidden="true">
-                {[0, 1].map((copy) => (
-                  <span
-                    className={`ticker-group${copy === 1 ? " ticker-group-clone" : ""}`}
-                    key={copy}
-                  >
-                    {tickerPhrases.map((phrase) => (
-                      <span key={`${copy}-${phrase}`}>
-                        <strong>{phrase}</strong><i aria-hidden="true">◆</i>
-                      </span>
-                    ))}
-                  </span>
-                ))}
-              </span>
-            </label>
+            <aside className="point-quick-card" aria-label="Start a booking">
+              <div className="point-court-mark" aria-hidden="true"><span>PP</span><i /><b /></div>
+              <p className="eyebrow eyebrow-dark">Ready to play?</p>
+              <h2>Find your time.</h2>
+              <dl>
+                <div><dt>Courts</dt><dd>{displayCourts.length || "Soon"}</dd></div>
+                <div><dt>Rate</dt><dd>{startingHourlyRate === null ? "Coming soon" : `From ${peso(startingHourlyRate)}`}</dd></div>
+              </dl>
+              <Link className="button button-coral" href="/book">Check available times</Link>
+            </aside>
           </div>
         </section>}
-
-        {isHome && gallerySection}
 
         {isCourtsPage && <section className="court-discovery section-pad" id="courts">
           <div className="site-container">
             <div className="section-heading">
               <div>
-                <p className="eyebrow eyebrow-dark">Pick your playground</p>
-                <h1>Choose your court.<br />Start your rally.</h1>
+                <p className="eyebrow eyebrow-dark">Our courts</p>
+                <h1>Find the court<br />that fits your game.</h1>
               </div>
               <p>
                 {isLive && bootstrapState !== "ready"
                   ? "Loading configured courts."
-                  : `${isLive ? `${courtDirectoryCourts.length} configured courts` : `${previewCourts.length} dedicated preview courts`}, designed for quick games, long rallies, and the happy blur in between.`}
+                  : `${isLive ? `${courtDirectoryCourts.length} bookable courts.` : `${previewCourts.length} preview courts. Live details will appear after venue setup is complete.`}`}
               </p>
             </div>
             {isLive && bootstrapState !== "ready" ? (
@@ -2798,7 +2558,7 @@ export function BookingExperience({
                       <h3>{court.name}</h3>
                       <div className="court-card-meta">
                         <span>{court.mood}</span>
-                        <span>From ₱300 / hour</span>
+                        <span>{startingHourlyRate === null ? "Rates coming soon" : `From ${peso(startingHourlyRate)} / hour`}</span>
                       </div>
                       <Link
                         className="button court-button"
@@ -2827,14 +2587,14 @@ export function BookingExperience({
         {isHome && <section className="how-section section-pad" id="how-it-works">
           <div className="site-container how-grid">
             <div className="how-intro">
-              <p className="eyebrow">No back-and-forth</p>
-              <h2>From “game?” to booked.</h2>
-              <p>Everything you need, nothing that slows down the rally.</p>
+              <p className="eyebrow">Simple by design</p>
+              <h2>Book in three steps.</h2>
+              <p>Clear availability, a short checkout, and one booking reference.</p>
             </div>
             <ol className="how-list">
-              <li><span>01</span><div><h3>Build your court plan</h3><p>See every active court and select exact court-hours.</p></div></li>
-              <li><span>02</span><div><h3>Bring your crew</h3><p>Book one to three whole hours, up to 30 days ahead.</p></div></li>
-              <li><span>03</span><div><h3>Pay, then play</h3><p>Send your GCash receipt and get a booking reference.</p></div></li>
+              <li><span>01</span><div><h3>Choose your time</h3><p>See the open hours for every published court.</p></div></li>
+              <li><span>02</span><div><h3>Add your details</h3><p>Tell the club who is playing and how to reach you.</p></div></li>
+              <li><span>03</span><div><h3>Complete payment</h3><p>Follow the venue&apos;s payment instructions and keep your reference.</p></div></li>
             </ol>
           </div>
         </section>}
@@ -2864,29 +2624,12 @@ export function BookingExperience({
               </nav>
             </div>
 
-            {mode === "book" && step === 1 && (
-              <div className="booking-venue-hero player-hero player-hero-image" aria-label="PickPoint Court Hub booking">
-                <div className="booking-venue-hero-copy">
-                  <span className="booking-venue-mark" aria-hidden="true">DT</span>
-                  <div>
-                    <p>Book direct</p>
-                    <h2>Book court time in seconds.</h2>
-                    <span>Tap any open slot. Choose as many courts and times as you need, then check out once.</span>
-                  </div>
-                </div>
-                <span className="booking-venue-location">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></svg>
-                  PickPoint Court Hub
-                </span>
-              </div>
-            )}
-
             {mode === "book" && isLive && !liveBookingReady ? (
               <div className="setup-unavailable-card" role={bootstrapState === "loading" ? "status" : "alert"}>
                 <span className={bootstrapState === "loading" ? "spinner" : "setup-unavailable-symbol"} aria-hidden="true">{bootstrapState === "loading" ? "" : "!"}</span>
                 <div>
                   <p className="eyebrow eyebrow-dark">{bootstrapState === "loading" ? "Checking venue setup" : "Online booking unavailable"}</p>
-                  <h3>{bootstrapState === "loading" ? "Loading the court board…" : "The clubhouse is still getting ready."}</h3>
+                  <h3>{bootstrapState === "loading" ? "Loading available times…" : "Online booking is still being set up."}</h3>
                   <p>{bootstrapState === "loading" ? "We’re confirming courts, policies, payment, and security." : "No payment instructions are shown until the venue, published policy, payment method, and security check are all active."}</p>
                 </div>
                 {bootstrapState !== "loading" && <Link className="button button-outline" href="/courts">Explore the preview courts</Link>}
@@ -2943,7 +2686,7 @@ export function BookingExperience({
                     <div className={`booking-main-card booking-selection-card booking-stage surface-card${selectedSlots.length ? " has-mobile-selection" : ""}`}>
                       <div className="booking-card-heading booking-choice-heading stage-heading">
                         <span className="step-chip">01</span>
-                        <div><p className="booking-card-kicker">Court booking</p><h3>Choose your slots</h3></div>
+                        <div><p className="booking-card-kicker">Court booking</p><h3>Choose your time</h3></div>
                       </div>
 
                       <fieldset className="booking-fieldset field-group">
@@ -2966,185 +2709,97 @@ export function BookingExperience({
                             </button>
                           ))}
                         </div>
-                        {selectedSlots.length > 0 && <p className="date-selection-note">Changing the date clears your selected court-hours.</p>}
+                        {selectedSlots.length > 0 && <p className="date-selection-note">Changing the date clears your selected time.</p>}
                       </fieldset>
 
-                      <fieldset className={`booking-fieldset availability-fieldset field-group availability-section${selectedSlots.length ? "" : " waiting"}`}>
-                        <legend className="sr-only">Choose court-hours</legend>
-                        <div className="schedule-heading-row field-group-label availability-heading">
-                          <div className="schedule-title-group">
-                            <h4>{visibleAvailabilityState === "loading" ? "Refreshing times" : visibleAvailabilityState === "error" ? "Schedule needs a retry" : "Court schedule"}</h4>
-                            <p className="schedule-help">
-                              Tap an open slot to select it. Tap again to remove.
-                            </p>
-                          </div>
-                          <div
-                            className="schedule-selection-count"
-                            role="status"
-                            aria-live="polite"
-                            aria-label={`${selectedSlots.length} court-hour${selectedSlots.length === 1 ? "" : "s"} selected`}
-                          >
-                            {selectedSlots.length
-                              ? `${selectedSlots.length} slot${selectedSlots.length === 1 ? "" : "s"} · ${peso(courtSubtotal)}`
-                              : "No slots selected"}
-                          </div>
+                      <fieldset className="booking-fieldset duration-fieldset field-group">
+                        <legend>How long do you want to play?</legend>
+                        <div className="duration-options" role="radiogroup" aria-label="Booking duration">
+                          {([1, 2, 3] as const).map((hours) => (
+                            <button
+                              type="button"
+                              role="radio"
+                              aria-checked={durationHours === hours}
+                              className={durationHours === hours ? "is-selected" : ""}
+                              key={hours}
+                              onClick={() => {
+                                setDurationHours(hours);
+                                if (selectedSlots.length) dispatchSelection({ type: "clear", announcement: `${hours}-hour duration selected. Choose a new time.` });
+                              }}
+                            >
+                              <strong>{hours}</strong> hour{hours === 1 ? "" : "s"}
+                            </button>
+                          ))}
                         </div>
-                        <div className="availability-legend-row">
-                          <div className="slot-legend availability-legend" aria-label="Availability legend">
-                            <span><i className="legend-open" />Open</span>
-                            <span><i className="legend-booked" />Booked</span>
-                            <span><i className="legend-selected" />Your selection</span>
-                          </div>
-                        </div>
+                      </fieldset>
+
+                      <fieldset className="booking-fieldset point-options-fieldset field-group">
+                        <legend>Available times</legend>
+                        <p className="schedule-help">Choose one court and start time. The total shown covers your full booking.</p>
 
                         {visibleAvailabilityState === "loading" && (
                           <div className="availability-loading" role="status" aria-live="polite">
                             <span className="spinner" aria-hidden="true" />
-                            <div><strong>Checking the court board…</strong><small>Looking for open whole-hour slots.</small></div>
+                            <div><strong>Checking available times…</strong><small>This will only take a moment.</small></div>
                           </div>
                         )}
 
                         {visibleAvailabilityState === "error" && (
                           <div className="state-card state-error" role="alert">
                             <span className="state-symbol" aria-hidden="true">!</span>
-                            <div><h4>The schedule took a timeout.</h4><p>Your choices are still here. Try loading availability again.</p></div>
+                            <div><h4>Availability could not be loaded.</h4><p>Try again without losing your date.</p></div>
                             <button className="button button-outline" type="button" onClick={() => setAvailabilityRetry((value) => value + 1)}>Try again</button>
-                          </div>
-                        )}
-
-                        {visibleAvailabilityState === "ready" && displayCourts.length > 0 && availableCount === 0 && (
-                          <div className="state-card state-empty" role="status">
-                            <span className="state-symbol" aria-hidden="true">0</span>
-                            <div><h4>This day is rally-packed.</h4><p>No court-hours are open. Try the next date.</p></div>
-                            <button
-                              className="button button-outline"
-                              type="button"
-                              onClick={() => {
-                                const currentIndex = dates.findIndex((date) => date.iso === selectedDate);
-                                chooseDate(dates[Math.min(currentIndex + 1, dates.length - 1)].iso);
-                              }}
-                            >
-                              Check next day
-                            </button>
                           </div>
                         )}
 
                         {visibleAvailabilityState === "ready" && displayCourts.length === 0 && (
                           <div className="state-card state-empty" role="status">
                             <span className="state-symbol" aria-hidden="true">0</span>
-                            <div><h4>No courts are published yet.</h4><p>The venue owner can add and activate courts in system settings.</p></div>
+                            <div><h4>No courts are published yet.</h4><p>Available courts will appear here after venue setup is complete.</p></div>
                           </div>
                         )}
 
-                        {visibleAvailabilityState === "ready" && availableCount > 0 && displayCourts.length > 0 && (
-                          <div className="rally-availability-board">
-                            <div
-                              className="availability-scroll"
-                              role="region"
-                              aria-label={`All courts hourly availability for ${selectedBaseDateLabel}. Scroll horizontally to see later times.`}
-                              tabIndex={0}
-                            >
-                              <div className="availability-grid" style={{ "--slot-count": scheduleHours.length } as CSSProperties}>
-                                <div className="availability-corner"><strong>All courts</strong><small>Hourly view</small></div>
-                                {scheduleHours.map((hour) => (
-                                  <div
-                                    className={`availability-time${hour === 24 ? " schedule-next-day-divider" : ""}`}
-                                    key={`time-${hour}`}
-                                    aria-label={hour === 24 && selectedFollowingDate ? `Next day, ${longDateLabel(selectedFollowingDate)}` : undefined}
-                                  >
-                                    <strong>{formatHour(hour).replace(":00", "")}</strong>
-                                    <small>{hour === 24 ? "NEXT DAY · " : "to "}{formatHour(hour + 1).replace(":00", "")}</small>
-                                  </div>
-                                ))}
-                                {displayCourts.map((court) => {
-                                  const courtSchedule = schedule.find((item) => item.courtId === court.id);
-                                  const courtSelectionCount = selectedSlots.filter((item) => item.courtId === court.id).length;
-                                  return (
-                                    <Fragment key={court.id}>
-                                      <div className="availability-court">
-                                        <span className="court-number">{Number(court.number)}</span>
-                                        <span><strong>{court.name}</strong><small>{compactCourtSurface(court)}</small></span>
-                                        <em>{courtSelectionCount ? `${courtSelectionCount} selected` : ""}</em>
-                                      </div>
-                                      {scheduleHours.map((hour) => {
-                                        const slot = courtSchedule?.slots.find((item) => item.hour === hour);
-                                        const isSelected = selectedKeys.has(selectionKey(court.id, hour));
-                                        const busy = !slot || slot.status === "unavailable";
-                                        return (
-                                          <button
-                                            type="button"
-                                            key={`${court.id}-${hour}`}
-                                            className={`availability-cell${busy ? " busy" : isSelected ? " selected" : ""}`}
-                                            aria-pressed={isSelected}
-                                            disabled={busy}
-                                            aria-label={`${court.name}, ${formatHourWithDay(hour)} to ${formatHourWithDay(hour + 1)}, ${busy ? "Booked" : isSelected ? "Selected, click to remove" : "Open, click to select"}`}
-                                            onClick={() => slot && !busy && chooseSlot(court, slot)}
-                                          ><span aria-hidden="true" /><small>{busy ? "Booked" : isSelected ? "Selected" : "Open"}</small></button>
-                                        );
-                                      })}
-                                    </Fragment>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                            <div className="availability-mobile" role="region" aria-label="Mobile all-court availability">
-                              <div
-                                className="mobile-availability-grid"
-                                style={{
-                                  "--court-count": displayCourts.length,
-                                  "--mobile-grid-min": `${80 + displayCourts.length * 58}px`,
-                                } as CSSProperties}
-                              >
-                                <div className="mobile-availability-corner"><strong>Time</strong><small>Hourly</small></div>
-                                {displayCourts.map((court) => (
-                                  <div className="mobile-court-head" key={`head-${court.id}`} title={court.name}>
-                                    <span>C{Number(court.number)}</span><small>{compactCourtSurface(court)}</small>
-                                  </div>
-                                ))}
-                                {scheduleHours.map((hour) => (
-                                  <Fragment key={`mobile-${hour}`}>
-                                    <div className={`mobile-time-label${hour === 24 ? " schedule-next-day-divider" : ""}`}><strong>{formatHour(hour).replace(":00", "")}</strong><small>{hour === 24 ? "NEXT DAY · " : "to "}{formatHour(hour + 1).replace(":00", "")}</small></div>
-                                    {displayCourts.map((court) => {
-                                      const slot = schedule.find((item) => item.courtId === court.id)?.slots.find((item) => item.hour === hour);
-                                      const isSelected = selectedKeys.has(selectionKey(court.id, hour));
-                                      const busy = !slot || slot.status === "unavailable";
-                                      return (
-                                        <button
-                                          type="button"
-                                          key={`${court.id}-${hour}`}
-                                          className={`availability-cell mobile-availability-cell${busy ? " busy" : isSelected ? " selected" : ""}`}
-                                          aria-pressed={isSelected}
-                                          disabled={busy}
-                                          aria-label={`${court.name}, ${formatHourWithDay(hour)} to ${formatHourWithDay(hour + 1)}, ${busy ? "Booked" : isSelected ? "Selected, click to remove" : "Open, click to select"}`}
-                                          onClick={() => slot && !busy && chooseSlot(court, slot)}
-                                        ><span aria-hidden="true" /><small>{busy ? "Booked" : isSelected ? "Selected" : "Open"}</small></button>
-                                      );
-                                    })}
-                                  </Fragment>
-                                ))}
-                              </div>
-                            </div>
+                        {visibleAvailabilityState === "ready" && displayCourts.length > 0 && bookingOptions.length === 0 && (
+                          <div className="state-card state-empty" role="status">
+                            <span className="state-symbol" aria-hidden="true">0</span>
+                            <div><h4>No {durationHours}-hour times are open.</h4><p>Try a shorter duration or another date.</p></div>
+                            <button className="button button-outline" type="button" onClick={() => setDurationHours(1)}>Show 1-hour times</button>
                           </div>
                         )}
-                        {isLive && selectedSlots.length > 0 && !liveSelectionSupported && (
-                          <div className="schedule-live-guard" role="status">
-                            <strong>{atomicMultiSessionBooking ? "Selection limit reached" : "Group checkout is being prepared"}</strong>
-                            <p>{atomicMultiSessionBooking
-                              ? "A booking can include up to 18 total court-hours."
-                              : "Live checkout currently accepts adjacent hours on one court. We will never split this into partial reservations."}</p>
+
+                        {visibleAvailabilityState === "ready" && bookingOptions.length > 0 && (
+                          <div className="point-time-options" role="radiogroup" aria-label={`${durationHours}-hour available court times`}>
+                            {bookingOptions.map((option) => {
+                              const selected = selectedOptionKey === option.key;
+                              return (
+                                <button
+                                  type="button"
+                                  role="radio"
+                                  aria-checked={selected}
+                                  className={`point-time-option${selected ? " is-selected" : ""}`}
+                                  key={option.key}
+                                  onClick={() => chooseBookingOption(option.court, option.slots)}
+                                >
+                                  <span className="point-option-time"><strong>{formatHour(option.startHour)}</strong><small>to {formatHour(option.endHour)}{option.endHour >= 24 ? " · next day" : ""}</small></span>
+                                  <span className="point-option-court"><strong>{option.court.name}</strong><small>{option.court.descriptor}</small></span>
+                                  <span className="point-option-price"><strong>{peso(option.total)}</strong><small>{durationHours} hour{durationHours === 1 ? "" : "s"}</small></span>
+                                  <span className="point-option-check" aria-hidden="true">{selected ? "✓" : "→"}</span>
+                                </button>
+                              );
+                            })}
                           </div>
                         )}
                       </fieldset>
 
                       {step === 1 && paymentError && (
                         <div className="payment-error booking-selection-error" role="alert">
-                          <span aria-hidden="true">!</span><div><strong>We couldn&apos;t hold your slots</strong><p>{paymentError}</p></div>
+                          <span aria-hidden="true">!</span><div><strong>We couldn&apos;t hold this time</strong><p>{paymentError}</p></div>
                         </div>
                       )}
-                      <div className="slot-step-footer stage-footer booking-selection-footer" role="region" aria-label="Selected court-hours">
+                      <div className="slot-step-footer stage-footer booking-selection-footer" role="region" aria-label="Selected booking time">
                         <div>
-                          <strong><i aria-hidden="true">✓</i>{selectedSlots.length ? `${selectedSlots.length} slot${selectedSlots.length === 1 ? "" : "s"} selected` : "Select one or more open slots"}</strong>
-                          {selectedSlots.length > 0 && <span>{selectedCourtCount} court{selectedCourtCount === 1 ? "" : "s"} · {peso(total)}</span>}
+                          <strong><i aria-hidden="true">✓</i>{selectedSlots.length ? `${selectedSlots.length}-hour booking selected` : "Choose an available time"}</strong>
+                          {selectedSlots.length > 0 && <span>1 court · {peso(total)}</span>}
                         </div>
                         <button
                           className={`slot-clear-button${selectedSlots.length ? "" : " is-placeholder"}`}
@@ -3154,9 +2809,19 @@ export function BookingExperience({
                           tabIndex={selectedSlots.length ? 0 : -1}
                           onClick={clearSelection}
                         >Clear</button>
-                        <button data-testid="booking-continue" className="button button-blue" type="button" disabled={isSubmitting || !selectedSlots.length || !liveSelectionSupported} onClick={() => void createSelectionHold()}>{isSubmitting ? <><span className="button-spinner" aria-hidden="true" /> Holding…</> : <>Hold &amp; continue{selectedSlots.length ? ` · ${peso(total)}` : ""} <span aria-hidden="true">→</span></>}</button>
+                        <button data-testid="booking-continue" className="button button-blue" type="button" disabled={isSubmitting || !selectedSlots.length || !liveSelectionSupported} onClick={() => void createSelectionHold()}>{isSubmitting ? <><span className="button-spinner" aria-hidden="true" /> Holding…</> : <>Continue{selectedSlots.length ? ` · ${peso(total)}` : ""} <span aria-hidden="true">→</span></>}</button>
                       </div>
                     </div>
+                    {selectedSlots.length ? (
+                      <RallyBookingSummary selections={selectedSlotDetails} dateLabel={selectedBookingDateLabel} subtotal={courtSubtotal} bookingFee={bookingFee ?? 0} total={total} />
+                    ) : (
+                      <aside className="point-selection-summary surface-card" aria-label="Booking summary">
+                        <p className="player-kicker">Your booking</p>
+                        <h3>Nothing selected yet</h3>
+                        <p>Choose a date, duration, and available time. Your court and total will appear here.</p>
+                        <dl><div><dt>Date</dt><dd>{selectedBaseDateLabel}</dd></div><div><dt>Duration</dt><dd>{durationHours} hour{durationHours === 1 ? "" : "s"}</dd></div></dl>
+                      </aside>
+                    )}
                   </div>
                 )}
 
@@ -3170,7 +2835,7 @@ export function BookingExperience({
                       {pendingBooking && (
                         <div className={`notice-banner ${holdExpired ? "" : "notice-success"}`} role={holdExpired ? "alert" : "status"}>
                           <div>
-                            <strong>{holdExpired ? "Hold expired or released" : `Slots held · ${pendingBooking.reference}`}</strong>
+                            <strong>{holdExpired ? "Hold expired or released" : `Court time held · ${pendingBooking.reference}`}</strong>
                             <span>{holdExpired ? "Return to the schedule and choose another time." : holdRemainingSeconds == null ? "The server controls this hold window." : `Complete these details within ${formatHoldCountdown(holdRemainingSeconds)}.`}</span>
                           </div>
                         </div>
@@ -3288,13 +2953,13 @@ export function BookingExperience({
                         </div>
                       ) : !heldPaymentReady ? (
                         <div className="payment-error" role="alert">
-                          <span aria-hidden="true">!</span><div><strong>GCash setup is incomplete</strong><p>The court owner must publish a GCash account in System Setup before payment can continue.</p></div>
+                          <span aria-hidden="true">!</span><div><strong>GCash setup is incomplete</strong><p>The court owner must add a verified GCash account before payment can continue.</p></div>
                         </div>
                       ) : (
                         <>
                           <div className="owner-payment-note">
                             <span aria-hidden="true">✦</span>
-                            <div><strong>Pay the court owner directly</strong><small>Use the verified GCash details saved by the venue in System Setup.</small></div>
+                            <div><strong>Pay the court owner directly</strong><small>Use the verified GCash details provided by the venue.</small></div>
                           </div>
                           <div className="gcash-account-field">
                             <span>{paymentLabel} mobile number</span>
@@ -3306,7 +2971,7 @@ export function BookingExperience({
                           <div className="payment-recipient">
                             <span>Paying</span>
                             <strong>{isLive ? paymentAccountName : "Court owner"}</strong>
-                            <small>{paymentLabel} account from System Setup</small>
+                            <small>Verified venue {paymentLabel} account</small>
                           </div>
                           {isLive && paymentMethod?.instructions && <p className="payment-owner-instructions">{paymentMethod.instructions}</p>}
                           <div className="gcash-hold-status" role="status">
@@ -3356,7 +3021,7 @@ export function BookingExperience({
                         {isSubmitting ? <><span className="button-spinner" aria-hidden="true" /> Sending receipt…</> : <>Submit receipt · {peso(checkoutTotal)} <span aria-hidden="true">→</span></>}
                       </button>}
                       <button className="cancel-hold-link" type="button" onClick={() => void cancelCurrentHold()} disabled={isSubmitting}>{holdExpired ? "Choose a new time" : "Cancel unpaid hold"}</button>
-                      <p className="payment-security"><span aria-hidden="true">✓</span> The court owner&apos;s GCash details come directly from System Setup.</p>
+                      <p className="payment-security"><span aria-hidden="true">✓</span> Payment details are provided directly by the court owner.</p>
                     </form>
                     <RallyBookingSummary selections={selectedSlotDetails} dateLabel={selectedBookingDateLabel} subtotal={checkoutSubtotal} bookingFee={checkoutFee} total={checkoutTotal} />
                   </div>
@@ -3452,8 +3117,8 @@ export function BookingExperience({
 
         {isHome && <section className="club-note">
           <div className="site-container club-note-inner">
-            <p className="eyebrow">Welcome to your next favorite habit</p>
-            <h2>Serious court.<br /><span>Playful spirit.</span></h2>
+            <p className="eyebrow">Your next game</p>
+            <h2>Choose the time.<br /><span>We&apos;ll keep it simple.</span></h2>
             <Link className="button button-lime button-large" href="/book">Book a court <span aria-hidden="true">→</span></Link>
           </div>
         </section>}
@@ -3462,7 +3127,7 @@ export function BookingExperience({
       <footer className="site-footer">
         <div className="site-container footer-grid">
           <div><Link className="wordmark wordmark-footer" href="/" aria-label="PickPoint home"><Image className="brand-logo" src="/pickpoint-pickleclub-logo.png" alt="" width={2172} height={724} sizes="212px" unoptimized /></Link><p>Pick your court. Lock your time.</p></div>
-          <div><h2>Play</h2><Link href="/courts">Courts</Link>{isHome ? <a href="#gallery">Gallery</a> : <Link href="/#gallery">Gallery</Link>}<Link href="/book">Book a court</Link><Link href="/book?mode=manage">Manage booking</Link></div>
+          <div><h2>Play</h2><Link href="/courts">Courts</Link><Link href="/book">Book a court</Link><Link href="/book?mode=manage">My booking</Link></div>
           <div><h2>Club hours</h2><p>Daily<br /><strong>6:00 AM–10:00 PM</strong></p><small>Asia/Manila · PHP</small></div>
           <div><h2>Setup status</h2><p>Preview booking experience.<br />Venue details coming next.</p></div>
         </div>
@@ -3493,39 +3158,33 @@ function RallyBookingSummary({
   const courts = Array.from(
     new Map(selections.map((item) => [item.court.id, item.court])).values(),
   );
-  const courtSchedule = courts
-    .map((court) => {
-      const times = groups
-        .filter((group) => group.court.id === court.id)
-        .map((group) => formatHourRange(group.startHour, group.endHour))
-        .join(", ");
-      return `${court.name}: ${times}`;
-    })
-    .join(" · ");
-  const slotLabel = `${selections.length} slot${selections.length === 1 ? "" : "s"} selected`;
+  const courtSchedule = groups
+    .map((group) => formatHourRange(group.startHour, group.endHour))
+    .join(", ");
+  const bookingLengthLabel = `${selections.length}-hour booking`;
 
   return (
     <aside className="booking-summary rally-booking-summary surface-card" aria-label="Booking summary">
       <p className="player-kicker">Your reservation</p>
-      <h3>{courts.length === 1 ? courts[0]?.name : `${courts.length} courts reserved`}</h3>
+      <h3>{courts[0]?.name}</h3>
       <div className="summary-detail">
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 10h18" /></svg>
-        <span><strong>{dateLabel}</strong><small>{slotLabel}</small></span>
+        <span><strong>{dateLabel}</strong><small>{bookingLengthLabel}</small></span>
       </div>
       <div className="summary-detail">
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
-        <span><strong>{courts.map((court) => court.name).join(", ")}</strong><small>{courtSchedule}</small></span>
+        <span><strong>{courts[0]?.name}</strong><small>{courtSchedule}</small></span>
       </div>
       <div className="summary-detail">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></svg>
-        <span><strong>PickPoint Court Hub</strong><small>{activeTenant.venue.locationLabel}</small></span>
+        <span><strong>PickPoint Pickle Club</strong><small>{activeTenant.venue.locationLabel}</small></span>
       </div>
       <div className="summary-price-lines">
-        <span><small>Court reservation · {slotLabel}</small><strong>{peso(subtotal)}</strong></span>
+        <span><small>Court reservation · {bookingLengthLabel}</small><strong>{peso(subtotal)}</strong></span>
         {bookingFee > 0 && <span><small>Booking fee</small><strong>{peso(bookingFee)}</strong></span>}
       </div>
       <div className="rally-summary-total"><span>Total</span><strong>{peso(total)}</strong></div>
-      <p className="summary-note">Free cancellation up to 12 hours before your booking.</p>
+      <p className="summary-note">The venue&apos;s booking policy is shown before payment.</p>
     </aside>
   );
 }
@@ -3594,13 +3253,13 @@ function ManageBooking({
         <p className="eyebrow">Your booking, your call</p>
         <h3>Check status or change plans.</h3>
         <p>Use the same device, booking reference, and email from checkout. No password or account required.</p>
-        {isPreview && <div className="manage-demo-note"><strong>Preview a found booking</strong><span>Reference: DT-260808-018<br />Email: mika@example.com</span></div>}
+        {isPreview && <div className="manage-demo-note"><strong>Preview a found booking</strong><span>Reference: PP-260808-018<br />Email: mika@example.com</span></div>}
       </div>
       <div className="manage-panel">
         <form className="lookup-form" onSubmit={onLookup} noValidate>
           <div className="form-field">
             <label htmlFor={`${formId}-lookup-reference`}>Booking reference</label>
-            <input id={`${formId}-lookup-reference`} value={reference} onChange={(event) => onReferenceChange(event.target.value.toUpperCase())} placeholder="DT-YYMMDD-000" autoComplete="off" />
+            <input id={`${formId}-lookup-reference`} value={reference} onChange={(event) => onReferenceChange(event.target.value.toUpperCase())} placeholder="PP-YYMMDD-000" autoComplete="off" />
           </div>
           <div className="form-field">
             <label htmlFor={`${formId}-lookup-email`}>Email address</label>
@@ -3612,7 +3271,7 @@ function ManageBooking({
         {lookupState === "idle" && <div className="manage-placeholder"><span aria-hidden="true">⌕</span><p>Your booking details will appear here.</p></div>}
         {lookupState === "loading" && <div className="manage-loading" role="status"><span className="spinner" aria-hidden="true" /><div><strong>Looking up your booking…</strong><small>Checking the PickPoint board.</small></div></div>}
         {lookupState === "error" && <div className="state-card state-error" role="alert"><span className="state-symbol" aria-hidden="true">!</span><div><h4>Check those details</h4><p>Enter your booking reference and the email used at checkout, then try again.</p></div></div>}
-        {lookupState === "empty" && <div className="state-card state-empty" role="status"><span className="state-symbol" aria-hidden="true">?</span><div><h4>We couldn&apos;t find that booking.</h4><p>Check for typos. If it still won&apos;t show, the clubhouse team can help.</p></div><button className="button button-outline" type="button" onClick={onBook}>Start a new booking</button></div>}
+        {lookupState === "empty" && <div className="state-card state-empty" role="status"><span className="state-symbol" aria-hidden="true">?</span><div><h4>We couldn&apos;t find that booking.</h4><p>Check for typos. If it still won&apos;t show, contact the PickPoint team.</p></div><button className="button button-outline" type="button" onClick={onBook}>Start a new booking</button></div>}
 
         {lookupState === "found" && booking && (
           <div className={`managed-booking ${booking.status === "cancelled" ? "is-cancelled" : ""}`}>

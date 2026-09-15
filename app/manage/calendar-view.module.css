@@ -271,7 +271,7 @@
   font-weight: 750;
 }
 
-/* RallyOS operational schedule */
+/* PickPoint operational schedule */
 .calendar {
   overflow: visible;
   border: 0;
@@ -1083,7 +1083,7 @@
   }
 }
 
-/* Premium readability pass: preserve the compact RallyOS rhythm without micro type. */
+/* Readability pass for a compact schedule without micro type. */
 .dateLabel span,
 .liveMark,
 .scheduleLegend,

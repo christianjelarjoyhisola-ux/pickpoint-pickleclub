@@ -87,10 +87,10 @@ test("retains atomic booking and overlap-safe server transport", async () => {
 test("keeps the visible v1 admin navigation lean", async () => {
   const manage = await source("../app/manage/page.tsx");
   const nav = manage.slice(manage.indexOf("const NAV_ITEMS"), manage.indexOf("function NavIcon"));
-  for (const label of ["Today", "Schedule", "Bookings", "Court blocks", "Venue & settings", "Launch", "Team & access"]) {
+  for (const label of ["Today", "Schedule", "Bookings", "Setup"]) {
     assert.match(nav, new RegExp(label.replaceAll("&", "&")));
   }
-  assert.doesNotMatch(nav, /Customers|Money|Insights/);
+  assert.doesNotMatch(nav, /Customers|Money|Insights|Court blocks|Launch|Team & access/);
 });
 
 test("applies the premium PickPoint palette and generated logo", async () => {

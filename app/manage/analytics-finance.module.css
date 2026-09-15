@@ -682,7 +682,7 @@
 .offerDialog > footer button { min-height: 40px; border: 1px solid var(--line, #d8d8ce); border-radius: 10px; background: white; padding: 0 15px; font-size: .78rem; font-weight: 700; }
 .offerDialog > footer .publishOffer { border-color: #6558e8; background: #6558e8; color: white; box-shadow: 0 8px 18px rgba(101, 88, 232, .2); }
 
-/* RallyOS-aligned owner insights */
+/* Owner insights */
 .srOnly {
   position: absolute;
   width: 1px;

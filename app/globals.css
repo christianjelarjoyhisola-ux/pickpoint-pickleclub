@@ -31,7 +31,7 @@
   --text-metric: clamp(1.65rem, 1.4rem + 1vw, 2rem);
   --text-title: clamp(1.4rem, 1.25rem + 0.6vw, 1.625rem);
   --text-report: clamp(2rem, 1.7rem + 1.4vw, 2.75rem);
-  /* Compact product typography, matched to the RallyOS interface rhythm. */
+  /* Compact, readable product typography for venue operations. */
   --type-label: 0.6875rem;
   --type-caption: 0.75rem;
   --type-ui: 0.8125rem;

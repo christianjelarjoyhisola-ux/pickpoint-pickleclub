@@ -21,7 +21,7 @@ export function RouteLoadingScreen({
           </span>
           <span className="route-loading-shadow" />
         </div>
-        <p>PickPoint · Court Hub</p>
+        <p>PickPoint · Booking</p>
         <strong>Loading your next rally…</strong>
         <span>Getting the court ready.</span>
       </div>

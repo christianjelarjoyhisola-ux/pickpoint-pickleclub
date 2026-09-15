@@ -3220,8 +3220,9 @@ function tenantPromotion(candidate: unknown): TenantPromotion {
   const weekdays = Array.isArray(row.weekdays)
     ? row.weekdays.filter((day): day is number => Number.isInteger(day) && day >= 0 && day <= 6)
     : [];
-  const courtIds = Array.isArray(row.courtIds ?? row.court_ids)
-    ? (row.courtIds ?? row.court_ids as unknown[]).filter(
+  const rawCourtIds = row.courtIds ?? row.court_ids;
+  const courtIds = Array.isArray(rawCourtIds)
+    ? rawCourtIds.filter(
         (id): id is string => typeof id === "string" && UUID_PATTERN.test(id),
       )
     : [];
