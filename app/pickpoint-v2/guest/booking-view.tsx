@@ -295,7 +295,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
             <div className="pp-schedule-heading"><div><strong>Choose court times</strong><span>Select one or more available one-hour slots.</span></div>{selectedSlots.length > 0 && <button type="button" onClick={() => setSelectedSlotKeys([])}>Clear</button>}</div>
             <div className="pp-schedule-scroll" aria-busy={!availability}>
               <table className="pp-schedule">
-                <thead><tr><th scope="col">Time</th>{courts.map((item) => <th scope="col" key={item.id}><strong>{item.name}</strong><small>{item.opensAt}–{item.closesAt}</small></th>)}</tr></thead>
+                <thead><tr><th scope="col">Time</th>{courts.map((item) => <th scope="col" key={item.id}><strong>{item.name}</strong><small>{timeLabel(item.opensAt)}–{timeLabel(item.closesAt)}</small></th>)}</tr></thead>
                 <tbody>{scheduleTimes.map((time) => <tr key={time}><th scope="row">{timeRangeLabel(time)}</th>{courts.map((item) => { const key = slotKey(item.id, time); const selected = selectedSet.has(key); const available = slotIsAvailable(item, time); const rate = rateFor(item, time); return <td key={item.id}><button type="button" aria-pressed={selected} disabled={!available} className={selected ? "is-selected" : ""} onClick={() => toggleSlot(item, time)}><span>{selected ? <><Check aria-hidden="true" /> Selected</> : available ? "Available" : "Unavailable"}</span>{available && rate != null && <small>{money(rate, item.currency)}</small>}</button></td>; })}</tr>)}</tbody>
               </table>
               {!availability && <div className="pp-schedule-loading">Checking availability…</div>}

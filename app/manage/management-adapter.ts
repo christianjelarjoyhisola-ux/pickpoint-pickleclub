@@ -413,6 +413,7 @@ export type Court = {
   closesAt: string | null;
   rateDay: number | null;
   ratePeak: number | null;
+  photoUrl: string | null;
 };
 
 export type SharedPriceBand = {
@@ -647,6 +648,7 @@ export const previewSnapshot: ManagementSnapshot = {
     closesAt: activeTenant.venue.closesAt,
     rateDay: activeTenant.booking.offPeakHourlyRate,
     ratePeak: activeTenant.booking.peakHourlyRate,
+    photoUrl: null,
   })),
   bookings: [
     {
@@ -2040,6 +2042,11 @@ function mapLiveCourt(row: JsonObject): Court {
   const sortOrder = exactInteger(row, ["sort_order", "sortOrder"]);
   const currency = value(row, ["currency"]);
   const schedule = scheduleForCourt(row);
+  const publicConfig = record(row.public_config ?? row.publicConfig);
+  const rawPhotoUrl = value(publicConfig ?? {}, ["photoUrl"]);
+  const photoUrl = rawPhotoUrl.startsWith(
+    `${SHARED_SUPABASE_ORIGIN}/storage/v1/object/public/tenant-public-assets/`,
+  ) ? rawPhotoUrl : null;
   if (
     !UUID_PATTERN.test(id) || !slug || !name ||
     (status !== "active" && status !== "inactive" && status !== "maintenance") ||
@@ -2063,6 +2070,7 @@ function mapLiveCourt(row: JsonObject): Court {
     ratePeak: schedule?.bands.length === 2
       ? schedule.bands[1]?.hourlyRate ?? null
       : null,
+    photoUrl,
   };
 }
 

@@ -199,11 +199,15 @@ test("uses the supplied transparent PickPoint brand assets and palette", async (
 });
 
 test("keeps the guest booking flow phone-safe and understandable", async () => {
-  const [css, shell, booking, home] = await Promise.all([
+  const [css, shell, booking, home, courts, admin, client, courtPhotoMigration] = await Promise.all([
     source("app/pickpoint-v2/guest/guest.css"),
     source("app/pickpoint-v2/guest/guest-shell.tsx"),
     source("app/pickpoint-v2/guest/booking-view.tsx"),
     source("app/pickpoint-v2/guest/guest-home.tsx"),
+    source("app/pickpoint-v2/guest/courts-view.tsx"),
+    source("app/pickpoint-v2/admin/PickPointDesk.tsx"),
+    source("app/lib/platform/client.ts"),
+    source("supabase/migrations/20260916020000_pickpoint_court_photos.sql"),
   ]);
   assert.match(css, /safe-area-inset-bottom/);
   assert.match(css, /\.pp-nav\s*\{[\s\S]*position:\s*fixed/);
@@ -215,6 +219,13 @@ test("keeps the guest booking flow phone-safe and understandable", async () => {
   assert.doesNotMatch(booking, /blockingReasons\.map/);
   assert.match(home, /Get directions/);
   assert.match(home, /Online booking is opening soon/);
+  assert.match(courts, /clock12/);
+  assert.match(courts, /aria-expanded=/);
+  assert.match(courts, /pp-court-detail/);
+  assert.match(admin, /uploadTenantCourtPhoto/);
+  assert.match(client, /COURT_PHOTO_SCOPE_INVALID/);
+  assert.match(courtPhotoMigration, /3a4bcfeb-e8a7-417a-8b0c-90c37c3a6175/);
+  assert.doesNotMatch(courtPhotoMigration, /for all/i);
 });
 
 test("keeps hardened production response headers", async () => {

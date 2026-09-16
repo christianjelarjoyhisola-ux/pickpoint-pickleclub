@@ -62,6 +62,7 @@ export type PublicPromotion = {
 
 export type TenantBootstrap = {
   tenant: {
+    id?: string;
     slug: string;
     name: string;
     timezone: string;

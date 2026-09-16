@@ -663,6 +663,85 @@ export type PaymentQrMutation = {
   cleanupPending: boolean;
 };
 
+export type CourtPhotoAsset = {
+  url: string;
+  storagePath: string;
+  contentType: "image/jpeg" | "image/png" | "image/webp";
+};
+
+export async function uploadTenantCourtPhoto(
+  accessToken: string,
+  courtId: string,
+  file: File,
+): Promise<CourtPhotoAsset> {
+  managementHostname({ mutation: true });
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(courtId)) {
+    throw new PlatformRequestError(400, "COURT_ID_INVALID", "Choose a valid PickPoint court.");
+  }
+  if (
+    !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
+    file.size < 1 || file.size > 2 * 1024 * 1024
+  ) {
+    throw new PlatformRequestError(400, "COURT_PHOTO_FILE_INVALID", "Choose a JPG, PNG, or WebP court photo no larger than 2 MB.");
+  }
+
+  const bootstrap = await getTenantBootstrap();
+  const tenantId = bootstrap.tenant.id?.trim() ?? "";
+  const court = bootstrap.courts.find((item) => item.id === courtId);
+  if (!/^[0-9a-f-]{36}$/i.test(tenantId) || !court) {
+    throw new PlatformRequestError(403, "COURT_PHOTO_SCOPE_INVALID", "This court does not belong to PickPoint.");
+  }
+  const extension = file.type === "image/jpeg" ? "jpg" : file.type === "image/png" ? "png" : "webp";
+  const storagePath = `${tenantId}/courts/${courtId}/${crypto.randomUUID()}.${extension}`;
+  const previousStoragePath = typeof court.publicConfig?.photoStoragePath === "string" &&
+      court.publicConfig.photoStoragePath.startsWith(`${tenantId}/courts/${courtId}/`)
+    ? court.publicConfig.photoStoragePath
+    : null;
+  const response = await fetch(`${SHARED_SUPABASE_ORIGIN}/storage/v1/object/tenant-public-assets/${storagePath}`, {
+    method: "POST",
+    headers: {
+      apikey: publicSupabaseKey,
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": file.type,
+      "Cache-Control": "public, max-age=31536000, immutable",
+      "x-upsert": "false",
+    },
+    body: file,
+  });
+  if (!response.ok) {
+    throw new PlatformRequestError(response.status, "COURT_PHOTO_UPLOAD_FAILED", "The court photo could not be uploaded.");
+  }
+  const url = `${SHARED_SUPABASE_ORIGIN}/storage/v1/object/public/tenant-public-assets/${storagePath}`;
+  try {
+    await manageTenantCourt(accessToken, {
+      action: "save",
+      courtId,
+      patch: {
+        publicConfig: {
+          ...(court.publicConfig ?? {}),
+          photoUrl: url,
+          photoStoragePath: storagePath,
+        },
+      },
+    });
+  } catch (error) {
+    await fetch(`${SHARED_SUPABASE_ORIGIN}/storage/v1/object/tenant-public-assets`, {
+      method: "DELETE",
+      headers: { apikey: publicSupabaseKey, Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ prefixes: [storagePath] }),
+    }).catch(() => undefined);
+    throw error;
+  }
+  if (previousStoragePath && previousStoragePath !== storagePath) {
+    await fetch(`${SHARED_SUPABASE_ORIGIN}/storage/v1/object/tenant-public-assets`, {
+      method: "DELETE",
+      headers: { apikey: publicSupabaseKey, Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ prefixes: [previousStoragePath] }),
+    }).catch(() => undefined);
+  }
+  return { url, storagePath, contentType: file.type as CourtPhotoAsset["contentType"] };
+}
+
 const PAYMENT_QR_METHODS = new Set(["gcash", "maya", "bdo", "bpi", "gotyme", "pnb"]);
 
 export async function uploadTenantPaymentQr(

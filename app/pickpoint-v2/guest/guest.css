@@ -79,16 +79,26 @@
 .pp-page-head h1, .pp-book-head h1 { margin: 0; font-size: clamp(2.6rem, 6vw, 5.2rem); letter-spacing: -.065em; }
 .pp-page-head > p:last-child, .pp-book-head > p:last-child { color: #647187; }
 .pp-court-list { min-height: 360px; padding-bottom: 100px; }
-.pp-court-row { min-height: 150px; display: grid; grid-template-columns: 80px minmax(0,1fr) 210px 100px; gap: 26px; align-items: center; padding: 24px 20px; border-top: 1px solid var(--pp-line); }
+.pp-court-row { border-top: 1px solid var(--pp-line); }
 .pp-court-row:last-child { border-bottom: 1px solid var(--pp-line); }
+.pp-court-summary { width: 100%; min-height: 150px; display: grid; grid-template-columns: 80px minmax(0,1fr) 210px 100px; gap: 26px; align-items: center; padding: 24px 20px; border: 0; background: transparent; color: inherit; cursor: pointer; text-align: left; }
 .pp-court-number { color: var(--pp-blue); font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; }
-.pp-court-row p { margin: 0 0 4px; color: #728096; font-size: .67rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
-.pp-court-row h2 { margin: 0 0 7px; font-size: 1.6rem; }
-.pp-court-row > div > span { color: #66748a; font-size: .88rem; }
+.pp-court-copy { display: grid; gap: 4px; }
+.pp-court-copy > small { color: #728096; font-size: .67rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.pp-court-copy > strong { font-size: 1.6rem; }
+.pp-court-copy > span { color: #66748a; font-size: .88rem; }
 .pp-court-hours { display: flex; align-items: center; gap: 12px; }
 .pp-court-hours svg { width: 20px; color: var(--pp-blue); }
 .pp-court-hours span { display: grid; font-weight: 700; }
 .pp-court-hours small { color: #7b8798; font-size: .65rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.pp-court-expand { width: 46px; height: 46px; display: grid; place-items: center; justify-self: end; border-radius: 50%; background: var(--pp-lime); }
+.pp-court-expand svg { width: 19px; transition: transform .18s ease; }
+.pp-court-row.is-open .pp-court-expand svg { transform: rotate(180deg); }
+.pp-court-detail { display: grid; grid-template-columns: minmax(0,1.4fr) minmax(220px,.6fr); gap: 24px; padding: 0 20px 28px 126px; }
+.pp-court-detail > img, .pp-court-photo-empty { width: 100%; aspect-ratio: 16/9; border-radius: 14px; object-fit: cover; background: #e9eef5; }
+.pp-court-photo-empty { display: grid; place-items: center; color: #708096; font-size: .8rem; font-weight: 800; }
+.pp-court-detail > div:last-child { display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.pp-court-detail p { margin: 0; color: #66748a; line-height: 1.55; }
 .pp-icon-link { width: 46px; height: 46px; display: grid; place-items: center; justify-self: end; border-radius: 50%; background: var(--pp-lime); }
 .pp-icon-link svg { width: 18px; }
 .pp-pill { justify-self: end; padding: 7px 10px; border-radius: 999px; background: #e5eaf1; color: #617085; font-size: .68rem; font-weight: 800; text-transform: uppercase; }
@@ -313,23 +323,24 @@
   .pp-court-row {
     position: relative;
     min-height: 0;
-    grid-template-columns: 36px minmax(0,1fr) 48px;
-    gap: 12px;
     margin-bottom: 12px;
-    padding: 20px 16px;
     border: 1px solid var(--pp-line);
     border-radius: 16px;
     background: white;
     box-shadow: 0 7px 22px rgba(4,23,51,.045);
   }
   .pp-court-row:last-child { border-bottom: 1px solid var(--pp-line); }
+  .pp-court-summary { min-height: 0; grid-template-columns: 36px minmax(0,1fr) 48px; gap: 12px; padding: 20px 16px; }
   .pp-court-number { align-self: start; padding-top: 2px; font-size: .82rem; }
-  .pp-court-row h2 { margin-bottom: 6px; font-size: 1.35rem; }
-  .pp-court-row > div > span { display: block; font-size: .82rem; line-height: 1.45; }
+  .pp-court-copy > strong { font-size: 1.35rem; }
+  .pp-court-copy > span { display: block; font-size: .82rem; line-height: 1.45; }
   .pp-court-hours { grid-column: 2; gap: 8px; margin-top: 3px; }
   .pp-court-hours svg { width: 17px; }
   .pp-court-hours span { font-size: .83rem; }
-  .pp-court-row .pp-icon-link { grid-column: 3; grid-row: 1 / span 2; width: 46px; height: 46px; justify-self: end; align-self: center; }
+  .pp-court-expand { grid-column: 3; grid-row: 1 / span 2; align-self: center; }
+  .pp-court-detail { grid-template-columns: 1fr; gap: 16px; padding: 0 16px 18px; }
+  .pp-court-detail > div:last-child { gap: 14px; }
+  .pp-court-detail .pp-button { width: 100%; }
   .pp-court-row .pp-pill { grid-column: 2 / -1; justify-self: start; margin-top: 3px; }
   .pp-state { min-height: 190px; padding: 24px 18px; border-radius: 16px; }
 
