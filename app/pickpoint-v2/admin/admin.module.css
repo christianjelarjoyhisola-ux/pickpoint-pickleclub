@@ -92,8 +92,10 @@
 .row>*{min-width:0}
 .rowPlayer p,.rowReference b,.block span,.court>div{min-width:0;overflow-wrap:anywhere}
 .rowActions{flex-wrap:wrap}
-.rowActions .reviewAction{border-color:var(--b);background:var(--b);color:white}
-.rowActions .cancelAction{color:#98362d}
+.rowActions button{appearance:none;opacity:1;color:var(--i);border-color:#cbd7e4;background:white}
+.rowActions .reviewAction{border-color:var(--b);background:var(--b);color:white;box-shadow:0 5px 12px rgba(20,120,212,.18)}
+.rowActions .cancelAction{border-color:#efc7cc;background:#fff7f7;color:#a6323e}
+.rowActions button:disabled{opacity:.46;cursor:wait;box-shadow:none;filter:saturate(.45)}
 .fields .wide{grid-column:1/-1}
 
 @media(max-width:760px){

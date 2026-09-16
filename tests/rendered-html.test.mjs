@@ -339,6 +339,9 @@ test("keeps every admin area usable on phones and small tablets", async () => {
   assert.match(css, /grid-template-areas:"time status" "player player" "reference reference" "actions actions"/);
   assert.match(css, /\.app \.row \.rowActions[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(css, /\.rowActions button\{[^}]*min-height:46px[^}]*font-size:14px/);
+  assert.match(css, /\.rowActions \.reviewAction\{[^}]*background:var\(--b\)[^}]*color:white/);
+  assert.match(css, /\.rowActions \.cancelAction\{[^}]*background:#fff7f7[^}]*color:#a6323e/);
+  assert.match(css, /\.rowActions button:disabled\{[^}]*opacity:\.46/);
   assert.match(css, /\.todayQueue \.paper>header\{[^}]*flex-direction:column/);
   assert.match(css, /\.headerActions>a,\.headerActions>button\{width:44px!important;height:44px!important\}/);
   assert.match(css, /\.fields input,\.fields select,[^{]+\{[^}]*font-size:16px/);
