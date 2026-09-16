@@ -516,7 +516,8 @@
   .pp-steps i { width: 23px; height: 23px; border: 3px solid #f7f8fb; font-size: .68rem; }
   .pp-steps i svg { width: 12px; height: 12px; }
   .pp-steps li[aria-current="step"] b { color: var(--pp-blue); }
-  .pp-book-card, .pp-setup, .pp-lookup { padding: 22px 18px; border-radius: 18px; box-shadow: 0 10px 32px rgba(4,23,51,.055); }
+  .pp-book-card { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+  .pp-setup, .pp-lookup { padding: 22px 18px; border-radius: 18px; box-shadow: 0 10px 32px rgba(4,23,51,.055); }
   .pp-fields-row { grid-template-columns: 1fr; gap: 0; }
   .pp-book-card label, .pp-lookup label { gap: 7px; margin-bottom: 17px; }
   .pp-book-card input, .pp-book-card select, .pp-lookup input { min-height: 52px; border-radius: 10px; font-size: 16px; }
@@ -530,8 +531,7 @@
   .pp-hold-timer { position: relative; top: auto; z-index: auto; grid-template-columns: 31px minmax(0,1fr) auto; margin-bottom: 12px; padding: 8px 10px; border-radius: 12px; }
   .pp-hold-timer > svg { width: 30px; height: 30px; }
   .pp-hold-timer em { padding-inline: 7px; font-size: .58rem; }
-  .pp-schedule-heading { align-items: center; margin-top: 24px; }
-  .pp-schedule-heading span { max-width: 220px; line-height: 1.4; }
+  .pp-schedule-heading { align-items: center; margin-top: 18px; }
   .pp-schedule-scroll { max-height: 490px; border-radius: 11px; }
   .pp-schedule { min-width: 0; }
   .pp-schedule thead th:first-child, .pp-schedule tbody th { width: 76px; }
@@ -558,7 +558,7 @@
   .pp-complete-summary .pp-summary-courts { padding-inline: 14px; }
   .pp-summary-court > ul > li { grid-template-columns: minmax(62px,.75fr) minmax(102px,1.35fr) auto; gap: 7px; }
   .pp-complete-summary .pp-price-breakdown { padding-inline: 14px; }
-  .pp-card-action { margin: 24px -18px -22px; padding: 17px 18px 18px; flex-direction: column; align-items: stretch; gap: 14px; background: #fbfcfe; border-radius: 0 0 18px 18px; }
+  .pp-card-action { margin: 24px 0 0; padding: 17px 0 0; flex-direction: column; align-items: stretch; gap: 14px; background: transparent; border-radius: 0; }
   .pp-card-action > span { min-height: 36px; }
   .pp-card-action .pp-button { width: 100%; min-height: 54px; border-radius: 11px; }
   .pp-back, .pp-text-button { min-height: 44px; margin-bottom: 18px; }
