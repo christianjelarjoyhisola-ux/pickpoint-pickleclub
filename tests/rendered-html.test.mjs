@@ -197,7 +197,10 @@ test("protects selected courts, restores progress, and shows authoritative itemi
   assert.match(booking, /bookingStatus\(draft\.confirmation\.reference/);
   assert.match(booking, /Welcome back\. Your booking is still in progress/);
   assert.match(booking, /CompleteBookingSummary/);
+  assert.match(booking, /defaultExpanded = false/);
   assert.match(booking, /defaultExpanded=\{false\}/);
+  assert.match(booking, /Starts soon/);
+  assert.match(booking, /leadLabel/);
   assert.match(booking, /Show or hide the complete booking summary/);
   assert.match(booking, /pp-summary-toggle-total/);
   assert.match(booking, /checkout=\{step === "details" \|\| step === "payment"\}/);

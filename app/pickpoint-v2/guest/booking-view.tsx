@@ -35,7 +35,7 @@ const slotStateLabel: Record<SlotState, string> = {
   booked: "Booked",
   maintenance: "Maintenance",
   closed: "Closed",
-  "lead-time": "Not open",
+  "lead-time": "Starts soon",
   "not-offered": "Not offered",
   checking: "Checking",
 };
@@ -58,7 +58,7 @@ const durationRangeLabel = (time: string, durationHours: number) => {
 const money = (amount: number, currency = "PHP") => new Intl.NumberFormat("en-PH", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
 const bookingDateLabel = (date: string) => new Intl.DateTimeFormat("en-PH", { weekday: "short", day: "numeric", month: "short", year: "numeric" }).format(new Date(`${date}T12:00:00`));
 
-function CompleteBookingSummary({ confirmation, bookingDate, defaultExpanded = true }: { confirmation: BookingConfirmation; bookingDate: string; defaultExpanded?: boolean }) {
+function CompleteBookingSummary({ confirmation, bookingDate, defaultExpanded = false }: { confirmation: BookingConfirmation; bookingDate: string; defaultExpanded?: boolean }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const sessions = (confirmation.sessions?.length ? [...confirmation.sessions] : [{
     courtId: "primary",
@@ -630,7 +630,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
             <div className="pp-schedule-scroll" aria-busy={!availability}>
               {visibleScheduleTimes.length > 0 ? <table className="pp-schedule">
                 <thead><tr><th scope="col">Time</th>{courts.map((item) => <th scope="col" key={item.id}><strong>{item.name}</strong><small>{timeLabel(item.opensAt)}–{timeLabel(item.closesAt)}</small></th>)}</tr></thead>
-                <tbody>{visibleScheduleTimes.map((time) => <tr key={time}><th scope="row">{timeRangeLabel(time)}</th>{courts.map((item) => { const key = slotKey(item.id, time); const selected = selectedSet.has(key); const state = slotState(item, time); const available = state === "available"; const rate = rateFor(item, time); return <td key={item.id}><button type="button" aria-pressed={selected} disabled={!available} className={`${selected ? "is-selected " : ""}slot-${state}`} onClick={() => toggleSlot(item, time)}><span>{selected ? <><Check aria-hidden="true" /> Selected</> : slotStateLabel[state]}</span>{available && rate != null && <small>{money(rate, item.currency)}</small>}</button></td>; })}</tr>)}</tbody>
+                <tbody>{visibleScheduleTimes.map((time) => <tr key={time}><th scope="row">{timeRangeLabel(time)}</th>{courts.map((item) => { const key = slotKey(item.id, time); const selected = selectedSet.has(key); const state = slotState(item, time); const available = state === "available"; const rate = rateFor(item, time); const leadMinutes = numberSetting(item.publicConfig?.minimumLeadMinutes, 0); const leadLabel = leadMinutes % 60 === 0 ? `${leadMinutes / 60}h notice` : `${leadMinutes}m notice`; return <td key={item.id}><button type="button" aria-pressed={selected} disabled={!available} className={`${selected ? "is-selected " : ""}slot-${state}`} onClick={() => toggleSlot(item, time)}><span>{selected ? <><Check aria-hidden="true" /> Selected</> : slotStateLabel[state]}</span>{available && rate != null && <small>{money(rate, item.currency)}</small>}{state === "lead-time" && leadMinutes > 0 && <small>{leadLabel}</small>}</button></td>; })}</tr>)}</tbody>
               </table> : <div className="pp-no-times"><strong>Today’s court times are finished.</strong><span>Choose another date to see available slots.</span></div>}
               {!availability && <div className="pp-schedule-loading">Checking availability…</div>}
             </div>
