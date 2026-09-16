@@ -240,6 +240,9 @@ test("protects selected courts, restores progress, and shows authoritative itemi
   assert.doesNotMatch(booking, /Automatic receipt verification/);
   assert.match(booking, /13-digit GCash transaction reference/);
   assert.match(booking, /Submit payment receipt/);
+  assert.match(booking, /Copy .* account number/);
+  assert.match(booking, /Upload your payment receipt/);
+  assert.doesNotMatch(booking, /setAccepted/);
   assert.doesNotMatch(booking, /Verify payment receipt|Verifying payment|Payment verified|matched successfully/);
   assert.doesNotMatch(booking, /receiptOutcome\?\.status === "auto_approved"/);
   assert.match(css, /\.pp-payment-methods/);

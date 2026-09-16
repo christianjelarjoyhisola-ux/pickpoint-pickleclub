@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock3, Search, Upload } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock3, Copy, Search, Upload } from "lucide-react";
 import { bookingStatus, cancelUnpaidBooking, completeBookingDetails, createBooking, getAvailability, submitPaymentReceipt } from "../../lib/platform/client";
 import type { PaymentReceiptSubmission } from "../../lib/platform/client";
 import type { AvailabilityResponse, BookingConfirmation, PaymentMethod, PublicCourt } from "../../lib/platform/types";
@@ -219,6 +219,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   const [receipt, setReceipt] = useState<File | null>(null);
   const [paymentMethodCode, setPaymentMethodCode] = useState("");
   const [paymentReference, setPaymentReference] = useState("");
+  const [accountCopied, setAccountCopied] = useState(false);
   const [receiptOutcome, setReceiptOutcome] = useState<PaymentReceiptSubmission | null>(null);
   const [resumeNotice, setResumeNotice] = useState("");
   const [lookupReference, setLookupReference] = useState("");
@@ -372,7 +373,6 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
       setConfirmation(null);
       setHoldEndsAt(null);
       setSelectedSlotKeys([]);
-      setAccepted(false);
       bookingAttemptId.current = null;
       setStep("select");
       setMessage("Your 10-minute booking window ended. Please choose the court times again.");
@@ -526,7 +526,6 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
         setHoldEndsAt(null);
         setRemainingHoldSeconds(null);
         setSelectedSlotKeys([]);
-        setAccepted(false);
         bookingAttemptId.current = null;
         setStep("select");
         getAvailability(date).then(setAvailability).catch(() => undefined);
@@ -546,7 +545,6 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
       setHoldEndsAt(null);
       setRemainingHoldSeconds(null);
       setSelectedSlotKeys([]);
-      setAccepted(false);
       bookingAttemptId.current = null;
       setStep("select");
       setAvailability(await getAvailability(date));
@@ -561,6 +559,18 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     setPaymentPolicyAccepted(false);
     setMessage("");
     setStep("payment");
+  }
+
+  async function copyPaymentAccount() {
+    const accountNumber = paymentMethod?.accountNumber || paymentMethod?.accountReference || "";
+    if (!accountNumber) return;
+    try {
+      await navigator.clipboard.writeText(accountNumber);
+      setAccountCopied(true);
+      window.setTimeout(() => setAccountCopied(false), 1800);
+    } catch {
+      setMessage("The account number could not be copied. Please press and hold the number to copy it.");
+    }
   }
 
   async function sendReceipt(event: React.FormEvent) {
@@ -706,7 +716,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
             <button type="button" className="pp-back" disabled={busy} onClick={() => setStep("method")}><ArrowLeft /> Change payment method</button>
             <div className="pp-payment-title"><span>Payment</span><strong>{money(confirmation.totalAmount, confirmation.currency)}</strong><p>Send the exact total to the selected account, then submit your receipt.</p></div>
             <CompleteBookingSummary confirmation={confirmation} bookingDate={date} defaultExpanded={false} />
-            {paymentMethod ? <section className="pp-payment-destination"><h3>{paymentMethod.displayName} details</h3><dl><div><dt>Account name</dt><dd>{paymentMethod.accountName || "Provided by the venue"}</dd></div><div><dt>Account number</dt><dd>{paymentMethod.accountNumber || paymentMethod.accountReference || "See venue instructions"}</dd></div></dl>{paymentMethod.instructions && <p className="pp-instructions">{paymentMethod.instructions}</p>}<label>{isGcash(paymentMethod) ? "13-digit GCash transaction reference" : "Payment transaction reference"}<input value={paymentReference} inputMode={isGcash(paymentMethod) ? "numeric" : "text"} maxLength={isGcash(paymentMethod) ? 13 : 64} autoComplete="off" placeholder={isGcash(paymentMethod) ? "0000000000000" : "Enter the reference from your receipt"} onChange={(event) => setPaymentReference(isGcash(paymentMethod) ? event.target.value.replace(/\D/g, "").slice(0, 13) : event.target.value)} required /><small>Enter it exactly as shown. A reference can be used only once.</small></label><label className="pp-upload"><Upload /><span><strong>{receipt?.name || "Choose payment receipt"}</strong><small>Original PNG, JPG or WebP · maximum 2 MB</small></span><input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => { const file = event.target.files?.[0] || null; setReceipt(file); setMessage(file && file.size > 2 * 1024 * 1024 ? "The receipt image must be 2 MB or smaller." : ""); }} required /></label></section> : <p className="pp-payment-prompt">Return to Payment method and choose how you will pay.</p>}
+            {paymentMethod ? <section className="pp-payment-destination"><h3>{paymentMethod.displayName} details</h3><dl><div><dt>Account name</dt><dd>{paymentMethod.accountName || "Provided by the venue"}</dd></div><div><dt>Account number</dt><dd className="pp-copy-value"><span>{paymentMethod.accountNumber || paymentMethod.accountReference || "See venue instructions"}</span>{(paymentMethod.accountNumber || paymentMethod.accountReference) && <button type="button" onClick={copyPaymentAccount} aria-label={`Copy ${paymentMethod.displayName} account number`}>{accountCopied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}{accountCopied ? "Copied" : "Copy"}</button>}</dd></div></dl>{paymentMethod.instructions && <p className="pp-instructions">{paymentMethod.instructions}</p>}<div className="pp-receipt-heading"><strong>Upload your payment receipt</strong><span>Enter the transaction reference and attach the original receipt image.</span></div><label>{isGcash(paymentMethod) ? "13-digit GCash transaction reference" : "Payment transaction reference"}<input value={paymentReference} inputMode={isGcash(paymentMethod) ? "numeric" : "text"} maxLength={isGcash(paymentMethod) ? 13 : 64} autoComplete="off" placeholder={isGcash(paymentMethod) ? "0000000000000" : "Enter the reference from your receipt"} onChange={(event) => setPaymentReference(isGcash(paymentMethod) ? event.target.value.replace(/\D/g, "").slice(0, 13) : event.target.value)} required /><small>Enter it exactly as shown. A reference can be used only once.</small></label><label className="pp-upload"><Upload /><span><strong>{receipt?.name || "Choose payment receipt"}</strong><small>Original PNG, JPG or WebP · maximum 2 MB</small></span><input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => { const file = event.target.files?.[0] || null; setReceipt(file); setMessage(file && file.size > 2 * 1024 * 1024 ? "The receipt image must be 2 MB or smaller." : ""); }} required /></label></section> : <p className="pp-payment-prompt">Return to Payment method and choose how you will pay.</p>}
             {policy ? <section className="pp-payment-policy"><details className="pp-policy" open><summary>Court Rules &amp; Policies</summary><div><span>{policy.intro}</span><p>{policy.content}</p></div></details><label className="pp-check"><input type="checkbox" checked={paymentPolicyAccepted} onChange={(event) => setPaymentPolicyAccepted(event.target.checked)} required /><span><strong>I have reviewed and agree to the court rules and booking policies.</strong><small>This agreement applies to every player included in this reservation.</small></span></label></section> : <p className="pp-form-message" role="alert">The current court rules and policies could not be loaded. Please refresh before paying.</p>}
             {message && <p className="pp-form-message" role="alert">{message}</p>}
             <button className="pp-button pp-button-blue pp-full" disabled={busy || !paymentMethod || !receipt || !paymentReference.trim() || !paymentPolicyAccepted || !policy?.version}>{busy ? "Submitting receipt…" : "Submit payment receipt"} <ArrowRight /></button>

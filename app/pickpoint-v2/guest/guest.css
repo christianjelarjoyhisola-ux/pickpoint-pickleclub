@@ -325,6 +325,14 @@
 .pp-payment-destination > dl > div:last-child { border-bottom: 0; }
 .pp-payment-destination > dl > div > dt, .pp-confirmed > dl > div > dt { color: #718096; font-size: .78rem; }
 .pp-payment-destination > dl > div > dd, .pp-confirmed > dl > div > dd { margin: 0; color: var(--pp-navy); font-size: .85rem; font-weight: 800; line-height: 1.35; text-align: right; }
+.pp-copy-value { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.pp-copy-value button { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 6px 10px; border: 1px solid #b8c7da; border-radius: 8px; background: #fff; color: var(--pp-blue); font: inherit; font-size: .72rem; font-weight: 850; cursor: pointer; }
+.pp-copy-value button:hover { border-color: var(--pp-blue); background: #edf6ff; }
+.pp-copy-value button:focus-visible { outline: 3px solid var(--pp-lime); outline-offset: 2px; }
+.pp-copy-value button svg { width: 14px; height: 14px; }
+.pp-receipt-heading { display: grid; gap: 4px; margin: 22px 0 13px; padding-top: 19px; border-top: 1px solid var(--pp-line); }
+.pp-receipt-heading strong { color: var(--pp-navy); font-size: 1rem; }
+.pp-receipt-heading span { color: #66748a; font-size: .78rem; line-height: 1.45; }
 .pp-payment-destination > label > small { margin-top: -2px; color: #718096; font-size: .68rem; font-weight: 600; line-height: 1.45; }
 .pp-payment-policy { margin-top: 24px; padding-top: 6px; border-top: 1px solid var(--pp-line); }
 .pp-payment-policy .pp-policy { margin-bottom: 10px; background: #fbfcfe; }
@@ -547,6 +555,7 @@
   .pp-payment-methods { grid-template-columns: 1fr; }
   .pp-payment-destination > dl > div, .pp-confirmed > dl > div { gap: 12px; }
   .pp-payment-destination > dl > div > dd, .pp-confirmed > dl > div > dd { max-width: 58%; overflow-wrap: anywhere; }
+  .pp-copy-value { flex-wrap: wrap; }
   .pp-upload { min-height: 72px; padding: 14px; border-radius: 11px; }
   .pp-full { min-height: 54px; border-radius: 11px; }
   .pp-confirmed h2 { font-size: 2rem; overflow-wrap: anywhere; }
