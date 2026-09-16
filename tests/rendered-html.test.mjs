@@ -272,7 +272,7 @@ test("protects selected courts, restores progress, and shows authoritative itemi
 
 test("keeps the admin lean and capability-controlled", async () => {
   const admin = await source("app/pickpoint-v2/admin/PickPointDesk.tsx");
-  assert.match(admin, /\["today","schedule","bookings","courts","payments","settings"\]/);
+  assert.match(admin, /\["today","schedule","bookings","courts","payments","remittance","settings"\]/);
   for (const action of ["booking:create", "booking:cancel", "payment:approve", "schedule:block", "tenant:publish"]) {
     assert.match(admin, new RegExp(action.replace(":", "\\:")));
   }
@@ -321,11 +321,18 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(admin, /All remaining reservations later today/);
   assert.match(admin, /Reservations from tomorrow onward/);
   assert.match(admin, /function DashboardOverview/);
-  for (const dashboardLabel of ["Gross revenue", "Paid bookings", "Booking fees", "Most booked court", "Revenue trend", "LIVE OPERATIONS"]) {
+  for (const dashboardLabel of ["Gross revenue", "Paid bookings", "Accumulated booking fee", "Most booked court", "Revenue trend", "LIVE OPERATIONS"]) {
     assert.match(admin, new RegExp(dashboardLabel));
   }
   assert.match(admin, /booking\.payment==="paid"/);
   assert.match(admin, /billing\.feeMode==="fixed_per_hour"/);
+  assert.match(admin, /function RemittanceArea/);
+  assert.match(admin, /managementAdapter\.loadInsights/);
+  assert.match(admin, /Accumulated booking fee/);
+  assert.match(admin, /Remit the booking fee/);
+  assert.match(admin, /Copy payment account/);
+  assert.match(admin, /remittance history/i);
+  assert.match(admin, /n!=="remittance"\|\|can\("finance:view"\)/);
   assert.doesNotMatch(admin, /area==="today"[^\n]*<BookingFilters/);
   assert.doesNotMatch(admin, /analytics|revenue chart|customer crm/i);
 });
@@ -356,6 +363,9 @@ test("keeps every admin area usable on phones and small tablets", async () => {
   assert.match(css, /\.metricGrid\{[^}]*grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
   assert.match(css, /\.revenueChart\{[^}]*grid-template-columns:repeat\(7,minmax\(0,1fr\)\)/);
   assert.match(css, /@media\(max-width:950px\)\{\.metricGrid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(css, /\.remittanceMetrics\{[^}]*grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+  assert.match(css, /\.remittanceGrid\{[^}]*grid-template-columns:minmax\(280px,\.78fr\) minmax\(0,1\.22fr\)/);
+  assert.match(css, /\.remittanceMetrics\{grid-template-columns:1fr/);
 });
 
 test("pins every browser request to the PickPoint tenant and shared project", async () => {

@@ -123,8 +123,34 @@
 .operationsPanel dt{color:#596a80;font-size:13px}
 .operationsPanel dd{margin:0;color:var(--n);font:700 18px var(--font-display)}
 .operationsPanel .needsAttention dt,.operationsPanel .needsAttention dd{color:#9a5b00}
+.remittanceArea{display:grid;gap:14px}
+.remittanceMetrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.remittanceMetrics article{min-width:0;padding:20px;border:1px solid var(--line);border-radius:14px;background:white;box-shadow:0 8px 24px rgba(3,20,45,.04)}
+.remittanceMetrics small,.remittancePay header small,.remittanceLedger header small{color:#6a7a90;font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.remittanceMetrics strong{display:block;margin-top:9px;color:var(--n);font:700 clamp(23px,2.7vw,32px)/1.08 var(--font-display);overflow-wrap:anywhere}
+.remittanceMetrics span{display:block;margin-top:7px;color:var(--m);font-size:12px;line-height:1.4}
+.remittanceGrid{display:grid;grid-template-columns:minmax(280px,.78fr) minmax(0,1.22fr);gap:12px;align-items:start}
+.remittancePay,.remittanceLedger{min-width:0;padding:22px;border:1px solid var(--line);border-radius:14px;background:white;box-shadow:0 8px 24px rgba(3,20,45,.04)}
+.remittancePay header,.remittanceLedger header{padding-bottom:16px;border-bottom:1px solid var(--line)}
+.remittancePay h2,.remittanceLedger h2{margin:5px 0 0;font:700 21px var(--font-display)}
+.remittancePay header p{margin:7px 0 0;color:var(--m);font-size:13px;line-height:1.5}
+.remittancePay dl{margin:0 0 18px}
+.remittancePay dl>div{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:13px 0;border-bottom:1px solid #e8edf3}
+.remittancePay dt{color:var(--m);font-size:12px}
+.remittancePay dd{max-width:62%;margin:0;color:var(--n);font-size:14px;font-weight:850;text-align:right;overflow-wrap:anywhere}
+.remittanceInstructions{margin:0 0 16px;padding:13px;border-radius:9px;background:#f3f7fb;color:#4f6178;font-size:12px;line-height:1.5}
+.remittancePay>.primary{width:100%;min-height:48px}
+.remittanceLedger h3{margin:18px 0 5px;color:#65758a;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.openRemittances>article,.remittanceHistory>article{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 0;border-bottom:1px solid #e8edf3}
+.openRemittances>article>span,.remittanceHistory>article>span{min-width:0;display:grid;gap:4px}
+.openRemittances>article>span:last-child,.remittanceHistory>article>span:last-child{justify-items:end;text-align:right}
+.openRemittances b,.remittanceHistory b{color:var(--n);font-size:13px;overflow-wrap:anywhere}
+.openRemittances small,.remittanceHistory small{color:var(--m);font-size:11px;line-height:1.35}
+.openRemittances em,.remittanceHistory em{color:#52657c;font-size:10px;font-style:normal;font-weight:850;text-transform:uppercase}
+.openRemittances strong,.remittanceHistory strong{color:var(--n);font-size:14px}
+.remittanceEmpty{margin:18px 0 0;color:var(--m);font-size:13px;line-height:1.5}
 
-@media(max-width:950px){.metricGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboardPanels{grid-template-columns:1fr}}
+@media(max-width:950px){.metricGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboardPanels,.remittanceGrid{grid-template-columns:1fr}}
 
 @media(max-width:760px){
   .headerActions>a,.headerActions>button{width:44px!important;height:44px!important}
@@ -138,6 +164,11 @@
   .paper,.lane{padding:18px}
   .dashboardOverview{gap:10px;margin-bottom:16px}
   .metricGrid,.dashboardPanels{gap:10px}
+  .remittanceMetrics{grid-template-columns:1fr;gap:10px}
+  .remittanceMetrics article,.remittancePay,.remittanceLedger{padding:16px;border-radius:12px}
+  .remittanceMetrics strong{font-size:24px}
+  .remittancePay dl>div{gap:12px}
+  .openRemittances>article,.remittanceHistory>article{align-items:flex-start}
   .metricGrid article{padding:14px;border-radius:12px}
   .metricGrid strong{font-size:22px}
   .revenuePanel,.operationsPanel{padding:16px;border-radius:12px}
