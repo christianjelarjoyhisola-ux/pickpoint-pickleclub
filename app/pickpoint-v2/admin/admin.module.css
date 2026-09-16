@@ -69,8 +69,8 @@
 .bookingColumns{display:grid;grid-template-columns:145px minmax(200px,1fr) 120px 145px auto;gap:16px;padding:13px 3px;border-bottom:1px solid var(--line);color:#748399;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
 .todayQueue{display:grid;gap:16px}.todayQueue .paper>header{display:flex;align-items:center;justify-content:space-between}.todayQueue .paper>header h2{font-size:22px}.todayQueue .paper>header p{max-width:620px}.todayEmpty{margin:0;padding:24px 3px 4px;color:var(--m);font-size:14px}
 .row .inProgress{color:#075985;background:#e0f2fe}
-.bookingDetails{width:min(560px,100%)}
-.bookingDetailBody{padding:24px 28px}
+.bookingDetails{width:min(900px,100%);overflow:hidden;display:flex;flex-direction:column}
+.bookingDetailBody{min-height:0;overflow-y:auto;padding:24px 28px}
 .bookingDetailStatus{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;padding:14px 16px;border:1px solid #d8e3ee;border-radius:12px;background:#f7fafc}
 .bookingDetailStatus span{padding:6px 10px;border-radius:99px;background:#e0f2fe;color:#075985;font-size:12px;font-weight:900}
 .bookingDetailBody dl{margin:0;display:grid;grid-template-columns:1fr 1fr;gap:0 22px}
@@ -78,7 +78,11 @@
 .bookingDetailBody dt{margin-bottom:4px;color:var(--m);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
 .bookingDetailBody dd{margin:0;color:var(--n);font-weight:800;overflow-wrap:anywhere}
 .bookingDetailBody footer{padding-top:20px;text-align:right}
+.detailSection{padding-top:4px}.detailSection+.detailSection{margin-top:24px;padding-top:24px;border-top:1px solid var(--line)}.detailSection h3{margin:0 0 10px;font:700 18px var(--font-display)}.detailSectionTitle{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:16px}.detailSectionTitle h3{margin-bottom:4px}.detailSectionTitle p{margin:0;color:var(--m);font-size:13px}.detailSectionTitle>span{flex:0 0 auto;padding:6px 9px;border-radius:99px;background:#edf5ff;color:#0865ad;font-size:11px;font-weight:900;text-transform:capitalize}
+.detailReceiptGrid{display:grid;grid-template-columns:minmax(240px,.8fr) minmax(0,1.2fr);gap:20px;align-items:start}.detailReceiptPreview{min-width:0;display:grid;gap:9px;color:var(--b);font-size:13px;font-weight:800;text-decoration:none}.detailReceiptPreview img{display:block;width:100%;height:310px;object-fit:contain;border:1px solid #cfd9e5;border-radius:12px;background:#e8edf3}.detailReceiptPreview span{display:flex;align-items:center;gap:6px}.detailReceiptPreview svg{width:15px}
+.detailReceiptState{min-height:100px;display:flex;align-items:center;justify-content:center;gap:9px;padding:20px;border:1px dashed #cbd5e1;border-radius:12px;background:#f8fafc;color:var(--m);font-weight:700;text-align:center}.detailParserClear{display:flex;align-items:center;gap:7px;margin-top:14px;color:#315800;font-size:12px;font-weight:800}.detailParserClear svg{width:17px}.detailSection .reviewFlags{margin:14px 0 0}
 .courtActions{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap}.courtActions>button,.courtPhoto{min-height:38px;border:1px solid var(--line);border-radius:8px;padding:0 12px;background:white;color:var(--b);display:inline-flex;align-items:center;gap:7px;font:800 13px var(--font-body);cursor:pointer}.courtActions>button{color:var(--i)}.courtActions .courtPhoto{margin-top:0}.courtEditor{width:min(720px,100%)}.courtEditor .fields small{color:var(--m);font-weight:500;line-height:1.35}
-@media(max-width:620px){.bookingFilters{margin-left:-2px;margin-right:-2px}.bookingFilters button{padding:0 10px}.courtActions>*{flex:1;justify-content:center}.courtEditor{max-height:96vh}.bookingDetailBody{padding:20px}.bookingDetailBody dl{grid-template-columns:1fr}.bookingDetailStatus{align-items:flex-start;flex-direction:column}}
+@media(max-width:700px){.detailReceiptGrid{grid-template-columns:1fr}.detailReceiptPreview img{height:42vh;min-height:260px}}
+@media(max-width:620px){.bookingFilters{margin-left:-2px;margin-right:-2px}.bookingFilters button{padding:0 10px}.courtActions>*{flex:1;justify-content:center}.courtEditor{max-height:96vh}.bookingDetailBody{padding:20px}.bookingDetailBody dl{grid-template-columns:1fr}.bookingDetailStatus,.detailSectionTitle{align-items:flex-start;flex-direction:column}}
 @media(max-width:950px){.bookingColumns{grid-template-columns:110px 1fr 120px}.bookingColumns span:nth-child(n+4){display:none}}
 @media(max-width:620px){.bookingColumns{display:none}}

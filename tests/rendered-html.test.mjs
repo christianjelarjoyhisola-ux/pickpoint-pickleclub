@@ -280,6 +280,11 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(admin, /bookingGroup/);
   assert.match(admin, /booking:details-ui/);
   assert.match(admin, /View details/);
+  assert.match(admin, /COMPLETE BOOKING RECORD/);
+  assert.match(admin, /Payment and uploaded receipt/);
+  assert.match(admin, /Original evidence beside the values read by the receipt parser/);
+  assert.match(admin, /Parser confidence/);
+  assert.match(admin, /No receipt has been uploaded for this booking/);
   assert.match(admin, /In progress/);
   assert.match(admin, /receiptDetailsScroll/);
   assert.doesNotMatch(admin, />Check in</);
