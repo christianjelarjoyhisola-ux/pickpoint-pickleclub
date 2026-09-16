@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Clock3, MapPin } from "lucide-react";
 import { GuestShell } from "./guest-shell";
@@ -22,7 +21,6 @@ export function GuestHome() {
           <p className="pp-kicker"><span /> Court reservations, made clear</p>
           <div className="pp-hero-title">
             <h1><span>Play.</span><em>Rally.</em><span>Connect.</span></h1>
-            <Image src="/pickpoint-mark-v4.png" alt="PickPoint location-pin logo" width={180} height={161} priority unoptimized />
           </div>
           <p className="pp-lede">Choose one court, lock in a continuous playing time, and keep everything under one booking reference.</p>
           <div className="pp-actions">

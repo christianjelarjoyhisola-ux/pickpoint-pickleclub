@@ -188,7 +188,9 @@ test("uses the supplied transparent PickPoint brand assets and palette", async (
   assert.match(guestCss, /#041630/i);
   assert.match(guestCss, /#b8f000/i);
   assert.match(adminCss, /#041630/i);
-  assert.match(await source("app/pickpoint-v2/guest/guest-shell.tsx"), /pickpoint-wordmark-v3\.png/);
+  const shell = await source("app/pickpoint-v2/guest/guest-shell.tsx");
+  assert.match(shell, /pickpoint-wordmark-v3\.png/);
+  assert.match(shell, /pp-brand-mark/);
   assert.match(await source("app/layout.tsx"), /pickpoint-mark-v4\.png/);
   assert.doesNotMatch(guestCss, /\.pp-hero-title > img \{ display: none/);
   assert.equal(logo.readUInt32BE(16), 1327);
