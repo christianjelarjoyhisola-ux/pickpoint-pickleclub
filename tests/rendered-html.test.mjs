@@ -212,6 +212,7 @@ test("protects selected courts, restores progress, and shows authoritative itemi
   assert.match(booking, /Court time/);
   assert.match(booking, /booking fee FREE/);
   assert.match(booking, /pp-free-fee/);
+  assert.doesNotMatch(booking, /Already included in the court price/);
   assert.match(booking, /Total due/);
   assert.match(css, /\.pp-price-breakdown/);
   assert.match(css, /\.pp-complete-summary/);
