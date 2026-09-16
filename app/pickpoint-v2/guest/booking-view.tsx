@@ -24,6 +24,7 @@ type BookingResumeDraft = {
   confirmation: BookingConfirmation | null;
   customer: { name: string; email: string; phone: string };
   accepted: boolean;
+  paymentMethodCode: string;
   paymentReference: string;
   holdEndsAt: number | null;
 };
@@ -57,6 +58,7 @@ const durationRangeLabel = (time: string, durationHours: number) => {
 };
 const money = (amount: number, currency = "PHP") => new Intl.NumberFormat("en-PH", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
 const bookingDateLabel = (date: string) => new Intl.DateTimeFormat("en-PH", { weekday: "short", day: "numeric", month: "short", year: "numeric" }).format(new Date(`${date}T12:00:00`));
+const paymentCode = (method: PaymentMethod) => method.code || method.methodCode || method.displayName.toLowerCase().replace(/[^a-z0-9]+/g, "_");
 
 function CompleteBookingSummary({ confirmation, bookingDate, defaultExpanded = false }: { confirmation: BookingConfirmation; bookingDate: string; defaultExpanded?: boolean }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
@@ -213,6 +215,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   const [customer, setCustomer] = useState({ name: "", email: "", phone: "" });
   const [accepted, setAccepted] = useState(false);
   const [receipt, setReceipt] = useState<File | null>(null);
+  const [paymentMethodCode, setPaymentMethodCode] = useState("");
   const [paymentReference, setPaymentReference] = useState("");
   const [resumeNotice, setResumeNotice] = useState("");
   const [lookupReference, setLookupReference] = useState("");
@@ -228,7 +231,8 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   const courts = useMemo(() => data?.courts ?? [], [data]);
   const live = isPublicBookingReady(data);
   const multiSessionEnabled = data?.capabilities?.atomicMultiSessionBookingV1 === true;
-  const paymentMethod: PaymentMethod | undefined = data?.paymentMethods[0];
+  const paymentMethods = useMemo(() => data?.paymentMethods ?? [], [data]);
+  const paymentMethod = paymentMethods.find((method) => paymentCode(method) === paymentMethodCode);
   const policy = publishedPolicy(data?.refundReschedulePolicy);
   const primaryCourt = courts.find((item) => item.slug === initialCourtSlug) ?? courts[0];
   const maximumAdvanceDays = primaryCourt ? numberSetting(primaryCourt.publicConfig?.maximumAdvanceDays, 30) : 30;
@@ -320,6 +324,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
       setSelectedSlotKeys(draft.selectedSlotKeys);
       setCustomer(draft.customer || { name: "", email: "", phone: "" });
       setAccepted(draft.accepted === true);
+      setPaymentMethodCode(draft.paymentMethodCode || "");
       setPaymentReference(draft.paymentReference || "");
       setConfirmation(draft.confirmation);
       setHoldEndsAt(activeReservation ? draft.holdEndsAt : null);
@@ -346,11 +351,12 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
       confirmation,
       customer,
       accepted,
+      paymentMethodCode,
       paymentReference,
       holdEndsAt,
     };
     try { window.localStorage.setItem(ACTIVE_BOOKING_KEY, JSON.stringify(draft)); } catch { /* Private browsing may deny storage. */ }
-  }, [accepted, confirmation, customer, date, holdEndsAt, paymentReference, selectedSlotKeys, step]);
+  }, [accepted, confirmation, customer, date, holdEndsAt, paymentMethodCode, paymentReference, selectedSlotKeys, step]);
 
   useEffect(() => {
     if (!confirmation || !holdEndsAt || (step !== "details" && step !== "payment")) return;
@@ -461,7 +467,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     setMessage("");
   }
 
-  const resetSelection = () => { setStep("select"); setConfirmation(null); setHoldEndsAt(null); setRemainingHoldSeconds(null); setSelectedSlotKeys([]); setAccepted(false); setMessage(""); bookingAttemptId.current = null; };
+  const resetSelection = () => { setStep("select"); setConfirmation(null); setHoldEndsAt(null); setRemainingHoldSeconds(null); setSelectedSlotKeys([]); setAccepted(false); setPaymentMethodCode(""); setPaymentReference(""); setReceipt(null); setMessage(""); bookingAttemptId.current = null; };
 
   async function holdSelection() {
     if (!selectedSlots.length || !live || !accepted || !policy?.version) return;
@@ -509,7 +515,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     setBusy(true); setMessage("");
     try {
       await completeBookingDetails({ reference: confirmation.reference, token: confirmation.bookingToken, customer });
-      setStep(paymentMethod ? "payment" : "done");
+      setStep(paymentMethods.length ? "payment" : "done");
     } catch (reason) {
       const text = reason instanceof Error ? reason.message : "Your player details could not be saved.";
       if (/expired|no longer active/i.test(text)) {
@@ -551,7 +557,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     if (!confirmation || !paymentMethod || !receipt) return;
     setBusy(true); setMessage("");
     try {
-      await submitPaymentReceipt({ reference: confirmation.reference, token: confirmation.bookingToken, method: paymentMethod.code || paymentMethod.methodCode || paymentMethod.displayName, paymentReference: paymentReference.trim() || undefined, file: receipt });
+      await submitPaymentReceipt({ reference: confirmation.reference, token: confirmation.bookingToken, method: paymentCode(paymentMethod), paymentReference: paymentReference.trim() || undefined, file: receipt });
       setHoldEndsAt(null);
       setRemainingHoldSeconds(null);
       setStep("done");
@@ -659,16 +665,14 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
           </form>
         )}
 
-        {step === "payment" && confirmation && paymentMethod && (
+        {step === "payment" && confirmation && paymentMethods.length > 0 && (
           <form className="pp-book-card pp-payment" onSubmit={sendReceipt}>
-            <div className="pp-payment-title"><span>{paymentMethod.displayName}</span><strong>{money(confirmation.totalAmount, confirmation.currency)}</strong><p>Send the exact total to the venue account below, then upload the receipt.</p></div>
+            <div className="pp-payment-title"><span>Payment</span><strong>{money(confirmation.totalAmount, confirmation.currency)}</strong><p>Choose how you will pay, send the exact total, then upload the receipt.</p></div>
             <CompleteBookingSummary confirmation={confirmation} bookingDate={date} defaultExpanded={false} />
-            <dl><div><dt>Account name</dt><dd>{paymentMethod.accountName || "Provided by the venue"}</dd></div><div><dt>Account number</dt><dd>{paymentMethod.accountNumber || paymentMethod.accountReference || "See venue instructions"}</dd></div></dl>
-            {paymentMethod.instructions && <p className="pp-instructions">{paymentMethod.instructions}</p>}
-            <label>Payment reference (optional)<input value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} /></label>
-            <label className="pp-upload"><Upload /><span><strong>{receipt?.name || "Choose payment receipt"}</strong><small>PNG, JPG or WebP · maximum 2 MB</small></span><input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setReceipt(event.target.files?.[0] || null)} required /></label>
+            <fieldset className="pp-payment-methods"><legend>Select a payment method</legend>{paymentMethods.map((method) => { const code = paymentCode(method); return <label key={code} className={paymentMethodCode === code ? "is-selected" : ""}><input type="radio" name="paymentMethod" value={code} checked={paymentMethodCode === code} onChange={() => { setPaymentMethodCode(code); setReceipt(null); setPaymentReference(""); setMessage(""); }} required /><span><strong>{method.displayName}</strong><small>{paymentMethodCode === code ? "Selected" : "Tap to select"}</small></span><Check aria-hidden="true" /></label>; })}</fieldset>
+            {paymentMethod ? <section className="pp-payment-destination"><h3>{paymentMethod.displayName} details</h3><dl><div><dt>Account name</dt><dd>{paymentMethod.accountName || "Provided by the venue"}</dd></div><div><dt>Account number</dt><dd>{paymentMethod.accountNumber || paymentMethod.accountReference || "See venue instructions"}</dd></div></dl>{paymentMethod.instructions && <p className="pp-instructions">{paymentMethod.instructions}</p>}<label>Payment reference (optional)<input value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} /></label><label className="pp-upload"><Upload /><span><strong>{receipt?.name || "Choose payment receipt"}</strong><small>PNG, JPG or WebP · maximum 2 MB</small></span><input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setReceipt(event.target.files?.[0] || null)} required /></label></section> : <p className="pp-payment-prompt">Select a payment method to see the account details.</p>}
             {message && <p className="pp-form-message" role="alert">{message}</p>}
-            <button className="pp-button pp-button-blue pp-full" disabled={busy || !receipt}>{busy ? "Submitting…" : "Submit receipt for review"} <ArrowRight /></button>
+            <button className="pp-button pp-button-blue pp-full" disabled={busy || !paymentMethod || !receipt}>{busy ? "Submitting…" : "Submit receipt for review"} <ArrowRight /></button>
           </form>
         )}
 

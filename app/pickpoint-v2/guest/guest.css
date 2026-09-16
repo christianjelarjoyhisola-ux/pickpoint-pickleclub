@@ -303,12 +303,26 @@
 .pp-payment-title span { color: var(--pp-blue); font-size: .7rem; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
 .pp-payment-title strong { margin: 0; color: var(--pp-navy); font-family: var(--font-display); font-size: 2.25rem; line-height: 1; }
 .pp-payment-title p { grid-column: 1 / -1; margin: 3px 0 0; color: #66748a; line-height: 1.55; }
-.pp-payment > dl { margin: 16px 0; padding: 2px 14px; border: 1px solid var(--pp-line); border-radius: 12px; background: #f8fafc; }
+.pp-payment-methods { min-width: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 18px 0; padding: 0; border: 0; }
+.pp-payment-methods legend { grid-column: 1 / -1; margin-bottom: 2px; color: var(--pp-navy); font-size: .8rem; font-weight: 850; }
+.pp-payment-methods label { min-height: 68px; grid-template-columns: 1fr 18px; align-items: center; gap: 8px; margin: 0; padding: 12px; border: 1px solid var(--pp-line); border-radius: 11px; background: white; cursor: pointer; }
+.pp-payment-methods label:hover { border-color: #a9c7e8; background: #f6faff; }
+.pp-payment-methods label.is-selected { border-color: var(--pp-blue); background: #edf6ff; box-shadow: 0 0 0 2px rgba(17,106,209,.1); }
+.pp-payment-methods label input { position: absolute; width: 1px; min-height: 1px; opacity: 0; pointer-events: none; }
+.pp-payment-methods label span { min-width: 0; display: grid; gap: 4px; }
+.pp-payment-methods label strong { color: var(--pp-navy); font-size: .8rem; }
+.pp-payment-methods label small { color: #6b7a90; font-size: .66rem; font-weight: 650; }
+.pp-payment-methods label > svg { width: 17px; color: var(--pp-blue); opacity: 0; }
+.pp-payment-methods label.is-selected > svg { opacity: 1; }
+.pp-payment-prompt { margin: 0 0 18px; padding: 18px; border: 1px dashed #b9c8da; border-radius: 11px; background: #f8fafc; color: #63738a; text-align: center; }
+.pp-payment-destination { margin-top: 16px; }
+.pp-payment-destination > h3 { margin: 0 0 10px; color: var(--pp-navy); font-size: .9rem; }
+.pp-payment-destination > dl { margin: 0 0 16px; padding: 2px 14px; border: 1px solid var(--pp-line); border-radius: 12px; background: #f8fafc; }
 .pp-confirmed > dl { margin: 20px 0; }
-.pp-payment > dl > div, .pp-confirmed > dl > div { display: flex; justify-content: space-between; gap: 20px; padding: 13px 0; border-bottom: 1px solid var(--pp-line); }
-.pp-payment > dl > div:last-child { border-bottom: 0; }
-.pp-payment > dl > div > dt, .pp-confirmed > dl > div > dt { color: #718096; font-size: .78rem; }
-.pp-payment > dl > div > dd, .pp-confirmed > dl > div > dd { margin: 0; color: var(--pp-navy); font-size: .85rem; font-weight: 800; line-height: 1.35; text-align: right; }
+.pp-payment-destination > dl > div, .pp-confirmed > dl > div { display: flex; justify-content: space-between; gap: 20px; padding: 13px 0; border-bottom: 1px solid var(--pp-line); }
+.pp-payment-destination > dl > div:last-child { border-bottom: 0; }
+.pp-payment-destination > dl > div > dt, .pp-confirmed > dl > div > dt { color: #718096; font-size: .78rem; }
+.pp-payment-destination > dl > div > dd, .pp-confirmed > dl > div > dd { margin: 0; color: var(--pp-navy); font-size: .85rem; font-weight: 800; line-height: 1.35; text-align: right; }
 .pp-instructions { padding: 14px; border-radius: 7px; background: #eff6ff; color: #37516f; font-size: .84rem; }
 .pp-upload { position: relative; grid-template-columns: 28px 1fr; align-items: center; padding: 18px; border: 1px dashed #aebcce; border-radius: 7px; cursor: pointer; }
 .pp-upload svg { width: 22px; color: var(--pp-blue); }
@@ -522,8 +536,9 @@
   .pp-payment-title { gap: 6px 12px; padding-bottom: 18px; }
   .pp-payment-title strong { font-size: 1.9rem; }
   .pp-payment-title p { font-size: .87rem; }
-  .pp-payment > dl > div, .pp-confirmed > dl > div { gap: 12px; }
-  .pp-payment > dl > div > dd, .pp-confirmed > dl > div > dd { max-width: 58%; overflow-wrap: anywhere; }
+  .pp-payment-methods { grid-template-columns: 1fr; }
+  .pp-payment-destination > dl > div, .pp-confirmed > dl > div { gap: 12px; }
+  .pp-payment-destination > dl > div > dd, .pp-confirmed > dl > div > dd { max-width: 58%; overflow-wrap: anywhere; }
   .pp-upload { min-height: 72px; padding: 14px; border-radius: 11px; }
   .pp-full { min-height: 54px; border-radius: 11px; }
   .pp-confirmed h2 { font-size: 2rem; overflow-wrap: anywhere; }

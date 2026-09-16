@@ -229,7 +229,11 @@ test("protects selected courts, restores progress, and shows authoritative itemi
   assert.match(css, /\.pp-schedule-scroll \{[^}]*overflow-x: hidden;[^}]*touch-action: pan-y;/);
   assert.match(css, /\.pp-schedule td button:hover:not\(:disabled\):not\(\.is-selected\)/);
   assert.match(css, /\.pp-schedule td button \{[^}]*touch-action: manipulation;[^}]*user-select: none;/);
-  assert.match(css, /\.pp-payment > dl > div/);
+  assert.match(booking, /Select a payment method/);
+  assert.match(booking, /name="paymentMethod"/);
+  assert.match(booking, /paymentMethodCode/);
+  assert.match(css, /\.pp-payment-methods/);
+  assert.match(css, /\.pp-payment-destination > dl > div/);
   assert.match(css, /\.pp-summary-meta dd \{ min-width: 0;[^}]*overflow-wrap: anywhere;/);
   assert.doesNotMatch(css, /\.pp-summary-meta dd \{[^}]*text-overflow: ellipsis/);
   assert.match(css, /@keyframes pp-hold-intro/);
@@ -245,6 +249,9 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(admin, /session\.capabilities/);
   assert.match(admin, /x\.id!=="setup-status"&&x\.id!=="public-booking"/);
   assert.match(admin, /disabled=\{!activationReady\}/);
+  assert.match(admin, /Customer payment methods/);
+  assert.match(admin, /Add payment method/);
+  assert.match(admin, /paymentEvidence\.paymentMethod/);
   for (const operation of ["loadCalendarDay", "loadPaymentReceipt", "payment:reject", "booking:update", "schedule:unblock", "court:create", "business:update", "policy:publish", "remittance:update"]) {
     assert.match(admin, new RegExp(operation.replace(":", "\\:")));
   }
