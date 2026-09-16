@@ -641,7 +641,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
 
   return (
     <GuestShell current="book" checkout={step === "details" || step === "method" || step === "payment"}>
-      <section className="pp-book-head"><p className="pp-kicker">Book a court</p><h1>{step === "select" ? "When do you want to play?" : step === "details" ? "Who is the booking for?" : step === "method" ? "How would you like to pay?" : step === "payment" ? "Complete your payment." : "Your booking is recorded."}</h1><p>Select one or more court times. No account required.</p></section>
+      <section className="pp-book-head"><p className="pp-kicker">Book a court</p><h1>{step === "select" ? "Choose when to play" : step === "details" ? "Player details" : step === "method" ? "Choose payment method" : step === "payment" ? "Complete payment" : "Booking submitted"}</h1><p>{step === "select" ? "Pick a date and one or more court times." : step === "details" ? "Add the player’s contact information." : step === "method" ? "Choose where you’ll send the payment." : step === "payment" ? "Send the exact total and upload your receipt." : "Keep your reference to check the booking status."}</p></section>
       <div id="booking-times" className={`pp-book-layout${holdIntro ? " is-hold-intro" : ""}`}>
         <ol className="pp-steps" aria-label="Booking progress">{["Time", "Details", "Method", "Payment", "Done"].map((label, index) => { const activeIndex = ["select", "details", "method", "payment", "done"].indexOf(step); return <li key={label} aria-current={index === activeIndex ? "step" : undefined} className={index <= activeIndex ? "is-active" : ""}><i>{index < activeIndex ? <Check aria-hidden="true" /> : index + 1}</i><b>{label}</b></li>; })}</ol>
 

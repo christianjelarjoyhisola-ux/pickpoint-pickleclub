@@ -463,9 +463,14 @@
   .pp-opening-note { grid-template-columns: 1fr; gap: 18px; margin-bottom: 48px; padding: 24px; border-radius: 18px; }
   .pp-opening-note p { line-height: 1.6; }
 
-  .pp-page-head, .pp-book-head { padding: 35px 0 24px; text-align: left; }
-  .pp-page-head h1, .pp-book-head h1 { max-width: 430px; font-size: clamp(2.35rem, 11.5vw, 3.25rem); line-height: .98; letter-spacing: -.055em; }
-  .pp-page-head > p:last-child, .pp-book-head > p:last-child { margin: 14px 0 0; font-size: .9rem; line-height: 1.5; }
+  .pp-page-head { padding: 35px 0 24px; text-align: left; }
+  .pp-page-head h1 { max-width: 430px; font-size: clamp(2.35rem, 11.5vw, 3.25rem); line-height: .98; letter-spacing: -.055em; }
+  .pp-page-head > p:last-child { margin: 14px 0 0; font-size: .9rem; line-height: 1.5; }
+  .pp-book-head { padding: 22px 0 14px; text-align: left; }
+  .pp-book-head .pp-kicker { margin-bottom: 6px; font-size: .6rem; }
+  .pp-book-head h1 { max-width: 100%; font-size: clamp(1.75rem, 8vw, 2.15rem); line-height: 1.03; letter-spacing: -.045em; }
+  .pp-book-head > p:last-child { margin: 7px 0 0; color: #66748a; font-size: .8rem; line-height: 1.4; }
+  .pp-checkout .pp-book-head { padding-top: 16px; }
   .pp-court-list { min-height: 300px; padding-bottom: 50px; }
   .pp-court-row {
     position: relative;

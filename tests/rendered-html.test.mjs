@@ -367,9 +367,15 @@ test("keeps the guest booking flow phone-safe and understandable", async () => {
   assert.match(css, /\.pp-nav\s*\{[\s\S]*position:\s*fixed/);
   assert.match(css, /font-size:\s*16px/);
   assert.match(css, /overflow-x:\s*clip/);
+  assert.match(css, /\.pp-book-head h1 \{[^}]*font-size:\s*clamp\(1\.75rem, 8vw, 2\.15rem\)/);
   assert.match(shell, /aria-current=/);
   assert.match(shell, /className="pp-admin-login" href="\/manage"/);
   assert.match(booking, /<ol className="pp-steps"/);
+  assert.match(booking, /Choose when to play/);
+  assert.match(booking, /Player details/);
+  assert.match(booking, /Choose payment method/);
+  assert.match(booking, /Complete payment/);
+  assert.match(booking, /Booking submitted/);
   assert.doesNotMatch(booking, /blockingReasons\.map/);
   assert.match(home, /Get directions/);
   assert.match(home, /Online booking is opening soon/);
