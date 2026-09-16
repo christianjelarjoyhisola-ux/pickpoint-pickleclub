@@ -320,6 +320,12 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(admin, /function TodayCourtList/);
   assert.match(admin, /All remaining reservations later today/);
   assert.match(admin, /Reservations from tomorrow onward/);
+  assert.match(admin, /function DashboardOverview/);
+  for (const dashboardLabel of ["Gross revenue", "Paid bookings", "Booking fees", "Most booked court", "Revenue trend", "LIVE OPERATIONS"]) {
+    assert.match(admin, new RegExp(dashboardLabel));
+  }
+  assert.match(admin, /booking\.payment==="paid"/);
+  assert.match(admin, /billing\.feeMode==="fixed_per_hour"/);
   assert.doesNotMatch(admin, /area==="today"[^\n]*<BookingFilters/);
   assert.doesNotMatch(admin, /analytics|revenue chart|customer crm/i);
 });
@@ -347,6 +353,9 @@ test("keeps every admin area usable on phones and small tablets", async () => {
   assert.match(css, /\.fields input,\.fields select,[^{]+\{[^}]*font-size:16px/);
   assert.match(css, /max-height:calc\(100dvh - 20px\)/);
   assert.match(css, /\.rowPlayer p,\.rowReference b,[^{]+\{[^}]*overflow-wrap:anywhere/);
+  assert.match(css, /\.metricGrid\{[^}]*grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
+  assert.match(css, /\.revenueChart\{[^}]*grid-template-columns:repeat\(7,minmax\(0,1fr\)\)/);
+  assert.match(css, /@media\(max-width:950px\)\{\.metricGrid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
 });
 
 test("pins every browser request to the PickPoint tenant and shared project", async () => {

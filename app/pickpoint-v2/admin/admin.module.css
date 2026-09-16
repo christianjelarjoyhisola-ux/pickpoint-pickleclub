@@ -98,6 +98,34 @@
 .rowActions button:disabled{opacity:.46;cursor:wait;box-shadow:none;filter:saturate(.45)}
 .fields .wide{grid-column:1/-1}
 
+.dashboardOverview{display:grid;gap:16px;margin-bottom:22px}
+.metricGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.metricGrid article{min-width:0;padding:18px;border:1px solid var(--line);border-radius:14px;background:white;box-shadow:0 8px 24px rgba(3,20,45,.04)}
+.metricGrid small,.revenuePanel header small,.operationsPanel header small{display:block;color:#6a7a90;font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.metricGrid strong{display:block;margin-top:10px;color:var(--n);font:700 clamp(22px,2.4vw,30px)/1.05 var(--font-display);letter-spacing:-.025em;overflow-wrap:anywhere}
+.metricGrid span{display:block;margin-top:7px;color:var(--m);font-size:12px;line-height:1.4}
+.dashboardPanels{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(250px,.65fr);gap:12px}
+.revenuePanel,.operationsPanel{min-width:0;padding:20px;border:1px solid var(--line);border-radius:14px;background:white;box-shadow:0 8px 24px rgba(3,20,45,.04)}
+.revenuePanel>header,.operationsPanel>header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+.revenuePanel h2,.operationsPanel h2{margin:5px 0 0;font:700 20px var(--font-display)}
+.revenuePanel>header>strong{color:var(--n);font:700 20px var(--font-display)}
+.revenueChart{height:210px;margin-top:18px;padding:8px 4px 0;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));align-items:end;gap:8px;border-bottom:1px solid var(--line);background:linear-gradient(to bottom,transparent 24%,#edf1f5 25%,transparent 26%,transparent 49%,#edf1f5 50%,transparent 51%,transparent 74%,#edf1f5 75%,transparent 76%)}
+.chartDay{height:100%;min-width:0;display:grid;grid-template-rows:minmax(0,1fr) 28px;align-items:end;gap:6px;text-align:center}
+.chartTrack{height:100%;display:flex;align-items:flex-end;justify-content:center}
+.chartTrack>span{position:relative;width:min(34px,72%);min-height:5px;border-radius:8px 8px 2px 2px;background:linear-gradient(180deg,var(--b),#075caa);box-shadow:0 5px 12px rgba(20,120,212,.16)}
+.chartTrack i{position:absolute;top:-22px;left:50%;transform:translateX(-50%);min-width:21px;height:18px;padding:0 5px;border-radius:99px;background:var(--n);color:white;font-size:10px;font-style:normal;font-weight:850;line-height:18px}
+.chartDay>small{color:#708096;font-size:11px;font-weight:800}
+.revenuePanel>p{margin:12px 0 0;color:var(--m);font-size:11px;line-height:1.45}
+.operationsPanel>header{display:block;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.operationsPanel dl{margin:0}
+.operationsPanel dl>div{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 0;border-bottom:1px solid #e8edf3}
+.operationsPanel dl>div:last-child{border-bottom:0;padding-bottom:0}
+.operationsPanel dt{color:#596a80;font-size:13px}
+.operationsPanel dd{margin:0;color:var(--n);font:700 18px var(--font-display)}
+.operationsPanel .needsAttention dt,.operationsPanel .needsAttention dd{color:#9a5b00}
+
+@media(max-width:950px){.metricGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboardPanels{grid-template-columns:1fr}}
+
 @media(max-width:760px){
   .headerActions>a,.headerActions>button{width:44px!important;height:44px!important}
   .header nav{max-height:calc(100dvh - 78px);padding-bottom:max(10px,env(safe-area-inset-bottom))}
@@ -108,6 +136,14 @@
   .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   .actions button,.title>.primary{width:100%;min-height:48px;padding-inline:12px}
   .paper,.lane{padding:18px}
+  .dashboardOverview{gap:10px;margin-bottom:16px}
+  .metricGrid,.dashboardPanels{gap:10px}
+  .metricGrid article{padding:14px;border-radius:12px}
+  .metricGrid strong{font-size:22px}
+  .revenuePanel,.operationsPanel{padding:16px;border-radius:12px}
+  .revenuePanel>header{align-items:flex-end}
+  .revenueChart{height:180px;gap:5px;margin-top:16px}
+  .chartTrack>span{width:min(28px,76%)}
   .bookingColumns{display:none}
   .todayQueue .paper>header{align-items:flex-start;flex-direction:column;gap:5px}
   .todayQueue .paper>header p{max-width:none;font-size:14px;line-height:1.45}
