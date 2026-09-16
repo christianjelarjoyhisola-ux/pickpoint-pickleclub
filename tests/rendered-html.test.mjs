@@ -218,7 +218,9 @@ test("protects selected courts, restores progress, and shows authoritative itemi
   assert.match(css, /\.pp-complete-summary/);
   assert.match(css, /\.pp-summary-courts/);
   assert.match(css, /\.pp-complete-summary\[open\] \.pp-summary-toggle-action svg/);
+  assert.match(css, /\.pp-complete-summary:not\(\[open\]\)[^}]*animation:\s*pp-total-glow/);
   assert.match(css, /@keyframes pp-total-glow/);
+  assert.doesNotMatch(css, /\.pp-summary-toggle-total[^}]*animation:\s*pp-total-glow/);
   assert.match(css, /\.pp-free-fee/);
   assert.match(css, /\.pp-app\.pp-checkout \.pp-nav \{ display: none; \}/);
   assert.match(css, /\.pp-card-action-only/);
@@ -248,7 +250,7 @@ test("protects selected courts, restores progress, and shows authoritative itemi
   assert.match(css, /\.pp-payment-methods/);
   assert.match(css, /\.pp-method-preview/);
   assert.match(css, /\.pp-payment-policy/);
-  assert.match(css, /\.pp-book-card \.pp-selection-review[^}]*border-radius:\s*0/);
+  assert.match(css, /\.pp-book-card \.pp-selection-review[^}]*border-radius:\s*12px[^}]*background:\s*white/);
   assert.match(css, /\.pp-book-card \.pp-payment-destination > dl[^}]*background:\s*transparent/);
   assert.match(css, /\.pp-book-card \.pp-payment-policy \.pp-policy[^}]*border-radius:\s*0/);
   assert.match(css, /\.pp-payment-destination > dl > div/);

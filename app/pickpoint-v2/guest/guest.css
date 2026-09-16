@@ -219,13 +219,14 @@
 .pp-complete-summary > summary:focus-visible { outline: 3px solid rgba(17,106,209,.25); outline-offset: -3px; }
 .pp-complete-summary > summary small { color: var(--pp-blue); font-size: .58rem; font-weight: 850; letter-spacing: .07em; text-transform: uppercase; }
 .pp-complete-summary > summary strong { color: var(--pp-navy); font-size: .84rem; }
-.pp-summary-toggle-total { display: grid; gap: 2px; margin: -5px 0; padding: 6px 10px; border-radius: 10px; animation: pp-total-glow 2.8s ease-in-out infinite; }
+.pp-summary-toggle-total { display: grid; gap: 2px; margin: -5px 0; padding: 6px 10px; border-radius: 10px; }
 .pp-summary-toggle-total small { color: #718096 !important; }
 .pp-summary-toggle-total strong { font-size: 1.05rem !important; font-variant-numeric: tabular-nums; }
 .pp-summary-toggle-action { display: inline-flex; align-items: center; gap: 7px; color: var(--pp-blue); font-size: .68rem; font-weight: 800; }
 .pp-summary-toggle-action svg { width: 18px; transition: transform .2s ease; }
 .pp-complete-summary[open] .pp-summary-toggle-action svg { transform: rotate(180deg); }
-@keyframes pp-total-glow { 0%, 100% { background: rgba(174,239,0,0); box-shadow: 0 0 0 0 rgba(174,239,0,0); } 50% { background: rgba(174,239,0,.11); box-shadow: 0 0 0 4px rgba(174,239,0,.09), 0 0 18px rgba(174,239,0,.2); } }
+.pp-complete-summary:not([open]) { animation: pp-total-glow 2.8s ease-in-out infinite; }
+@keyframes pp-total-glow { 0%, 100% { border-color: var(--pp-line); box-shadow: 0 0 0 0 rgba(174,239,0,0); } 50% { border-color: rgba(142,194,0,.72); box-shadow: 0 0 0 4px rgba(174,239,0,.1), 0 0 20px rgba(174,239,0,.22); } }
 .pp-summary-expanded-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 16px; border-top: 1px solid var(--pp-line); border-bottom: 1px solid var(--pp-line); background: #fff; }
 .pp-summary-expanded-head > span:first-child { display: grid; gap: 2px; }
 .pp-summary-expanded-head small { color: var(--pp-blue); font-size: .56rem; font-weight: 850; letter-spacing: .07em; text-transform: uppercase; }
@@ -355,12 +356,12 @@
 .pp-confirmed h2 { margin: 0 0 8px; font-size: 2.5rem; letter-spacing: -.04em; }
 .pp-confirmed > p { color: #66748a; }
 .pp-confirmed .pp-actions { justify-content: center; }
-.pp-book-card .pp-selection-review { margin: 6px 0 24px; padding: 0; overflow: visible; border: 0; border-top: 1px solid var(--pp-line); border-bottom: 1px solid var(--pp-line); border-radius: 0; background: transparent; }
-.pp-book-card .pp-complete-summary > summary { padding-inline: 0; background: transparent; }
+.pp-book-card .pp-selection-review { margin: 6px 0 24px; padding: 0; overflow: hidden; border: 1px solid var(--pp-line); border-radius: 12px; background: white; }
+.pp-book-card .pp-complete-summary > summary { padding-inline: 16px; background: #f7f9fc; }
 .pp-book-card .pp-summary-expanded-head { padding-inline: 0; background: transparent; }
-.pp-book-card .pp-summary-meta { padding-inline: 0; }
-.pp-book-card .pp-complete-summary .pp-summary-courts { padding-inline: 0; }
-.pp-book-card .pp-complete-summary .pp-price-breakdown { padding-inline: 0; background: transparent; }
+.pp-book-card .pp-summary-meta { padding-inline: 16px; }
+.pp-book-card .pp-complete-summary .pp-summary-courts { padding-inline: 16px; }
+.pp-book-card .pp-complete-summary .pp-price-breakdown { padding-inline: 16px; background: #f8fafc; }
 .pp-book-card .pp-method-preview { padding: 14px 0; border: 0; border-top: 1px solid var(--pp-line); border-bottom: 1px solid var(--pp-line); border-radius: 0; background: transparent; }
 .pp-book-card .pp-payment-destination > dl { padding-inline: 0; border: 0; border-top: 1px solid var(--pp-line); border-bottom: 1px solid var(--pp-line); border-radius: 0; background: transparent; }
 .pp-book-card .pp-payment-policy .pp-policy { padding: 0; border: 0; border-bottom: 1px solid var(--pp-line); border-radius: 0; background: transparent; }
