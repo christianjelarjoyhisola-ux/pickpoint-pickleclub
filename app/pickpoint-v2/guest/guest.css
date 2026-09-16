@@ -145,6 +145,12 @@
 .pp-schedule-heading strong { font-size: .82rem; }
 .pp-schedule-heading span { color: #6a788d; font-size: .78rem; }
 .pp-schedule-heading button { min-height: 36px; padding: 0 4px; border-bottom: 1px solid currentColor; background: none; color: var(--pp-blue); cursor: pointer; font-size: .75rem; font-weight: 800; }
+.pp-slot-legend { display: flex; flex-wrap: wrap; gap: 7px 14px; margin: -2px 0 12px; padding: 0; list-style: none; }
+.pp-slot-legend li { display: inline-flex; align-items: center; gap: 6px; color: #647286; font-size: .68rem; font-weight: 750; }
+.pp-slot-legend li::before { content: ""; width: 8px; height: 8px; border: 1px solid #9fb8d5; border-radius: 50%; background: white; }
+.pp-slot-legend .is-processing::before { border-color: #e4aa37; background: #f8bd4d; }
+.pp-slot-legend .is-booked::before { border-color: #d96a7b; background: #e98493; }
+.pp-slot-legend .is-maintenance::before { border-color: #7d8797; background: #8f99a8; }
 .pp-schedule-scroll { position: relative; max-height: 560px; overflow: auto; border: 1px solid var(--pp-line); border-radius: 12px; background: white; overscroll-behavior: contain; }
 .pp-schedule { width: 100%; min-width: 500px; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
 .pp-schedule th, .pp-schedule td { border-right: 1px solid var(--pp-line); border-bottom: 1px solid var(--pp-line); }
@@ -161,11 +167,20 @@
 .pp-schedule td button:hover:not(:disabled) { border-color: var(--pp-blue); background: #eff6ff; }
 .pp-schedule td button.is-selected { border-color: var(--pp-navy); background: var(--pp-navy); color: white; box-shadow: 0 6px 16px rgba(4,22,48,.16); }
 .pp-schedule td button:disabled { background: #f1f4f7; color: #9aa5b4; cursor: not-allowed; }
+.pp-schedule td button.slot-processing:disabled { border-color: #f1d493; background: #fff6df; color: #85510a; }
+.pp-schedule td button.slot-booked:disabled { border-color: #efc1c9; background: #fff0f2; color: #9f3044; }
+.pp-schedule td button.slot-maintenance:disabled { border-color: #d5dbe3; background: #edf0f4; color: #596577; }
+.pp-schedule td button.slot-closed:disabled,
+.pp-schedule td button.slot-lead-time:disabled,
+.pp-schedule td button.slot-not-offered:disabled { border-color: #e1e5eb; background: #f4f6f8; color: #7d8999; }
 .pp-schedule td button span { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
 .pp-schedule td button svg { width: 13px; height: 13px; color: var(--pp-lime); }
 .pp-schedule td button small { color: #687890; font-size: .66rem; font-weight: 700; }
 .pp-schedule td button.is-selected small { color: #dce7f7; }
 .pp-schedule-loading { position: absolute; inset: 62px 0 0; display: grid; place-items: start center; padding-top: 34px; background: rgba(255,255,255,.88); color: #657389; font-size: .82rem; font-weight: 700; }
+.pp-no-times { min-height: 210px; display: grid; place-content: center; gap: 6px; padding: 28px; text-align: center; }
+.pp-no-times strong { color: var(--pp-navy); font-size: .9rem; }
+.pp-no-times span { color: #6b788b; font-size: .76rem; }
 .pp-grid-note { margin: 11px 0 0; color: #66748a; font-size: .74rem; line-height: 1.5; }
 .pp-selection-review { margin: 4px 0 22px; padding: 16px; border: 1px solid var(--pp-line); border-radius: 10px; background: #f8fafc; }
 .pp-selection-review > div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--pp-line); }
@@ -371,8 +386,8 @@
   .pp-schedule-heading { align-items: center; margin-top: 24px; }
   .pp-schedule-heading span { max-width: 220px; line-height: 1.4; }
   .pp-schedule-scroll { max-height: 490px; border-radius: 11px; }
-  .pp-schedule { min-width: 300px; }
-  .pp-schedule thead th:first-child, .pp-schedule tbody th { width: 64px; }
+  .pp-schedule { min-width: 320px; }
+  .pp-schedule thead th:first-child, .pp-schedule tbody th { width: 76px; }
   .pp-schedule thead th { height: 58px; padding: 7px 3px; font-size: .66rem; }
   .pp-schedule thead strong { font-size: .72rem; }
   .pp-schedule thead small { font-size: .56rem; }
@@ -380,6 +395,8 @@
   .pp-schedule td { height: 58px; padding: 3px; }
   .pp-schedule td button { min-height: 50px; padding: 3px 1px; border-radius: 8px; font-size: .65rem; }
   .pp-schedule td button small { font-size: .6rem; }
+  .pp-slot-legend { gap: 7px 12px; margin-bottom: 11px; }
+  .pp-slot-legend li { font-size: .64rem; }
   .pp-grid-note { font-size: .71rem; }
   .pp-selection-review { padding: 14px; border-radius: 11px; }
   .pp-card-action { margin: 24px -18px -22px; padding: 17px 18px 18px; flex-direction: column; align-items: stretch; gap: 14px; background: #fbfcfe; border-radius: 0 0 18px 18px; }

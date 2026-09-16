@@ -146,6 +146,28 @@ test("supports a tenant-safe atomic multi-court booking grid", async () => {
   assert.match(migration, /atomicMultiSessionBookingV1/);
 });
 
+test("shows truthful PickPoint slot states and hides elapsed times", async () => {
+  const [booking, client, css, migration] = await Promise.all([
+    source("app/pickpoint-v2/guest/booking-view.tsx"),
+    source("app/lib/platform/client.ts"),
+    source("app/pickpoint-v2/guest/guest.css"),
+    source("supabase/migrations/20260916030000_pickpoint_slot_states.sql"),
+  ]);
+  assert.match(client, /get_pickpoint_public_availability/);
+  assert.match(booking, /visibleScheduleTimes/);
+  assert.match(booking, /Past times are hidden/);
+  for (const state of ["processing", "booked", "maintenance", "closed"]) {
+    assert.match(booking, new RegExp(state));
+    assert.match(css, new RegExp(`slot-${state}`));
+  }
+  assert.match(css, /width:\s*76px/);
+  assert.match(migration, /<> 'pickpoint-pickleclub'/);
+  assert.match(migration, /3a4bcfeb-e8a7-417a-8b0c-90c37c3a6175/);
+  assert.match(migration, /request_origin_matches_tenant/);
+  assert.match(migration, /when occupancy\.status = 'held' then 'processing'/);
+  assert.match(migration, /then 'maintenance'/);
+});
+
 test("keeps the admin lean and capability-controlled", async () => {
   const admin = await source("app/pickpoint-v2/admin/PickPointDesk.tsx");
   assert.match(admin, /\["today","schedule","bookings","setup"\]/);

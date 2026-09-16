@@ -11,6 +11,18 @@ import { useTenant } from "./use-tenant";
 
 type Step = "select" | "details" | "payment" | "done";
 type BookingViewProps = { initialMode: "book" | "manage"; initialCourtSlug?: string };
+type SlotState = "available" | "processing" | "booked" | "maintenance" | "closed" | "lead-time" | "not-offered" | "checking";
+
+const slotStateLabel: Record<SlotState, string> = {
+  available: "Available",
+  processing: "Processing",
+  booked: "Booked",
+  maintenance: "Maintenance",
+  closed: "Closed",
+  "lead-time": "Not open",
+  "not-offered": "Not offered",
+  checking: "Checking",
+};
 
 const pad = (value: number) => String(value).padStart(2, "0");
 const isoDate = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
@@ -66,6 +78,23 @@ function addDays(value: Date, days: number) {
   const result = new Date(value);
   result.setDate(result.getDate() + days);
   return result;
+}
+
+function clockAt(timestamp: number, timezone: string) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(timestamp));
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value || "00";
+  return {
+    date: `${part("year")}-${part("month")}-${part("day")}`,
+    minute: Number(part("hour")) * 60 + Number(part("minute")),
+  };
 }
 
 function publishedPolicy(value: Record<string, unknown> | null | undefined) {
@@ -148,6 +177,12 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     return result;
   }, [courts]);
 
+  const visibleScheduleTimes = useMemo(() => {
+    const tenantClock = clockAt(bookingClock, availability?.timezone || data?.tenant.timezone || "Asia/Manila");
+    if (date !== tenantClock.date) return scheduleTimes;
+    return scheduleTimes.filter((time) => minutes(time) > tenantClock.minute);
+  }, [availability?.timezone, bookingClock, data?.tenant.timezone, date, scheduleTimes]);
+
   const selectedSlots = useMemo(() => {
     const courtOrder = new Map(courts.map((court, index) => [court.id, index]));
     return selectedSlotKeys.map(splitSlotKey).sort((left, right) =>
@@ -161,22 +196,34 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     return total + (selectedCourt ? rateFor(selectedCourt, selection.startTime) ?? 0 : 0);
   }, 0);
 
-  function slotIsAvailable(court: PublicCourt, startTime: string, source = availability) {
-    if (!source) return false;
+  function slotState(court: PublicCourt, startTime: string, source = availability): SlotState {
     const hour = minutes(startTime);
-    if (hour < minutes(court.opensAt) || hour + 60 > closingMinutes(court)) return false;
-    const minimumLeadMinutes = numberSetting(court.publicConfig?.minimumLeadMinutes, 0);
+    if (hour < minutes(court.opensAt) || hour + 60 > closingMinutes(court)) return "closed";
+    if (!source) return "checking";
     const slotStart = `${date}T${startTime}:00`;
     const endHour = hour + 60;
     const followingDate = isoDate(addDays(new Date(`${date}T12:00:00`), 1));
     const slotEnd = endHour === 24 * 60
       ? `${followingDate}T00:00:00`
       : `${date}T${pad(Math.floor(endHour / 60))}:00:00`;
+    const blockedDate = source.blockedDates?.find((entry) =>
+      (!entry.courtId || entry.courtId === court.id) &&
+      (!entry.startsAt || !entry.endsAt || (entry.startsAt < slotEnd && entry.endsAt > slotStart))
+    );
+    if (blockedDate) return blockedDate.state === "maintenance" || blockedDate.label?.toLowerCase().includes("maintenance") ? "maintenance" : "closed";
     const availabilityCourt = source.courts.find((item) => item.id === court.id);
-    if (!availabilityCourt) return false;
-    const blocked = availabilityCourt.unavailable.some((entry) => entry.startsAt < slotEnd && entry.endsAt > slotStart);
+    if (!availabilityCourt) return "closed";
+    const occupancy = availabilityCourt.unavailable.find((entry) => entry.startsAt < slotEnd && entry.endsAt > slotStart);
+    if (occupancy) return occupancy.state === "processing" ? "processing" : "booked";
+    const minimumLeadMinutes = numberSetting(court.publicConfig?.minimumLeadMinutes, 0);
     const leadTime = new Date(slotStart).getTime() - bookingClock;
-    return !blocked && leadTime >= minimumLeadMinutes * 60_000 && rateFor(court, startTime) != null;
+    if (leadTime < minimumLeadMinutes * 60_000) return "lead-time";
+    if (rateFor(court, startTime) == null) return "not-offered";
+    return "available";
+  }
+
+  function slotIsAvailable(court: PublicCourt, startTime: string, source = availability) {
+    return slotState(court, startTime, source) === "available";
   }
 
   function toggleSlot(court: PublicCourt, startTime: string) {
@@ -293,14 +340,15 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
               </div>
             </div>
             <div className="pp-schedule-heading"><div><strong>Choose court times</strong><span>Select one or more available one-hour slots.</span></div>{selectedSlots.length > 0 && <button type="button" onClick={() => setSelectedSlotKeys([])}>Clear</button>}</div>
+            <ul className="pp-slot-legend" aria-label="Court time status colors"><li className="is-available">Available</li><li className="is-processing">Processing</li><li className="is-booked">Booked</li><li className="is-maintenance">Maintenance</li></ul>
             <div className="pp-schedule-scroll" aria-busy={!availability}>
-              <table className="pp-schedule">
+              {visibleScheduleTimes.length > 0 ? <table className="pp-schedule">
                 <thead><tr><th scope="col">Time</th>{courts.map((item) => <th scope="col" key={item.id}><strong>{item.name}</strong><small>{timeLabel(item.opensAt)}–{timeLabel(item.closesAt)}</small></th>)}</tr></thead>
-                <tbody>{scheduleTimes.map((time) => <tr key={time}><th scope="row">{timeRangeLabel(time)}</th>{courts.map((item) => { const key = slotKey(item.id, time); const selected = selectedSet.has(key); const available = slotIsAvailable(item, time); const rate = rateFor(item, time); return <td key={item.id}><button type="button" aria-pressed={selected} disabled={!available} className={selected ? "is-selected" : ""} onClick={() => toggleSlot(item, time)}><span>{selected ? <><Check aria-hidden="true" /> Selected</> : available ? "Available" : "Unavailable"}</span>{available && rate != null && <small>{money(rate, item.currency)}</small>}</button></td>; })}</tr>)}</tbody>
-              </table>
+                <tbody>{visibleScheduleTimes.map((time) => <tr key={time}><th scope="row">{timeRangeLabel(time)}</th>{courts.map((item) => { const key = slotKey(item.id, time); const selected = selectedSet.has(key); const state = slotState(item, time); const available = state === "available"; const rate = rateFor(item, time); return <td key={item.id}><button type="button" aria-pressed={selected} disabled={!available} className={`${selected ? "is-selected " : ""}slot-${state}`} onClick={() => toggleSlot(item, time)}><span>{selected ? <><Check aria-hidden="true" /> Selected</> : slotStateLabel[state]}</span>{available && rate != null && <small>{money(rate, item.currency)}</small>}</button></td>; })}</tr>)}</tbody>
+              </table> : <div className="pp-no-times"><strong>Today’s court times are finished.</strong><span>Choose another date to see available slots.</span></div>}
               {!availability && <div className="pp-schedule-loading">Checking availability…</div>}
             </div>
-            <p className="pp-grid-note">All selected slots will be reserved together under one booking reference.</p>
+            <p className="pp-grid-note">Past times are hidden. All selected slots will be reserved together under one booking reference.</p>
             {message && <p className="pp-form-message" role="alert">{message}</p>}
             <div className="pp-card-action"><span>{selectedSlots.length ? <><small>{selectedSlots.length} court-hour{selectedSlots.length === 1 ? "" : "s"} selected</small><strong>{money(estimatedTotal, primaryCourt?.currency)}</strong></> : "Choose at least one court time"}</span><button className="pp-button pp-button-blue" disabled={!selectedSlots.length} onClick={() => setStep("details")}>Continue <ArrowRight /></button></div>
           </section>

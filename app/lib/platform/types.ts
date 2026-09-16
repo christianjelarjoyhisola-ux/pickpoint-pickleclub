@@ -86,14 +86,26 @@ export type AvailabilityCourt = {
   id: string;
   slug?: string;
   name: string;
-  unavailable: Array<{ startsAt: string; endsAt: string; label?: string }>;
+  unavailable: Array<{
+    startsAt: string;
+    endsAt: string;
+    state?: "processing" | "booked";
+  }>;
+};
+
+export type AvailabilityBlock = {
+  courtId?: string | null;
+  startsAt?: string | null;
+  endsAt?: string | null;
+  label?: string;
+  state?: "maintenance" | "closed";
 };
 
 export type AvailabilityResponse = {
   date: string;
   timezone: string;
   courts: AvailabilityCourt[];
-  blockedDates?: Array<Record<string, unknown>>;
+  blockedDates?: AvailabilityBlock[];
 };
 
 export type BookingSessionInput = {

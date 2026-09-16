@@ -408,7 +408,7 @@ export async function getAvailability(date: string): Promise<AvailabilityRespons
       })),
     };
   }
-  const result = await rpc<AvailabilityResponse | null>("get_public_availability", {
+  const result = await rpc<AvailabilityResponse | null>("get_pickpoint_public_availability", {
     p_tenant_slug: activeTenant.identity.slug,
     p_hostname: currentHostname(),
     p_date: date,
