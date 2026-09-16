@@ -283,6 +283,10 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(admin, /In progress/);
   assert.match(admin, /receiptDetailsScroll/);
   assert.doesNotMatch(admin, />Check in</);
+  assert.match(admin, /Every booking in one place/);
+  assert.match(admin, /Status updates automatically/);
+  assert.match(admin, /Time & date/);
+  assert.match(admin, /Reference & total/);
   assert.doesNotMatch(admin, /analytics|revenue chart|customer crm/i);
 });
 

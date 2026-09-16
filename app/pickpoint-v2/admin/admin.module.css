@@ -66,6 +66,7 @@
 /* Compact operational controls for booking status and court editing. */
 .bookingFilters{display:flex;gap:8px;margin-bottom:14px;padding:5px;border:1px solid var(--line);border-radius:12px;background:white;overflow-x:auto;scrollbar-width:none}
 .bookingFilters::-webkit-scrollbar{display:none}.bookingFilters button{flex:0 0 auto;min-height:40px;border:0;border-radius:8px;padding:0 12px;background:transparent;color:var(--m);display:flex;align-items:center;gap:9px;font-weight:800;cursor:pointer}.bookingFilters button b{min-width:24px;padding:3px 6px;border-radius:99px;background:#eaf0f6;color:var(--i);font-size:11px}.bookingFilters .bookingFilterActive{background:var(--n);color:white;box-shadow:0 6px 14px #03142d20}.bookingFilters .bookingFilterActive b{background:var(--l);color:var(--n)}
+.bookingColumns{display:grid;grid-template-columns:145px minmax(200px,1fr) 120px 145px auto;gap:16px;padding:13px 3px;border-bottom:1px solid var(--line);color:#748399;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
 .row .inProgress{color:#075985;background:#e0f2fe}
 .bookingDetails{width:min(560px,100%)}
 .bookingDetailBody{padding:24px 28px}
@@ -78,3 +79,5 @@
 .bookingDetailBody footer{padding-top:20px;text-align:right}
 .courtActions{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap}.courtActions>button,.courtPhoto{min-height:38px;border:1px solid var(--line);border-radius:8px;padding:0 12px;background:white;color:var(--b);display:inline-flex;align-items:center;gap:7px;font:800 13px var(--font-body);cursor:pointer}.courtActions>button{color:var(--i)}.courtActions .courtPhoto{margin-top:0}.courtEditor{width:min(720px,100%)}.courtEditor .fields small{color:var(--m);font-weight:500;line-height:1.35}
 @media(max-width:620px){.bookingFilters{margin-left:-2px;margin-right:-2px}.bookingFilters button{padding:0 10px}.courtActions>*{flex:1;justify-content:center}.courtEditor{max-height:96vh}.bookingDetailBody{padding:20px}.bookingDetailBody dl{grid-template-columns:1fr}.bookingDetailStatus{align-items:flex-start;flex-direction:column}}
+@media(max-width:950px){.bookingColumns{grid-template-columns:110px 1fr 120px}.bookingColumns span:nth-child(n+4){display:none}}
+@media(max-width:620px){.bookingColumns{display:none}}
