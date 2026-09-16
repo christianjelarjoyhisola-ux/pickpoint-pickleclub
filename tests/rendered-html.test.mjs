@@ -207,14 +207,18 @@ test("protects selected courts, restores progress, and shows authoritative itemi
   assert.match(booking, /durationRangeLabel/);
   assert.match(booking, /courtGroups/);
   assert.match(booking, /hourlyRate/);
+  assert.match(booking, /customerRateFor/);
   assert.match(booking, /pp-card-action pp-card-action-only/);
-  assert.match(booking, /Court subtotal/);
+  assert.match(booking, /Court time/);
+  assert.match(booking, /booking fee FREE/);
+  assert.match(booking, /pp-free-fee/);
   assert.match(booking, /Total due/);
   assert.match(css, /\.pp-price-breakdown/);
   assert.match(css, /\.pp-complete-summary/);
   assert.match(css, /\.pp-summary-courts/);
   assert.match(css, /\.pp-complete-summary\[open\] \.pp-summary-toggle-action svg/);
   assert.match(css, /@keyframes pp-total-glow/);
+  assert.match(css, /\.pp-free-fee/);
   assert.match(css, /\.pp-app\.pp-checkout \.pp-nav \{ display: none; \}/);
   assert.match(css, /\.pp-card-action-only/);
   assert.match(css, /\.pp-resume-notice/);
@@ -253,6 +257,8 @@ test("pins every browser request to the PickPoint tenant and shared project", as
   assert.match(registry, /ACTIVE_TENANT_SLUG = "pickpoint-pickleclub" as const/);
   assert.match(config, /pickpoint-pickleclub\.christianjelarjoyhisola\.workers\.dev/);
   assert.match(config, /minimumLeadMinutes: 0/);
+  assert.match(config, /offPeakHourlyRate: 270/);
+  assert.match(config, /peakHourlyRate: 320/);
   assert.match(client, /neqvrwtofiolcuxewdze\.supabase\.co/);
   assert.match(client, /REGISTERED_MANAGEMENT_ORIGIN/);
   assert.doesNotMatch(client, /reference: `DINK-/);

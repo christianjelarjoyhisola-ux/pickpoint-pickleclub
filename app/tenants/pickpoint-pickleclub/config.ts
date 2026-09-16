@@ -84,8 +84,8 @@ export const pickPointConfig = {
     address: "Tibanban, Governor Generoso, Davao Oriental, Philippines",
     mapsUrl: "https://maps.app.goo.gl/XmD7VMpTBQJinTeP7",
     coordinates: { latitude: 6.6159493, longitude: 126.0849283 },
-    opensAt: "06:00",
-    closesAt: "22:00",
+    opensAt: "05:00",
+    closesAt: "00:00",
   },
   booking: {
     minimumHours: 1,
@@ -94,9 +94,9 @@ export const pickPointConfig = {
     maximumAdvanceDays: 30,
     slotMinutes: 60,
     holdMinutes: 10,
-    offPeakEndsAt: "16:00",
-    offPeakHourlyRate: 300,
-    peakHourlyRate: 400,
+    offPeakEndsAt: "17:00",
+    offPeakHourlyRate: 270,
+    peakHourlyRate: 320,
     paymentFlow: "manual-full-payment-receipt",
     cancellation:
       "Unpaid holds can be cancelled online. Paid-booking changes are handled by the venue team until the owner publishes a final refund policy.",

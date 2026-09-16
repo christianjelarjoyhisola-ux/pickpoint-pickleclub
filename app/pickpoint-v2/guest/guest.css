@@ -252,6 +252,7 @@
 .pp-price-breakdown div { display: flex; align-items: center; justify-content: space-between; gap: 18px; color: #66748a; font-size: .74rem; }
 .pp-price-breakdown dt, .pp-price-breakdown dd { margin: 0; }
 .pp-price-breakdown dd { color: var(--pp-navy); font-weight: 800; }
+.pp-free-fee { display: inline-flex; align-items: center; min-height: 24px; padding: 3px 9px; border-radius: 999px; background: rgba(174,239,0,.2); color: #355400; font-size: .68rem; font-weight: 900; letter-spacing: .06em; }
 .pp-price-breakdown div:last-child { padding-top: 8px; border-top: 1px dashed #ced7e3; color: var(--pp-navy); font-weight: 850; }
 .pp-price-breakdown div:last-child dd { font-size: .9rem; }
 .pp-card-action { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin: 30px -48px -48px; padding: 20px 48px; border-top: 1px solid var(--pp-line); }
