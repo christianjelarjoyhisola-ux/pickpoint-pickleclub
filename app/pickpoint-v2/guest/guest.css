@@ -114,7 +114,7 @@
 .pp-book-head { padding-bottom: 35px; text-align: center; }
 .pp-book-head h1 { font-size: clamp(2.35rem, 5vw, 4.4rem); }
 .pp-book-layout { max-width: 900px; min-height: 520px; padding-bottom: 100px; }
-.pp-steps { display: grid; grid-template-columns: repeat(4,1fr); margin: 0 0 18px; padding: 0; list-style: none; }
+.pp-steps { display: grid; grid-template-columns: repeat(5,1fr); margin: 0 0 18px; padding: 0; list-style: none; }
 .pp-steps li { display: flex; align-items: center; gap: 9px; padding: 12px; border-bottom: 2px solid var(--pp-line); color: #8793a5; font-size: .72rem; font-weight: 800; }
 .pp-steps li.is-active { border-color: var(--pp-blue); color: var(--pp-navy); }
 .pp-steps i { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: #e0e6ee; font-style: normal; }
@@ -314,6 +314,10 @@
 .pp-payment-methods label small { color: #6b7a90; font-size: .66rem; font-weight: 650; }
 .pp-payment-methods label > svg { width: 17px; color: var(--pp-blue); opacity: 0; }
 .pp-payment-methods label.is-selected > svg { opacity: 1; }
+.pp-method-preview { display: grid; gap: 4px; margin: 2px 0 18px; padding: 16px; border: 1px solid #cbdff4; border-radius: 12px; background: #f4f9ff; }
+.pp-method-preview > span { color: var(--pp-blue); font-size: .65rem; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
+.pp-method-preview > strong { color: var(--pp-navy); font-size: .9rem; }
+.pp-method-preview > small { color: #66758a; font-size: .72rem; }
 .pp-payment-prompt { margin: 0 0 18px; padding: 18px; border: 1px dashed #b9c8da; border-radius: 11px; background: #f8fafc; color: #63738a; text-align: center; }
 .pp-payment-destination { margin-top: 16px; }
 .pp-payment-destination > h3 { margin: 0 0 10px; color: var(--pp-navy); font-size: .9rem; }
@@ -324,11 +328,9 @@
 .pp-payment-destination > dl > div > dt, .pp-confirmed > dl > div > dt { color: #718096; font-size: .78rem; }
 .pp-payment-destination > dl > div > dd, .pp-confirmed > dl > div > dd { margin: 0; color: var(--pp-navy); font-size: .85rem; font-weight: 800; line-height: 1.35; text-align: right; }
 .pp-payment-destination > label > small { margin-top: -2px; color: #718096; font-size: .68rem; font-weight: 600; line-height: 1.45; }
-.pp-auto-check { display: grid; grid-template-columns: 30px 1fr; align-items: center; gap: 10px; margin: 0 0 16px; padding: 13px 14px; border: 1px solid #cde5ac; border-radius: 11px; background: #f4fae9; }
-.pp-auto-check > svg { width: 18px; height: 18px; padding: 3px; border-radius: 50%; background: var(--pp-lime); color: var(--pp-navy); }
-.pp-auto-check span { display: grid; gap: 3px; }
-.pp-auto-check strong { color: var(--pp-navy); font-size: .78rem; }
-.pp-auto-check small { color: #5c6c49; font-size: .68rem; line-height: 1.4; }
+.pp-payment-policy { margin-top: 24px; padding-top: 6px; border-top: 1px solid var(--pp-line); }
+.pp-payment-policy .pp-policy { margin-bottom: 10px; background: #fbfcfe; }
+.pp-payment-policy .pp-policy summary { font-family: var(--font-display); font-size: .95rem; }
 .pp-instructions { padding: 14px; border-radius: 7px; background: #eff6ff; color: #37516f; font-size: .84rem; }
 .pp-upload { position: relative; grid-template-columns: 28px 1fr; align-items: center; padding: 18px; border: 1px dashed #aebcce; border-radius: 7px; cursor: pointer; }
 .pp-upload svg { width: 22px; color: var(--pp-blue); }
@@ -485,7 +487,7 @@
 
   .pp-book-layout { min-height: 430px; padding-bottom: 52px; }
   .pp-steps { position: relative; gap: 0; margin: 0 0 12px; }
-  .pp-steps::before { content: ""; position: absolute; top: 18px; right: 12.5%; left: 12.5%; height: 1px; background: var(--pp-line); }
+  .pp-steps::before { content: ""; position: absolute; top: 18px; right: 10%; left: 10%; height: 1px; background: var(--pp-line); }
   .pp-steps li { position: relative; z-index: 1; min-width: 0; justify-content: flex-start; flex-direction: column; gap: 5px; padding: 7px 2px 11px; border: 0; background: transparent; font-size: .62rem; }
   .pp-steps li b { font-weight: 750; }
   .pp-steps i { width: 23px; height: 23px; border: 3px solid #f7f8fb; font-size: .65rem; }
