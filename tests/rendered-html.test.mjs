@@ -288,8 +288,8 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(admin, /Time & date/);
   assert.match(admin, /Reference & total/);
   assert.match(admin, /function TodayCourtList/);
-  assert.match(admin, /The nearest future reservation for each court/);
-  assert.match(admin, /Later reservations scheduled for today/);
+  assert.match(admin, /All remaining reservations later today/);
+  assert.match(admin, /Reservations from tomorrow onward/);
   assert.doesNotMatch(admin, /area==="today"[^\n]*<BookingFilters/);
   assert.doesNotMatch(admin, /analytics|revenue chart|customer crm/i);
 });
