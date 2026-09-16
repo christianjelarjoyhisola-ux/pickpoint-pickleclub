@@ -253,7 +253,12 @@ test("keeps the admin lean and capability-controlled", async () => {
   }
   assert.match(admin, /session\.capabilities/);
   assert.match(admin, /x\.id!=="setup-status"&&x\.id!=="public-booking"/);
-  assert.match(admin, /disabled=\{!activationReady\}/);
+  assert.match(admin, /disabled=\{!activationReady\|\|busy\("tenant:publish"\)\}/);
+  assert.match(admin, /aria-busy=/);
+  assert.match(admin, /Saving details…/);
+  assert.match(admin, /Publishing…/);
+  assert.match(admin, /Approving…/);
+  assert.match(admin, /aria-live=\{error\?"assertive":"polite"\}/);
   assert.match(admin, /Customer payment methods/);
   assert.match(admin, /Add payment method/);
   assert.match(admin, /paymentEvidence\.paymentMethod/);
