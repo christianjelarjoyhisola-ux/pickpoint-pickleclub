@@ -187,8 +187,16 @@ test("holds selected courts before details and shows authoritative fees", async 
   assert.match(booking, /confirmation\.totalAmount/);
   assert.match(booking, /className="pp-calendar"/);
   assert.match(booking, /aria-label="Choose a playing date"/);
+  assert.match(booking, /pp-date-chevron/);
+  assert.match(booking, /remainingHoldSeconds/);
+  assert.match(booking, /HOLD_SECONDS = 10 \* 60/);
+  assert.match(booking, /cancelUnpaidBooking\(confirmation\.reference/);
+  assert.match(booking, /Your 10-minute hold expired/);
+  assert.match(booking, /Complete your booking within/);
   assert.match(css, /\.pp-price-breakdown/);
   assert.match(css, /\.pp-hold-notice/);
+  assert.match(css, /\.pp-hold-timer/);
+  assert.match(css, /@keyframes pp-hold-intro/);
   assert.match(css, /@keyframes pp-calendar-in/);
 });
 

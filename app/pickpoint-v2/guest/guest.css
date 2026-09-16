@@ -133,12 +133,14 @@
 .pp-date-picker > button:hover:not(:disabled) { border-color: var(--pp-blue); background: #eff6ff; color: var(--pp-blue); }
 .pp-date-picker > button:disabled { color: #b7c1ce; cursor: not-allowed; }
 .pp-date-picker > button svg { width: 18px; height: 18px; }
-.pp-date-trigger { position: relative; min-width: 0; min-height: 48px; display: flex !important; align-items: center; gap: 11px !important; margin: 0 !important; padding: 6px 12px; overflow: hidden; border: 1px solid #cbd5e2; border-radius: 10px; background: white; cursor: pointer; }
+.pp-date-trigger { position: relative; min-width: 0; min-height: 48px; display: flex !important; align-items: center; justify-content: center; gap: 0 !important; margin: 0 !important; padding: 6px 38px; overflow: hidden; border: 1px solid #cbd5e2; border-radius: 10px; background: white; cursor: pointer; text-align: center; }
 .pp-date-trigger:focus-within { border-color: var(--pp-blue); box-shadow: 0 0 0 3px rgba(17,106,209,.1); }
-.pp-date-trigger > svg { width: 18px; height: 18px; flex: 0 0 auto; color: var(--pp-blue); }
-.pp-date-trigger > span { min-width: 0; display: grid; gap: 1px; }
+.pp-date-trigger > svg:first-child { position: absolute; left: 12px; width: 18px; height: 18px; color: var(--pp-blue); }
+.pp-date-trigger > span { min-width: 0; display: grid; justify-items: center; gap: 1px; }
 .pp-date-trigger small { color: #758399; font-size: .6rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
 .pp-date-trigger strong { overflow: hidden; font-size: .79rem; text-overflow: ellipsis; white-space: nowrap; }
+.pp-date-trigger .pp-date-chevron { position: absolute; right: 12px; width: 16px; height: 16px; color: #65758b; transition: transform .18s ease; }
+.pp-date-trigger[aria-expanded="true"] .pp-date-chevron { transform: rotate(180deg); }
 .pp-calendar { position: absolute; top: calc(100% + 10px); left: 0; z-index: 30; width: 100%; padding: 16px; border: 1px solid #cbd7e5; border-radius: 16px; background: white; box-shadow: 0 24px 65px rgba(4,22,48,.2); animation: pp-calendar-in .16s ease-out; }
 .pp-calendar header { display: grid; grid-template-columns: 36px 1fr 36px; align-items: center; gap: 8px; margin-bottom: 13px; }
 .pp-calendar header strong { color: var(--pp-navy); font-size: .86rem; text-align: center; }
@@ -231,6 +233,20 @@
 .pp-hold-notice strong { color: #754706; font-size: .77rem; }
 .pp-hold-notice span { color: #8a641e; font-size: .7rem; line-height: 1.4; }
 .pp-pulse { width: 9px; height: 9px; margin-top: 3px; border-radius: 50%; background: #efad29; box-shadow: 0 0 0 5px rgba(239,173,41,.14); }
+.pp-hold-timer { position: sticky; top: 10px; z-index: 20; min-height: 58px; display: grid; grid-template-columns: 34px minmax(0,1fr) auto; align-items: center; gap: 11px; margin: 0 0 14px; padding: 9px 14px; border: 1px solid #edca78; border-radius: 13px; background: rgba(255,249,231,.96); box-shadow: 0 10px 28px rgba(91,61,5,.12); backdrop-filter: blur(12px); transition: opacity .35s ease, transform .45s cubic-bezier(.2,.8,.2,1); }
+.pp-hold-timer > svg { width: 32px; height: 32px; padding: 8px; border-radius: 10px; background: #f5b93e; color: #4a3000; }
+.pp-hold-timer > span { display: grid; gap: 1px; }
+.pp-hold-timer small { color: #84621f; font-size: .61rem; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; }
+.pp-hold-timer strong { color: #624003; font-family: var(--font-display); font-size: 1.15rem; font-variant-numeric: tabular-nums; line-height: 1; }
+.pp-hold-timer em { padding: 6px 9px; border-radius: 999px; background: #fff0bc; color: #765009; font-size: .62rem; font-style: normal; font-weight: 850; text-transform: uppercase; }
+.pp-hold-intro { position: fixed; inset: 0; z-index: 90; display: grid; place-content: center; justify-items: center; padding: 24px; background: rgba(245,248,252,.42); pointer-events: none; animation: pp-hold-intro 4s cubic-bezier(.2,.75,.2,1) both; }
+.pp-hold-intro > svg { width: 48px; height: 48px; margin-bottom: 12px; padding: 12px; border-radius: 16px; background: var(--pp-lime); color: var(--pp-navy); box-shadow: 0 14px 35px rgba(4,22,48,.18); }
+.pp-hold-intro span { color: #4f6076; font-size: .72rem; font-weight: 850; letter-spacing: .05em; text-transform: uppercase; }
+.pp-hold-intro strong { margin: 7px 0; color: var(--pp-navy); font-family: var(--font-display); font-size: clamp(3.2rem, 18vw, 5.5rem); font-variant-numeric: tabular-nums; line-height: .9; }
+.pp-hold-intro small { color: #607087; font-size: .75rem; font-weight: 700; }
+.pp-book-layout.is-hold-intro > :not(.pp-hold-intro) { filter: blur(5px); opacity: .48; transition: filter .5s ease, opacity .5s ease; }
+.pp-book-layout.is-hold-intro > .pp-hold-timer { transform: translateY(-8px); opacity: 0; }
+@keyframes pp-hold-intro { 0% { opacity: 0; transform: scale(.96); } 10%, 72% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-90px) scale(.8); } }
 .pp-check small { margin-top: 3px; color: #6c798d; font-weight: 500; }
 .pp-policy { margin: 18px 0; padding: 16px; border: 1px solid var(--pp-line); border-radius: 7px; background: #f7f9fc; }
 .pp-policy summary { cursor: pointer; color: var(--pp-navy); font-weight: 800; }
@@ -415,7 +431,12 @@
   .pp-date-field { max-width: none; }
   .pp-date-picker { grid-template-columns: 42px minmax(0, 1fr) 42px; gap: 6px; }
   .pp-date-picker > button, .pp-date-trigger { min-height: 46px; }
-  .pp-date-trigger { padding-inline: 10px; }
+  .pp-date-trigger { padding-inline: 34px; }
+  .pp-date-trigger > svg:first-child { left: 10px; }
+  .pp-date-trigger .pp-date-chevron { right: 10px; }
+  .pp-hold-timer { top: 8px; grid-template-columns: 31px minmax(0,1fr) auto; margin-bottom: 11px; padding: 8px 10px; border-radius: 12px; }
+  .pp-hold-timer > svg { width: 30px; height: 30px; }
+  .pp-hold-timer em { padding-inline: 7px; font-size: .58rem; }
   .pp-schedule-heading { align-items: center; margin-top: 24px; }
   .pp-schedule-heading span { max-width: 220px; line-height: 1.4; }
   .pp-schedule-scroll { max-height: 490px; border-radius: 11px; }

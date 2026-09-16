@@ -25,7 +25,7 @@ export function GuestHome() {
           <p className="pp-lede">Choose one court, lock in a continuous playing time, and keep everything under one booking reference.</p>
           <div className="pp-actions">
             {live
-              ? <Link className="pp-button pp-button-lime" href="/book">Check available times <ArrowRight /></Link>
+              ? <Link className="pp-button pp-button-lime" href="/book#booking-times">Check available times <ArrowRight /></Link>
               : <a className="pp-button pp-button-lime" href={mapsUrl} target="_blank" rel="noreferrer">Get directions <MapPin /></a>}
             {live
               ? <Link className="pp-text-link" href="/book?mode=manage">Already booked? Find it</Link>

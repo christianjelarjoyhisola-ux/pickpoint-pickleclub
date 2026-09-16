@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, CalendarDays, Check, ChevronLeft, ChevronRight, Search, Upload } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock3, Search, Upload } from "lucide-react";
 import { bookingStatus, cancelUnpaidBooking, completeBookingDetails, createBooking, getAvailability, submitPaymentReceipt } from "../../lib/platform/client";
 import type { AvailabilityResponse, BookingConfirmation, PaymentMethod, PublicCourt } from "../../lib/platform/types";
 import { GuestShell } from "./guest-shell";
@@ -12,6 +12,7 @@ import { useTenant } from "./use-tenant";
 type Step = "select" | "details" | "payment" | "done";
 type BookingViewProps = { initialMode: "book" | "manage"; initialCourtSlug?: string };
 type SlotState = "available" | "processing" | "pending" | "booked" | "maintenance" | "closed" | "lead-time" | "not-offered" | "checking";
+const HOLD_SECONDS = 10 * 60;
 
 const slotStateLabel: Record<SlotState, string> = {
   available: "Available",
@@ -154,6 +155,9 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   const [lookupReference, setLookupReference] = useState("");
   const [lookupResult, setLookupResult] = useState<Record<string, unknown> | null>(null);
   const [bookingClock] = useState(() => Date.now());
+  const [holdIntro, setHoldIntro] = useState(false);
+  const [holdEndsAt, setHoldEndsAt] = useState<number | null>(null);
+  const [remainingHoldSeconds, setRemainingHoldSeconds] = useState<number | null>(null);
   const bookingAttemptId = useRef<string | null>(null);
   const dateFieldRef = useRef<HTMLDivElement | null>(null);
 
@@ -213,6 +217,33 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     };
   }, [calendarOpen]);
 
+  useEffect(() => {
+    if (!confirmation || !holdEndsAt || (step !== "details" && step !== "payment")) return;
+    const updateRemaining = () => {
+      const remaining = Math.max(0, Math.ceil((holdEndsAt - Date.now()) / 1000));
+      setRemainingHoldSeconds(remaining);
+      if (remaining > 0) return;
+      cancelUnpaidBooking(confirmation.reference, confirmation.bookingToken).catch(() => undefined);
+      setHoldIntro(false);
+      setConfirmation(null);
+      setHoldEndsAt(null);
+      setSelectedSlotKeys([]);
+      setAccepted(false);
+      bookingAttemptId.current = null;
+      setStep("select");
+      setMessage("Your 10-minute hold expired. Please choose the court times again.");
+      getAvailability(date).then(setAvailability).catch(() => undefined);
+    };
+    const timer = window.setInterval(updateRemaining, 1000);
+    return () => window.clearInterval(timer);
+  }, [confirmation, date, holdEndsAt, step]);
+
+  useEffect(() => {
+    if (!holdIntro) return;
+    const timer = window.setTimeout(() => setHoldIntro(false), 4000);
+    return () => window.clearTimeout(timer);
+  }, [holdIntro]);
+
   const scheduleTimes = useMemo(() => {
     if (!courts.length) return [];
     const opening = Math.min(...courts.map((court) => Math.ceil(minutes(court.opensAt) / 60)));
@@ -244,9 +275,12 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   }, 0);
   const estimatedBookingFee = bookingFeeAmount(data?.bookingFee, estimatedTotal, selectedSlots.length);
   const estimatedGrandTotal = estimatedTotal + estimatedBookingFee;
-  const holdExpiryLabel = confirmation?.expiresAt
-    ? new Intl.DateTimeFormat("en-PH", { hour: "numeric", minute: "2-digit", timeZone: data?.tenant.timezone || "Asia/Manila" }).format(new Date(confirmation.expiresAt))
+  const holdExpiryLabel = holdEndsAt
+    ? new Intl.DateTimeFormat("en-PH", { hour: "numeric", minute: "2-digit", timeZone: data?.tenant.timezone || "Asia/Manila" }).format(new Date(holdEndsAt))
     : null;
+  const holdCountdown = remainingHoldSeconds == null
+    ? "10:00"
+    : `${pad(Math.floor(remainingHoldSeconds / 60))}:${pad(remainingHoldSeconds % 60)}`;
 
   function slotState(court: PublicCourt, startTime: string, source = availability): SlotState {
     const hour = minutes(startTime);
@@ -266,7 +300,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     const availabilityCourt = source.courts.find((item) => item.id === court.id);
     if (!availabilityCourt) return "closed";
     const occupancy = availabilityCourt.unavailable.find((entry) => entry.startsAt < slotEnd && entry.endsAt > slotStart);
-    if (occupancy) return occupancy.state === "processing" ? "processing" : "booked";
+    if (occupancy) return occupancy.state === "processing" || occupancy.state === "pending" ? occupancy.state : "booked";
     const minimumLeadMinutes = numberSetting(court.publicConfig?.minimumLeadMinutes, 0);
     const leadTime = new Date(slotStart).getTime() - bookingClock;
     if (leadTime < minimumLeadMinutes * 60_000) return "lead-time";
@@ -292,7 +326,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     setMessage("");
   }
 
-  const resetSelection = () => { setStep("select"); setConfirmation(null); setSelectedSlotKeys([]); setAccepted(false); setMessage(""); bookingAttemptId.current = null; };
+  const resetSelection = () => { setStep("select"); setConfirmation(null); setHoldEndsAt(null); setRemainingHoldSeconds(null); setSelectedSlotKeys([]); setAccepted(false); setMessage(""); bookingAttemptId.current = null; };
 
   async function holdSelection() {
     if (!selectedSlots.length || !live || !accepted || !policy?.version) return;
@@ -312,8 +346,13 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
         policyVersion: policy.version,
         clientRequestId: bookingAttemptId.current,
       });
+      const serverExpiry = result.expiresAt ? new Date(result.expiresAt).getTime() : Number.POSITIVE_INFINITY;
+      const customerDeadline = Math.min(serverExpiry, Date.now() + HOLD_SECONDS * 1000);
       setConfirmation(result);
+      setHoldEndsAt(customerDeadline);
+      setRemainingHoldSeconds(Math.max(0, Math.ceil((customerDeadline - Date.now()) / 1000)));
       try { window.localStorage.setItem(`pickpoint-booking:${result.reference.toUpperCase()}`, result.bookingToken); } catch { /* Private browsing may deny storage. */ }
+      setHoldIntro(!window.matchMedia("(prefers-reduced-motion: reduce)").matches);
       setStep("details");
     } catch (reason) {
       setMessage(reason instanceof Error ? reason.message : "We could not hold that time. Please choose another.");
@@ -340,6 +379,8 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
       const text = reason instanceof Error ? reason.message : "Your player details could not be saved.";
       if (/expired|no longer active/i.test(text)) {
         setConfirmation(null);
+        setHoldEndsAt(null);
+        setRemainingHoldSeconds(null);
         setSelectedSlotKeys([]);
         setAccepted(false);
         bookingAttemptId.current = null;
@@ -358,6 +399,8 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     try {
       await cancelUnpaidBooking(confirmation.reference, confirmation.bookingToken);
       setConfirmation(null);
+      setHoldEndsAt(null);
+      setRemainingHoldSeconds(null);
       setSelectedSlotKeys([]);
       setAccepted(false);
       bookingAttemptId.current = null;
@@ -374,6 +417,8 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     setBusy(true); setMessage("");
     try {
       await submitPaymentReceipt({ reference: confirmation.reference, token: confirmation.bookingToken, method: paymentMethod.code || paymentMethod.methodCode || paymentMethod.displayName, paymentReference: paymentReference.trim() || undefined, file: receipt });
+      setHoldEndsAt(null);
+      setRemainingHoldSeconds(null);
       setStep("done");
     } catch (reason) { setMessage(reason instanceof Error ? reason.message : "The receipt could not be submitted."); }
     finally { setBusy(false); }
@@ -421,8 +466,11 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   return (
     <GuestShell current="book">
       <section className="pp-book-head"><p className="pp-kicker">Book a court</p><h1>{step === "select" ? "When do you want to play?" : step === "details" ? "Who is the booking for?" : step === "payment" ? "Complete your payment." : "Your booking is recorded."}</h1><p>Select one or more court times. No account required.</p></section>
-      <div className="pp-book-layout">
+      <div id="booking-times" className={`pp-book-layout${holdIntro ? " is-hold-intro" : ""}`}>
         <ol className="pp-steps" aria-label="Booking progress">{["Time", "Details", "Payment", "Done"].map((label, index) => { const activeIndex = ["select", "details", "payment", "done"].indexOf(step); return <li key={label} aria-current={index === activeIndex ? "step" : undefined} className={index <= activeIndex ? "is-active" : ""}><i>{index < activeIndex ? <Check aria-hidden="true" /> : index + 1}</i><b>{label}</b></li>; })}</ol>
+
+        {holdIntro && <div className="pp-hold-intro" role="status"><Clock3 aria-hidden="true" /><span>Complete your booking within</span><strong>{holdCountdown}</strong><small>Your selected court times are now held.</small></div>}
+        {confirmation && (step === "details" || step === "payment") && <aside className="pp-hold-timer" aria-label={`Temporary court hold: ${holdCountdown} remaining`}><Clock3 aria-hidden="true" /><span><small>Complete your booking within</small><strong>{holdCountdown}</strong></span><em>Times held</em></aside>}
 
         {(loading || tenantError) && <div className="pp-state">{loading ? "Checking venue setup…" : tenantError}</div>}
         {data && !live && <div className="pp-setup"><span>Reservations are not open yet</span><h2>PickPoint is completing its court setup.</h2><p>Online booking will open after the venue confirms its courts, prices, payment details, and booking rules.</p><Link className="pp-button pp-button-outline" href="/">Return home</Link></div>}
@@ -436,6 +484,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
                 <button type="button" className="pp-date-trigger" aria-haspopup="dialog" aria-expanded={calendarOpen} onClick={() => setCalendarOpen((current) => !current)}>
                   <CalendarDays aria-hidden="true" />
                   <span><small>Playing on</small><strong>{selectedDateLabel}</strong></span>
+                  <ChevronDown className="pp-date-chevron" aria-hidden="true" />
                 </button>
                 <button type="button" aria-label="Next day" disabled={date >= maximumDate} onClick={() => moveDate(1)}><ChevronRight aria-hidden="true" /></button>
               </div>
