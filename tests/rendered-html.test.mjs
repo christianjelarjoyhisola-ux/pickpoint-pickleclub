@@ -318,14 +318,18 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(admin, /Time & date/);
   assert.match(admin, /Reference & total/);
   assert.match(admin, /function TodayCourtList/);
-  assert.match(admin, /All remaining reservations later today/);
-  assert.match(admin, /Reservations from tomorrow onward/);
+  assert.match(admin, /The next reservations later today/);
+  assert.match(admin, /The next five reservations from tomorrow onward/);
   assert.match(admin, /function DashboardOverview/);
-  for (const dashboardLabel of ["Gross revenue", "Paid bookings", "Accumulated booking fee", "Most booked court", "Revenue trend", "LIVE OPERATIONS"]) {
+  for (const dashboardLabel of ["Playing now", "Bookings today", "Courts ready", "Needs attention", "Gross collected", "Paid bookings", "Court-hours sold", "Average booking", "Most-booked court"]) {
     assert.match(admin, new RegExp(dashboardLabel));
   }
-  assert.match(admin, /booking\.payment==="paid"/);
-  assert.match(admin, /billing\.feeMode==="fixed_per_hour"/);
+  assert.match(admin, /function BusinessPerformance/);
+  assert.match(admin, /managementAdapter\.loadReport/);
+  assert.match(admin, /managementAdapter\.loadReportingBounds/);
+  assert.match(admin, /mergeRegularBookingReports/);
+  assert.match(admin, /Payments needing attention/);
+  assert.match(admin, /The next five reservations/);
   assert.match(admin, /function RemittanceArea/);
   assert.match(admin, /managementAdapter\.loadInsights/);
   assert.match(admin, /Accumulated booking fee/);
@@ -366,14 +370,20 @@ test("keeps every admin area usable on phones and small tablets", async () => {
   assert.match(css, /\.remittanceMetrics\{[^}]*grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
   assert.match(css, /\.remittanceGrid\{[^}]*grid-template-columns:minmax\(280px,\.78fr\) minmax\(0,1\.22fr\)/);
   assert.match(css, /\.remittanceMetrics\{grid-template-columns:1fr/);
+  assert.match(css, /\.operationsOverview\{display:grid;grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
+  assert.match(css, /@media\(max-width:900px\)\{\.operationsOverview\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(css, /\.periodSelector button,\.chartToggle button\{[^}]*min-height:44px/);
+  assert.match(css, /\.performanceChart\{[^}]*overflow:hidden/);
+  assert.match(css, /@media\(max-width:360px\)\{\.operationsOverview,\.businessMetrics,\.remittanceSummary dl\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
 });
 
 test("pins every browser request to the PickPoint tenant and shared project", async () => {
-  const [registry, config, client, adapter] = await Promise.all([
+  const [registry, config, client, adapter, reportingBounds] = await Promise.all([
     source("app/tenants/registry.ts"),
     source("app/tenants/pickpoint-pickleclub/config.ts"),
     source("app/lib/platform/client.ts"),
     source("app/manage/management-adapter.ts"),
+    source("supabase/migrations/20260917010000_pickpoint_reporting_bounds.sql"),
   ]);
   assert.match(registry, /ACTIVE_TENANT_SLUG = "pickpoint-pickleclub" as const/);
   assert.match(config, /pickpoint-pickleclub\.christianjelarjoyhisola\.workers\.dev/);
@@ -388,6 +398,11 @@ test("pins every browser request to the PickPoint tenant and shared project", as
   assert.doesNotMatch(client, /reference: `DINK-/);
   assert.doesNotMatch(client, /tenantId\s*:/);
   assert.doesNotMatch(client, /SUPABASE_SERVICE|service[_-]?role/i);
+  assert.match(client, /get_manager_regular_booking_reporting_bounds/);
+  assert.match(reportingBounds, /<> 'pickpoint-pickleclub'/);
+  assert.match(reportingBounds, /3a4bcfeb-e8a7-417a-8b0c-90c37c3a6175/);
+  assert.match(reportingBounds, /request_origin_matches_tenant/);
+  assert.match(reportingBounds, /membership\.role in \('owner', 'admin'\)/);
   assert.match(adapter, /LIVE_TENANT_SCOPE_MISMATCH/);
   assert.match(adapter, /assertPickPointContext/);
 });

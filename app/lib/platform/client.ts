@@ -1139,6 +1139,17 @@ export async function getManagerRegularBookingReport(
   );
 }
 
+export async function getManagerReportingBounds(accessToken: string): Promise<unknown> {
+  return rpc<unknown>(
+    "get_manager_regular_booking_reporting_bounds",
+    {
+      p_tenant_slug: activeTenant.identity.slug,
+      p_hostname: managementHostname(),
+    },
+    accessToken,
+  );
+}
+
 export async function getManagerPromotions(accessToken: string): Promise<unknown> {
   return rpc<unknown>(
     "get_manager_promotions",

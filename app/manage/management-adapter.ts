@@ -17,6 +17,7 @@ import {
   getManagerCourts,
   getManagerPromotions,
   getManagerRegularBookingReport,
+  getManagerReportingBounds,
   getManagerSession,
   getPaymentReceiptView,
   getRemittanceDestination,
@@ -423,6 +424,14 @@ export type Court = {
   photoUrl: string | null;
 };
 
+export type ReportingBounds = {
+  contractVersion: 1;
+  tenantSlug: string;
+  asOf: string;
+  timezone: string;
+  earliestBookingDate: string | null;
+};
+
 export type SharedPriceBand = {
   start: string;
   end: string;
@@ -580,6 +589,11 @@ export interface ManagementAdapter {
     context: ManagementContext,
     filters: ManagementInsightFilters,
   ): Promise<ManagementInsights>;
+  loadReport(
+    context: ManagementContext,
+    filters: ManagementInsightFilters,
+  ): Promise<RegularBookingReport | null>;
+  loadReportingBounds(context: ManagementContext): Promise<ReportingBounds>;
   refreshOperations(
     context: ManagementContext,
     current: ManagementSnapshot,
@@ -1231,6 +1245,42 @@ export const managementAdapter: ManagementAdapter = {
         : tenantPromotionState(promotionResult),
       loadedAt: formatManilaDateTime(new Date()),
     };
+  },
+  async loadReport(context, filters) {
+    if (platformMode() === "preview") return null;
+    assertPickPointContext(context);
+    const normalizedFilters = insightFilters(filters);
+    const session = await currentOwnerSession();
+    if (!session) throw new Error("MANAGER_SIGN_IN_REQUIRED");
+    const authority = normalizeManagerSession(
+      await getManagerSession(session.access_token),
+    );
+    assertInsightsViewer(authority);
+    return regularBookingReport(
+      await getManagerRegularBookingReport(session.access_token, normalizedFilters),
+      normalizedFilters,
+    );
+  },
+  async loadReportingBounds(context) {
+    if (platformMode() === "preview") {
+      return {
+        contractVersion: 1,
+        tenantSlug: activeTenant.identity.slug,
+        asOf: new Date().toISOString(),
+        timezone: activeTenant.identity.timezone,
+        earliestBookingDate: null,
+      };
+    }
+    assertPickPointContext(context);
+    const session = await currentOwnerSession();
+    if (!session) throw new Error("MANAGER_SIGN_IN_REQUIRED");
+    const authority = normalizeManagerSession(
+      await getManagerSession(session.access_token),
+    );
+    assertInsightsViewer(authority);
+    return reportingBounds(
+      await getManagerReportingBounds(session.access_token),
+    );
   },
   async refreshOperations(context, current) {
     if (platformMode() === "preview") return previewSnapshot;
@@ -3123,6 +3173,22 @@ function regularBookingReport(
     },
     summary,
     breakdowns: { daily, courts, paymentStatuses, lifecycleStatuses },
+  };
+}
+
+function reportingBounds(candidate: unknown): ReportingBounds {
+  const errorCode = "REPORTING_BOUNDS_RESPONSE_INVALID";
+  const row = reportObject(candidate, errorCode);
+  const tenantSlug = reportText(row.tenantSlug, errorCode, 120);
+  if (row.contractVersion !== 1 || tenantSlug !== activeTenant.identity.slug) {
+    throw new Error(errorCode);
+  }
+  return {
+    contractVersion: 1,
+    tenantSlug,
+    asOf: reportInstant(row.asOf, errorCode),
+    timezone: reportText(row.timezone, errorCode, 80),
+    earliestBookingDate: reportNullableDate(row.earliestBookingDate, errorCode),
   };
 }
 
