@@ -200,6 +200,7 @@ test("protects selected courts, restores progress, and shows authoritative itemi
   assert.match(booking, /defaultExpanded=\{false\}/);
   assert.match(booking, /Show or hide the complete booking summary/);
   assert.match(booking, /pp-summary-toggle-total/);
+  assert.match(booking, /checkout=\{step === "details" \|\| step === "payment"\}/);
   assert.match(booking, /durationRangeLabel/);
   assert.match(booking, /courtGroups/);
   assert.match(booking, /hourlyRate/);
@@ -209,7 +210,8 @@ test("protects selected courts, restores progress, and shows authoritative itemi
   assert.match(css, /\.pp-price-breakdown/);
   assert.match(css, /\.pp-complete-summary/);
   assert.match(css, /\.pp-summary-courts/);
-  assert.match(css, /\.pp-complete-summary\[open\] \.pp-summary-toggle-total svg/);
+  assert.match(css, /\.pp-complete-summary\[open\] \.pp-summary-toggle-action svg/);
+  assert.match(css, /\.pp-app\.pp-checkout \.pp-nav \{ display: none; \}/);
   assert.match(css, /\.pp-card-action-only/);
   assert.match(css, /\.pp-resume-notice/);
   assert.match(css, /\.pp-hold-notice/);

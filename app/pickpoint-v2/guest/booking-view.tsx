@@ -84,10 +84,10 @@ function CompleteBookingSummary({ confirmation, bookingDate, defaultExpanded = t
   const feePerHour = courtHours ? confirmation.serviceFeeAmount / courtHours : 0;
   return <details className="pp-selection-review pp-complete-summary" open={expanded} onToggle={(event) => setExpanded(event.currentTarget.open)}>
     <summary aria-label="Show or hide the complete booking summary">
-      <span><small>Booking summary</small><strong>Booking details</strong></span>
-      <span className="pp-summary-toggle-total"><small>Total due</small><strong>{money(confirmation.totalAmount, confirmation.currency)}</strong><ChevronDown aria-hidden="true" /></span>
+      <span className="pp-summary-toggle-total"><small>Total due</small><strong>{money(confirmation.totalAmount, confirmation.currency)}</strong></span>
+      <span className="pp-summary-toggle-action"><span>View details</span><ChevronDown aria-hidden="true" /></span>
     </summary>
-    <div className="pp-summary-expanded-head"><strong>Reservation details</strong><span>{courtHours} court-hour{courtHours === 1 ? "" : "s"}</span></div>
+    <div className="pp-summary-expanded-head"><span><small>Booking summary</small><strong>Reservation details</strong></span><span>{courtHours} court-hour{courtHours === 1 ? "" : "s"}</span></div>
     <dl className="pp-summary-meta"><div><dt>Playing date</dt><dd>{bookingDateLabel(bookingDate)}</dd></div><div><dt>Booking reference</dt><dd>{confirmation.reference}</dd></div></dl>
     <ul className="pp-summary-courts">{courtGroups.map((court) => <li key={court.courtId} className="pp-summary-court"><header><strong>{court.courtName}</strong><span>{court.courtHours} hour{court.courtHours === 1 ? "" : "s"} · {money(court.subtotalAmount, confirmation.currency)}</span></header><ul>{court.sessions.map((session, index) => { const hourlyRate = session.durationHours ? session.subtotalAmount / session.durationHours : session.subtotalAmount; return <li key={`${session.startTime}-${index}`}><span>{durationRangeLabel(session.startTime, session.durationHours)}</span><small>{money(hourlyRate, confirmation.currency)} × {session.durationHours} hour{session.durationHours === 1 ? "" : "s"}</small><strong>{money(session.subtotalAmount, confirmation.currency)}</strong></li>; })}</ul></li>)}</ul>
     <dl className="pp-price-breakdown"><div><dt>Court subtotal</dt><dd>{money(confirmation.subtotalAmount, confirmation.currency)}</dd></div><div><dt>Booking fee{feePerHour > 0 && <small>{money(feePerHour, confirmation.currency)} × {courtHours} court-hour{courtHours === 1 ? "" : "s"}</small>}</dt><dd>{money(confirmation.serviceFeeAmount, confirmation.currency)}</dd></div><div><dt>Total due</dt><dd>{money(confirmation.totalAmount, confirmation.currency)}</dd></div></dl>
@@ -593,7 +593,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   );
 
   return (
-    <GuestShell current="book">
+    <GuestShell current="book" checkout={step === "details" || step === "payment"}>
       <section className="pp-book-head"><p className="pp-kicker">Book a court</p><h1>{step === "select" ? "When do you want to play?" : step === "details" ? "Who is the booking for?" : step === "payment" ? "Complete your payment." : "Your booking is recorded."}</h1><p>Select one or more court times. No account required.</p></section>
       <div id="booking-times" className={`pp-book-layout${holdIntro ? " is-hold-intro" : ""}`}>
         <ol className="pp-steps" aria-label="Booking progress">{["Time", "Details", "Payment", "Done"].map((label, index) => { const activeIndex = ["select", "details", "payment", "done"].indexOf(step); return <li key={label} aria-current={index === activeIndex ? "step" : undefined} className={index <= activeIndex ? "is-active" : ""}><i>{index < activeIndex ? <Check aria-hidden="true" /> : index + 1}</i><b>{label}</b></li>; })}</ol>

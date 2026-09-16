@@ -5,11 +5,11 @@ import Link from "next/link";
 import { CalendarPlus, House, Map, ShieldCheck, TicketCheck } from "lucide-react";
 import type { ReactNode } from "react";
 
-type GuestShellProps = { children: ReactNode; current?: "home" | "courts" | "book" | "manage" };
+type GuestShellProps = { children: ReactNode; current?: "home" | "courts" | "book" | "manage"; checkout?: boolean };
 
-export function GuestShell({ children, current }: GuestShellProps) {
+export function GuestShell({ children, current, checkout = false }: GuestShellProps) {
   return (
-    <div className="pp-app">
+    <div className={`pp-app${checkout ? " pp-checkout" : ""}`}>
       <header className="pp-header">
         <Link className="pp-brand" href="/" aria-label="PickPoint Pickle Club home">
           <Image className="pp-brand-mark" src="/pickpoint-mark-v4.png" alt="" width={72} height={64} priority unoptimized />
