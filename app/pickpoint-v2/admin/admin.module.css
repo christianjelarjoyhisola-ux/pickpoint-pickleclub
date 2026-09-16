@@ -67,6 +67,7 @@
 .bookingFilters{display:flex;gap:8px;margin-bottom:14px;padding:5px;border:1px solid var(--line);border-radius:12px;background:white;overflow-x:auto;scrollbar-width:none}
 .bookingFilters::-webkit-scrollbar{display:none}.bookingFilters button{flex:0 0 auto;min-height:40px;border:0;border-radius:8px;padding:0 12px;background:transparent;color:var(--m);display:flex;align-items:center;gap:9px;font-weight:800;cursor:pointer}.bookingFilters button b{min-width:24px;padding:3px 6px;border-radius:99px;background:#eaf0f6;color:var(--i);font-size:11px}.bookingFilters .bookingFilterActive{background:var(--n);color:white;box-shadow:0 6px 14px #03142d20}.bookingFilters .bookingFilterActive b{background:var(--l);color:var(--n)}
 .bookingColumns{display:grid;grid-template-columns:145px minmax(200px,1fr) 120px 145px auto;gap:16px;padding:13px 3px;border-bottom:1px solid var(--line);color:#748399;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.todayQueue{display:grid;gap:16px}.todayQueue .paper>header{display:flex;align-items:center;justify-content:space-between}.todayQueue .paper>header h2{font-size:22px}.todayQueue .paper>header p{max-width:620px}.todayEmpty{margin:0;padding:24px 3px 4px;color:var(--m);font-size:14px}
 .row .inProgress{color:#075985;background:#e0f2fe}
 .bookingDetails{width:min(560px,100%)}
 .bookingDetailBody{padding:24px 28px}
