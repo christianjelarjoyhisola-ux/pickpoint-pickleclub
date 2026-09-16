@@ -217,18 +217,22 @@
 .pp-complete-summary > header small { color: var(--pp-blue); font-size: .58rem; font-weight: 850; letter-spacing: .07em; text-transform: uppercase; }
 .pp-complete-summary > header strong { color: var(--pp-navy); font-size: .84rem; }
 .pp-complete-summary > header > span { flex: 0 0 auto; color: #657389; font-size: .69rem; font-weight: 750; }
-.pp-summary-meta { display: grid; grid-template-columns: 1fr 1fr; margin: 0; padding: 13px 16px; border-bottom: 1px solid var(--pp-line); }
+.pp-summary-meta { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); margin: 0; padding: 13px 16px; border-bottom: 1px solid var(--pp-line); }
 .pp-summary-meta div { display: grid; gap: 3px; }
 .pp-summary-meta div + div { padding-left: 16px; border-left: 1px solid var(--pp-line); }
 .pp-summary-meta dt { color: #788598; font-size: .6rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 .pp-summary-meta dd { margin: 0; color: var(--pp-navy); font-size: .72rem; font-weight: 800; }
-.pp-complete-summary .pp-summary-items { gap: 0; margin: 0; padding: 5px 16px; }
-.pp-complete-summary .pp-summary-items li { min-height: 58px; padding: 10px 0; border-bottom: 1px solid #e7ecf2; }
-.pp-complete-summary .pp-summary-items li:last-child { border-bottom: 0; }
-.pp-summary-items li > div { display: grid; gap: 3px; }
-.pp-summary-items li > div strong { color: var(--pp-navy); font-size: .77rem; }
-.pp-summary-items li > div span { font-size: .68rem; }
-.pp-summary-items li > strong { color: var(--pp-navy); font-size: .78rem; }
+.pp-complete-summary .pp-summary-courts { gap: 0; margin: 0; padding: 0 16px; }
+.pp-summary-courts > .pp-summary-court { display: block; padding: 13px 0; border-bottom: 1px solid #dce4ed; }
+.pp-summary-courts > .pp-summary-court:last-child { border-bottom: 0; }
+.pp-summary-court > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.pp-summary-court > header strong { color: var(--pp-navy); font-size: .8rem; }
+.pp-summary-court > header span { color: #607086; font-size: .65rem; font-weight: 750; }
+.pp-summary-court > ul { gap: 0; margin: 0; padding: 0; }
+.pp-summary-court > ul > li { min-height: 38px; display: grid; grid-template-columns: minmax(70px,.75fr) minmax(110px,1.35fr) auto; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px dashed #e3e8ef; }
+.pp-summary-court > ul > li > span { color: var(--pp-navy); font-size: .7rem; font-weight: 800; }
+.pp-summary-court > ul > li > small { color: #68778b; font-size: .64rem; }
+.pp-summary-court > ul > li > strong { color: var(--pp-navy); font-size: .73rem; text-align: right; }
 .pp-complete-summary .pp-price-breakdown { margin: 0; padding: 14px 16px 16px; background: #f8fafc; }
 .pp-price-breakdown dt { display: grid; gap: 2px; }
 .pp-price-breakdown dt small { color: #8793a4; font-size: .58rem; font-weight: 650; }
@@ -242,6 +246,8 @@
 .pp-card-action > span { display: grid; color: #748196; font-size: .8rem; }
 .pp-card-action small { color: #7b879a; font-size: .68rem; font-weight: 800; text-transform: uppercase; }
 .pp-card-action strong { color: var(--pp-navy); font-size: 1rem; }
+.pp-card-action-only { justify-content: flex-end; }
+.pp-card-action-only .pp-button { min-width: 240px; }
 .pp-back, .pp-text-button { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 26px; padding: 0; background: none; cursor: pointer; color: var(--pp-blue); font-size: .8rem; font-weight: 800; }
 .pp-back svg, .pp-text-button svg { width: 15px; }
 .pp-check { grid-template-columns: 20px 1fr !important; align-items: start; padding: 16px; border-radius: 7px; background: #f1f5f9; }
@@ -478,9 +484,11 @@
   .pp-selection-review { padding: 14px; border-radius: 11px; }
   .pp-complete-summary { padding: 0; }
   .pp-complete-summary > header { padding: 13px 14px; }
-  .pp-summary-meta { grid-template-columns: 1fr; gap: 11px; padding: 12px 14px; }
-  .pp-summary-meta div + div { padding: 11px 0 0; border-top: 1px solid var(--pp-line); border-left: 0; }
-  .pp-complete-summary .pp-summary-items { padding-inline: 14px; }
+  .pp-summary-meta { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 10px; padding: 12px 14px; }
+  .pp-summary-meta div + div { padding: 0 0 0 10px; border-top: 0; border-left: 1px solid var(--pp-line); }
+  .pp-summary-meta dd { overflow: hidden; font-size: .66rem; text-overflow: ellipsis; white-space: nowrap; }
+  .pp-complete-summary .pp-summary-courts { padding-inline: 14px; }
+  .pp-summary-court > ul > li { grid-template-columns: minmax(62px,.75fr) minmax(102px,1.35fr) auto; gap: 7px; }
   .pp-complete-summary .pp-price-breakdown { padding-inline: 14px; }
   .pp-card-action { margin: 24px -18px -22px; padding: 17px 18px 18px; flex-direction: column; align-items: stretch; gap: 14px; background: #fbfcfe; border-radius: 0 0 18px 18px; }
   .pp-card-action > span { min-height: 36px; }

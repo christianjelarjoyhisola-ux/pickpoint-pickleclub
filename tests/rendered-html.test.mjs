@@ -197,10 +197,16 @@ test("protects selected courts, restores progress, and shows authoritative itemi
   assert.match(booking, /bookingStatus\(draft\.confirmation\.reference/);
   assert.match(booking, /Welcome back\. Your booking is still in progress/);
   assert.match(booking, /CompleteBookingSummary/);
+  assert.match(booking, /durationRangeLabel/);
+  assert.match(booking, /courtGroups/);
+  assert.match(booking, /hourlyRate/);
+  assert.match(booking, /pp-card-action pp-card-action-only/);
   assert.match(booking, /Court subtotal/);
   assert.match(booking, /Total due/);
   assert.match(css, /\.pp-price-breakdown/);
   assert.match(css, /\.pp-complete-summary/);
+  assert.match(css, /\.pp-summary-courts/);
+  assert.match(css, /\.pp-card-action-only/);
   assert.match(css, /\.pp-resume-notice/);
   assert.match(css, /\.pp-hold-notice/);
   assert.match(css, /\.pp-hold-timer/);

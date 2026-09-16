@@ -50,6 +50,11 @@ const timeRangeLabel = (time: string) => {
   const endTime = `${pad(Math.floor(endMinutes / 60))}:00`;
   return `${compactHourLabel(time)}-${compactHourLabel(endTime)}`;
 };
+const durationRangeLabel = (time: string, durationHours: number) => {
+  const endMinutes = (minutes(time) + durationHours * 60) % (24 * 60);
+  const endTime = `${pad(Math.floor(endMinutes / 60))}:${pad(endMinutes % 60)}`;
+  return `${compactHourLabel(time)}-${compactHourLabel(endTime)}`;
+};
 const money = (amount: number, currency = "PHP") => new Intl.NumberFormat("en-PH", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
 const bookingDateLabel = (date: string) => new Intl.DateTimeFormat("en-PH", { weekday: "short", day: "numeric", month: "short", year: "numeric" }).format(new Date(`${date}T12:00:00`));
 
@@ -64,12 +69,22 @@ function CompleteBookingSummary({ confirmation, bookingDate }: { confirmation: B
     endsAt: confirmation.endsAt,
     subtotalAmount: confirmation.subtotalAmount,
   }]).sort((left, right) => left.startsAt.localeCompare(right.startsAt) || left.courtName.localeCompare(right.courtName, undefined, { numeric: true }));
+  const courtGroups = [...sessions.reduce((groups, session) => {
+    const key = session.courtId || session.courtName;
+    const current = groups.get(key) || { courtId: key, courtName: session.courtName, sessions: [], courtHours: 0, subtotalAmount: 0 };
+    current.sessions.push(session);
+    current.courtHours += session.durationHours;
+    current.subtotalAmount += session.subtotalAmount;
+    groups.set(key, current);
+    return groups;
+  }, new Map<string, { courtId: string; courtName: string; sessions: typeof sessions; courtHours: number; subtotalAmount: number }>()).values()]
+    .sort((left, right) => left.courtName.localeCompare(right.courtName, undefined, { numeric: true }));
   const courtHours = sessions.reduce((total, session) => total + session.durationHours, 0);
   const feePerHour = courtHours ? confirmation.serviceFeeAmount / courtHours : 0;
   return <section className="pp-selection-review pp-complete-summary" aria-labelledby="complete-summary-title">
     <header><div><small>Booking summary</small><strong id="complete-summary-title">Review your reservation</strong></div><span>{courtHours} court-hour{courtHours === 1 ? "" : "s"}</span></header>
     <dl className="pp-summary-meta"><div><dt>Playing date</dt><dd>{bookingDateLabel(bookingDate)}</dd></div><div><dt>Booking reference</dt><dd>{confirmation.reference}</dd></div></dl>
-    <ul className="pp-summary-items">{sessions.map((session, index) => <li key={`${session.courtId}-${session.startTime}-${index}`}><div><strong>{session.courtName}</strong><span>{timeRangeLabel(session.startTime)} · {session.durationHours} hour{session.durationHours === 1 ? "" : "s"}</span></div><strong>{money(session.subtotalAmount, confirmation.currency)}</strong></li>)}</ul>
+    <ul className="pp-summary-courts">{courtGroups.map((court) => <li key={court.courtId} className="pp-summary-court"><header><strong>{court.courtName}</strong><span>{court.courtHours} hour{court.courtHours === 1 ? "" : "s"} · {money(court.subtotalAmount, confirmation.currency)}</span></header><ul>{court.sessions.map((session, index) => { const hourlyRate = session.durationHours ? session.subtotalAmount / session.durationHours : session.subtotalAmount; return <li key={`${session.startTime}-${index}`}><span>{durationRangeLabel(session.startTime, session.durationHours)}</span><small>{money(hourlyRate, confirmation.currency)} × {session.durationHours} hour{session.durationHours === 1 ? "" : "s"}</small><strong>{money(session.subtotalAmount, confirmation.currency)}</strong></li>; })}</ul></li>)}</ul>
     <dl className="pp-price-breakdown"><div><dt>Court subtotal</dt><dd>{money(confirmation.subtotalAmount, confirmation.currency)}</dd></div><div><dt>Booking fee{feePerHour > 0 && <small>{money(feePerHour, confirmation.currency)} × {courtHours} court-hour{courtHours === 1 ? "" : "s"}</small>}</dt><dd>{money(confirmation.serviceFeeAmount, confirmation.currency)}</dd></div><div><dt>Total due</dt><dd>{money(confirmation.totalAmount, confirmation.currency)}</dd></div></dl>
   </section>;
 }
@@ -629,7 +644,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
             <label>Email address<input type="email" value={customer.email} onChange={(event) => setCustomer({ ...customer, email: event.target.value })} autoComplete="email" required /></label>
             <CompleteBookingSummary confirmation={confirmation} bookingDate={date} />
             {message && <p className="pp-form-message" role="alert">{message}</p>}
-            <div className="pp-card-action"><span><small>{selectedSlots.length} court-hour{selectedSlots.length === 1 ? "" : "s"} selected</small><strong>{bookingDateLabel(date)} · {money(confirmation.totalAmount, confirmation.currency)}</strong></span><button className="pp-button pp-button-blue" disabled={busy}>{busy ? "Saving details…" : "Continue to payment"} <ArrowRight /></button></div>
+            <div className="pp-card-action pp-card-action-only"><button className="pp-button pp-button-blue" disabled={busy}>{busy ? "Saving details…" : "Continue to payment"} <ArrowRight /></button></div>
           </form>
         )}
 
