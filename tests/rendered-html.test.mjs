@@ -221,6 +221,12 @@ test("protects selected courts, restores progress, and shows authoritative itemi
   assert.match(css, /\.pp-complete-summary:not\(\[open\]\)[^}]*animation:\s*pp-total-glow/);
   assert.match(css, /@keyframes pp-total-glow/);
   assert.doesNotMatch(css, /\.pp-summary-toggle-total[^}]*animation:\s*pp-total-glow/);
+  assert.match(css, /--pp-summary-inline:\s*16px/);
+  assert.match(css, /--pp-summary-inline:\s*14px/);
+  for (const selector of ["pp-complete-summary > summary", "pp-summary-expanded-head", "pp-summary-meta", "pp-summary-courts", "pp-price-breakdown"]) {
+    assert.match(css, new RegExp(`${selector.replaceAll("-", "\\-")}[^}]*var\\(--pp\\-summary\\-inline\\)`));
+  }
+  assert.doesNotMatch(css, /\.pp-book-card \.pp-summary-expanded-head[^}]*padding-inline:\s*0/);
   assert.match(css, /\.pp-free-fee/);
   assert.match(css, /\.pp-app\.pp-checkout \.pp-nav \{ display: none; \}/);
   assert.match(css, /\.pp-card-action-only/);
