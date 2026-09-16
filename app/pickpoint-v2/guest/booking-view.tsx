@@ -24,7 +24,6 @@ type BookingResumeDraft = {
   selectedSlotKeys: string[];
   confirmation: BookingConfirmation | null;
   customer: { name: string; email: string; phone: string };
-  accepted: boolean;
   paymentPolicyAccepted: boolean;
   paymentMethodCode: string;
   paymentReference: string;
@@ -216,7 +215,6 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   const [message, setMessage] = useState("");
   const [confirmation, setConfirmation] = useState<BookingConfirmation | null>(null);
   const [customer, setCustomer] = useState({ name: "", email: "", phone: "" });
-  const [accepted, setAccepted] = useState(false);
   const [paymentPolicyAccepted, setPaymentPolicyAccepted] = useState(false);
   const [receipt, setReceipt] = useState<File | null>(null);
   const [paymentMethodCode, setPaymentMethodCode] = useState("");
@@ -328,7 +326,6 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
       setCalendarMonth(draft.date.slice(0, 7));
       setSelectedSlotKeys(draft.selectedSlotKeys);
       setCustomer(draft.customer || { name: "", email: "", phone: "" });
-      setAccepted(draft.accepted === true);
       setPaymentPolicyAccepted(draft.paymentPolicyAccepted === true);
       setPaymentMethodCode(draft.paymentMethodCode || "");
       setPaymentReference(draft.paymentReference || "");
@@ -356,14 +353,13 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
       selectedSlotKeys,
       confirmation,
       customer,
-      accepted,
       paymentPolicyAccepted,
       paymentMethodCode,
       paymentReference,
       holdEndsAt,
     };
     try { window.localStorage.setItem(ACTIVE_BOOKING_KEY, JSON.stringify(draft)); } catch { /* Private browsing may deny storage. */ }
-  }, [accepted, confirmation, customer, date, holdEndsAt, paymentMethodCode, paymentPolicyAccepted, paymentReference, selectedSlotKeys, step]);
+  }, [confirmation, customer, date, holdEndsAt, paymentMethodCode, paymentPolicyAccepted, paymentReference, selectedSlotKeys, step]);
 
   useEffect(() => {
     if (!confirmation || !holdEndsAt || (step !== "details" && step !== "method" && step !== "payment")) return;
@@ -474,10 +470,10 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     setMessage("");
   }
 
-  const resetSelection = () => { setStep("select"); setConfirmation(null); setHoldEndsAt(null); setRemainingHoldSeconds(null); setSelectedSlotKeys([]); setAccepted(false); setPaymentPolicyAccepted(false); setPaymentMethodCode(""); setPaymentReference(""); setReceipt(null); setReceiptOutcome(null); setMessage(""); bookingAttemptId.current = null; };
+  const resetSelection = () => { setStep("select"); setConfirmation(null); setHoldEndsAt(null); setRemainingHoldSeconds(null); setSelectedSlotKeys([]); setPaymentPolicyAccepted(false); setPaymentMethodCode(""); setPaymentReference(""); setReceipt(null); setReceiptOutcome(null); setMessage(""); bookingAttemptId.current = null; };
 
   async function holdSelection() {
-    if (!selectedSlots.length || !live || !accepted || !policy?.version) return;
+    if (!selectedSlots.length || !live || !policy?.version) return;
     setBusy(true); setMessage("");
     try {
       bookingAttemptId.current ||= crypto.randomUUID();
@@ -676,9 +672,8 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
               {!availability && <div className="pp-schedule-loading">Checking availability…</div>}
             </div>
             <p className="pp-grid-note">Past times are hidden. All selected slots will be reserved together under one booking reference.</p>
-            {policy ? <><details className="pp-policy pp-time-policy"><summary>{policy.title}</summary><div><span>{policy.intro}</span><p>{policy.content}</p></div></details><label className="pp-check pp-hold-consent"><input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} required /><span><strong>I agree to the booking, cancellation, refund, and rescheduling policy.</strong><small>Continue protects your selected times for 10 minutes while you finish booking.</small></span></label></> : <p className="pp-form-message" role="alert">The current booking policy could not be loaded. Please refresh before reserving.</p>}
             {message && <p className="pp-form-message" role="alert">{message}</p>}
-            <div className="pp-card-action"><span>{selectedSlots.length ? <><small>{selectedSlots.length} court-hour{selectedSlots.length === 1 ? "" : "s"} · booking fee FREE</small><strong>{money(estimatedGrandTotal, primaryCourt?.currency)}</strong></> : "Choose at least one court time"}</span><button className="pp-button pp-button-blue" disabled={busy || !selectedSlots.length || !accepted || !policy?.version} onClick={holdSelection}>{busy ? "Securing your times…" : "Continue"} <ArrowRight /></button></div>
+            <div className="pp-card-action"><span>{selectedSlots.length ? <><small>{selectedSlots.length} court-hour{selectedSlots.length === 1 ? "" : "s"} · booking fee FREE</small><strong>{money(estimatedGrandTotal, primaryCourt?.currency)}</strong></> : "Choose at least one court time"}</span><button className="pp-button pp-button-blue" disabled={busy || !selectedSlots.length || !policy?.version} onClick={holdSelection}>{busy ? "Securing your times…" : "Continue"} <ArrowRight /></button></div>
           </section>
         )}
 

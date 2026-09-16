@@ -266,8 +266,6 @@
 .pp-check { grid-template-columns: 20px 1fr !important; align-items: start; padding: 16px; border-radius: 7px; background: #f1f5f9; }
 .pp-check input { width: 18px; min-height: 18px; margin-top: 2px; accent-color: var(--pp-blue); }
 .pp-check span { display: grid; }
-.pp-time-policy { margin: 18px 0 10px; }
-.pp-hold-consent { margin: 0 !important; }
 .pp-hold-notice { display: grid; grid-template-columns: 12px minmax(0,1fr); gap: 11px; margin: -4px 0 22px; padding: 14px 16px; border: 1px solid #f0d28b; border-radius: 10px; background: #fff8e7; }
 .pp-hold-notice > div { display: grid; gap: 3px; }
 .pp-hold-notice strong { color: #754706; font-size: .77rem; }

@@ -138,7 +138,7 @@ test("supports a tenant-safe atomic multi-court booking grid", async () => {
   assert.match(booking, /timeRangeLabel/);
   assert.match(booking, /sessions: selectedSlots\.map/);
   assert.match(booking, /atomicMultiSessionBookingV1/);
-  assert.match(booking, /refund, and rescheduling policy/);
+  assert.match(booking, /Court Rules &amp; Policies/);
   assert.match(client, /get_pickpoint_public_booking_policy/);
   assert.match(css, /\.pp-schedule-scroll/);
   assert.match(migration, /<> 'pickpoint-pickleclub'/);
@@ -236,6 +236,7 @@ test("protects selected courts, restores progress, and shows authoritative itemi
   assert.match(booking, /Continue to payment method/);
   assert.match(booking, /Court Rules &amp; Policies/);
   assert.match(booking, /I have reviewed and agree to the court rules and booking policies/);
+  assert.doesNotMatch(booking, /pp-time-policy|pp-hold-consent/);
   assert.doesNotMatch(booking, /Automatic receipt verification/);
   assert.match(booking, /13-digit GCash transaction reference/);
   assert.match(booking, /Submit payment receipt/);
