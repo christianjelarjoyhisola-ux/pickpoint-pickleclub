@@ -8,6 +8,8 @@
   min-height: 100vh;
   background: var(--pp-paper);
   color: var(--pp-navy);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 .pp-app a { text-decoration: none; }
@@ -421,7 +423,7 @@
     border-radius: 13px;
     background: transparent;
     color: #aebbd0;
-    font-size: .64rem;
+    font-size: .68rem;
     line-height: 1;
     white-space: nowrap;
   }
@@ -468,8 +470,8 @@
   .pp-page-head > p:last-child { margin: 14px 0 0; font-size: .9rem; line-height: 1.5; }
   .pp-book-head { padding: 22px 0 14px; text-align: left; }
   .pp-book-head .pp-kicker { margin-bottom: 6px; font-size: .6rem; }
-  .pp-book-head h1 { max-width: 100%; font-size: clamp(1.75rem, 8vw, 2.15rem); line-height: 1.03; letter-spacing: -.045em; }
-  .pp-book-head > p:last-child { margin: 7px 0 0; color: #66748a; font-size: .8rem; line-height: 1.4; }
+  .pp-book-head h1 { max-width: 100%; font-size: clamp(1.65rem, 7vw, 1.9rem); line-height: 1.05; letter-spacing: -.04em; }
+  .pp-book-head > p:last-child { margin: 7px 0 0; color: #66748a; font-size: .84rem; line-height: 1.4; }
   .pp-checkout .pp-book-head { padding-top: 16px; }
   .pp-court-list { min-height: 300px; padding-bottom: 50px; }
   .pp-court-row {
@@ -499,9 +501,9 @@
   .pp-book-layout { min-height: 430px; padding-bottom: 52px; }
   .pp-steps { position: relative; gap: 0; margin: 0 0 12px; }
   .pp-steps::before { content: ""; position: absolute; top: 18px; right: 10%; left: 10%; height: 1px; background: var(--pp-line); }
-  .pp-steps li { position: relative; z-index: 1; min-width: 0; justify-content: flex-start; flex-direction: column; gap: 5px; padding: 7px 2px 11px; border: 0; background: transparent; font-size: .62rem; }
+  .pp-steps li { position: relative; z-index: 1; min-width: 0; justify-content: flex-start; flex-direction: column; gap: 5px; padding: 7px 2px 11px; border: 0; background: transparent; font-size: .68rem; }
   .pp-steps li b { font-weight: 750; }
-  .pp-steps i { width: 23px; height: 23px; border: 3px solid #f7f8fb; font-size: .65rem; }
+  .pp-steps i { width: 23px; height: 23px; border: 3px solid #f7f8fb; font-size: .68rem; }
   .pp-steps i svg { width: 12px; height: 12px; }
   .pp-steps li[aria-current="step"] b { color: var(--pp-blue); }
   .pp-book-card, .pp-setup, .pp-lookup { padding: 22px 18px; border-radius: 18px; box-shadow: 0 10px 32px rgba(4,23,51,.055); }
@@ -523,15 +525,15 @@
   .pp-schedule-scroll { max-height: 490px; border-radius: 11px; }
   .pp-schedule { min-width: 0; }
   .pp-schedule thead th:first-child, .pp-schedule tbody th { width: 76px; }
-  .pp-schedule thead th { height: 58px; padding: 7px 3px; font-size: .66rem; }
-  .pp-schedule thead strong { font-size: .72rem; }
-  .pp-schedule thead small { font-size: .56rem; }
-  .pp-schedule tbody th { padding-inline: 3px; font-size: .66rem; }
+  .pp-schedule thead th { height: 58px; padding: 7px 3px; font-size: .68rem; }
+  .pp-schedule thead strong { font-size: .74rem; }
+  .pp-schedule thead small { font-size: .61rem; }
+  .pp-schedule tbody th { padding-inline: 3px; font-size: .68rem; }
   .pp-schedule td { height: 58px; padding: 3px; }
-  .pp-schedule td button { min-height: 50px; padding: 3px 1px; border-radius: 8px; font-size: .65rem; }
-  .pp-schedule td button small { font-size: .6rem; }
+  .pp-schedule td button { min-height: 50px; padding: 3px 1px; border-radius: 8px; font-size: .68rem; }
+  .pp-schedule td button small { font-size: .63rem; }
   .pp-slot-legend { gap: 7px 12px; margin-bottom: 11px; }
-  .pp-slot-legend li { font-size: .64rem; }
+  .pp-slot-legend li { font-size: .68rem; }
   .pp-grid-note { font-size: .71rem; }
   .pp-selection-review { padding: 14px; border-radius: 11px; }
   .pp-complete-summary { padding: 0; }
@@ -555,7 +557,7 @@
   .pp-policy { border-radius: 11px; }
   .pp-policy summary { min-height: 44px; display: flex; align-items: center; }
   .pp-payment-title { gap: 6px 12px; padding-bottom: 18px; }
-  .pp-payment-title strong { font-size: 1.9rem; }
+  .pp-payment-title strong { font-size: 1.65rem; }
   .pp-payment-title p { font-size: .87rem; }
   .pp-payment-methods { grid-template-columns: 1fr; }
   .pp-payment-destination > dl > div, .pp-confirmed > dl > div { gap: 12px; }
@@ -563,7 +565,7 @@
   .pp-copy-value { flex-wrap: wrap; }
   .pp-upload { min-height: 72px; padding: 14px; border-radius: 11px; }
   .pp-full { min-height: 54px; border-radius: 11px; }
-  .pp-confirmed h2 { font-size: 2rem; overflow-wrap: anywhere; }
+  .pp-confirmed h2 { font-size: 1.5rem; overflow-wrap: anywhere; }
   .pp-confirmed .pp-actions { margin-top: 22px; }
   .pp-lookup { width: min(calc(100% - (var(--pp-mobile-gutter) * 2)), 520px); min-height: 280px; margin-bottom: 52px; }
   .pp-lookup form > div { grid-template-columns: 1fr; }
