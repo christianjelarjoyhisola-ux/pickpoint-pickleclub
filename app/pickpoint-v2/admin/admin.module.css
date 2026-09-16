@@ -86,3 +86,93 @@
 @media(max-width:620px){.bookingFilters{margin-left:-2px;margin-right:-2px}.bookingFilters button{padding:0 10px}.courtActions>*{flex:1;justify-content:center}.courtEditor{max-height:96vh}.bookingDetailBody{padding:20px}.bookingDetailBody dl{grid-template-columns:1fr}.bookingDetailStatus,.detailSectionTitle{align-items:flex-start;flex-direction:column}}
 @media(max-width:950px){.bookingColumns{grid-template-columns:110px 1fr 120px}.bookingColumns span:nth-child(n+4){display:none}}
 @media(max-width:620px){.bookingColumns{display:none}}
+
+/* Mobile admin: preserve readable content and full-size actions instead of shrinking the desk UI. */
+.app{overflow-x:clip}
+.row>*{min-width:0}
+.rowPlayer p,.rowReference b,.block span,.court>div{min-width:0;overflow-wrap:anywhere}
+.rowActions{flex-wrap:wrap}
+.rowActions .reviewAction{border-color:var(--b);background:var(--b);color:white}
+.rowActions .cancelAction{color:#98362d}
+.fields .wide{grid-column:1/-1}
+
+@media(max-width:760px){
+  .headerActions>a,.headerActions>button{width:44px!important;height:44px!important}
+  .header nav{max-height:calc(100dvh - 78px);padding-bottom:max(10px,env(safe-area-inset-bottom))}
+  .work{padding:26px 14px 70px}
+  .title{gap:18px;margin-bottom:22px}
+  .title h1{font-size:31px;line-height:1.04}
+  .title p{font-size:14px;line-height:1.45}
+  .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .actions button,.title>.primary{width:100%;min-height:48px;padding-inline:12px}
+  .paper,.lane{padding:18px}
+  .bookingColumns{display:none}
+  .todayQueue .paper>header{align-items:flex-start;flex-direction:column;gap:5px}
+  .todayQueue .paper>header p{max-width:none;font-size:14px;line-height:1.45}
+
+  .row,.lane .row{grid-template-columns:minmax(0,1fr) minmax(128px,auto);grid-template-areas:"time status" "player player" "reference reference" "actions actions";gap:12px 14px;padding:18px 0;align-items:start}
+  .app .row .rowTime,.app .lane .row .rowTime{grid-area:time;display:flex;flex-direction:column;gap:4px}
+  .app .row .rowPlayer,.app .lane .row .rowPlayer{grid-area:player;display:flex;flex-direction:column;gap:5px}
+  .app .row .rowReference,.app .lane .row .rowReference{grid-area:reference;display:flex;flex-direction:row;align-items:baseline;justify-content:space-between;gap:14px;padding-top:11px;border-top:1px solid #e7edf3;text-align:left}
+  .app .row .rowStatus,.app .lane .row .rowStatus{grid-area:status;align-self:start;justify-self:end}
+  .app .row .rowActions,.app .lane .row .rowActions{grid-area:actions;width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .rowTime b,.rowPlayer h3{font-size:16px;line-height:1.35}
+  .row p,.row span{font-size:13px;line-height:1.45}
+  .rowReference b{font-size:14px}
+  .rowActions button{width:100%;min-height:46px;padding:9px 10px;font-size:14px;line-height:1.25;white-space:normal}
+  .rowActions>button:last-child:nth-child(odd){grid-column:1/-1}
+  .rowStatus{max-width:150px;text-align:center;line-height:1.25}
+
+  .bookingFilters button{min-height:44px;font-size:13px}
+  .date{width:100%;display:grid;grid-template-columns:44px minmax(0,1fr) 44px}
+  .date button{width:44px;height:44px}
+  .date input{width:100%;min-width:0;font-size:16px;text-align:center}
+  .block span{font-size:13px;line-height:1.4}
+  .block>button{min-width:44px;min-height:44px}
+  .courtActions>button,.courtPhoto{min-height:44px;font-size:14px}
+  .paymentMethods small{overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:anywhere}
+
+  .scrim{padding:10px}
+  .form,.receipt,.courtEditor,.bookingDetails{max-height:calc(100dvh - 20px)}
+  .form{display:flex;flex-direction:column;overflow:hidden}
+  .form header,.form footer{flex:0 0 auto;padding:18px;gap:10px}
+  .form header{position:sticky;top:0;z-index:2;background:white}
+  .form header>div{min-width:0}
+  .form h2,.receipt h2{font-size:23px;overflow-wrap:anywhere}
+  .form header button,.receipt header>button{flex:0 0 44px;width:44px;height:44px}
+  .fields{min-height:0;overflow-y:auto;grid-template-columns:1fr;padding:18px;gap:14px}
+  .fields .wide{grid-column:1}
+  .fields input,.fields select,.login input,.miniForm input,.miniForm select,.miniForm textarea,.receipt textarea,.search input{width:100%;min-width:0;font-size:16px}
+  .miniForm{grid-template-columns:1fr}
+  .miniForm .wide,.formActions{grid-column:1}
+  .form footer{position:sticky;bottom:0;z-index:2;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding-bottom:max(18px,env(safe-area-inset-bottom));background:white}
+  .form footer button,.formActions button,.receipt footer button{width:100%;min-height:48px;padding:8px 12px;white-space:normal}
+  .formActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+
+  .receipt{overflow:auto}
+  .receipt>header{padding:18px}
+  .receiptBody{height:auto;max-height:none}
+  .receiptImage{height:clamp(220px,40dvh,360px);min-height:220px}
+  .receiptImage img{max-height:40dvh}
+  .receiptDetailsScroll{padding:18px}
+  .receiptDetails footer{padding:14px 18px max(14px,env(safe-area-inset-bottom));gap:8px}
+  .reviewState span,.receiptDetails dt,.detailSectionTitle>span{font-size:12px}
+  .receiptDetails dd,.verifyNote small{font-size:13px}
+
+  .bookingDetailBody{padding:18px}
+  .bookingDetailBody dl{grid-template-columns:1fr}
+  .bookingDetailStatus,.detailSectionTitle{align-items:flex-start;flex-direction:column}
+  .bookingDetailBody dt{font-size:12px}
+  .bookingDetailBody dd{font-size:15px}
+  .toast button,.notice button,.alert button{flex:0 0 44px;width:44px;height:44px;display:grid;place-items:center}
+}
+
+@media(max-width:410px){
+  .header>a img{width:104px}
+  .headerActions>a,.headerActions>button{width:44px!important;height:44px!important}
+  .paper,.lane{padding:15px}
+  .work{padding-inline:10px}
+  .row,.lane .row{grid-template-columns:minmax(0,1fr) auto}
+  .actions,.formActions{grid-template-columns:1fr}
+  .courtActions>*{flex-basis:100%}
+}

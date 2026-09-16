@@ -324,6 +324,28 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.doesNotMatch(admin, /analytics|revenue chart|customer crm/i);
 });
 
+test("keeps every admin area usable on phones and small tablets", async () => {
+  const [admin, css] = await Promise.all([
+    source("app/pickpoint-v2/admin/PickPointDesk.tsx"),
+    source("app/pickpoint-v2/admin/admin.module.css"),
+  ]);
+  for (const className of ["rowTime", "rowPlayer", "rowReference", "rowStatus", "rowActions"]) {
+    assert.match(admin, new RegExp(`s\\.${className}`));
+  }
+  assert.match(admin, /aria-label="Previous schedule date"/);
+  assert.match(admin, /aria-label="Next schedule date"/);
+  assert.match(admin, /aria-label="Close form"/);
+  assert.match(css, /@media\(max-width:760px\)/);
+  assert.match(css, /grid-template-areas:"time status" "player player" "reference reference" "actions actions"/);
+  assert.match(css, /\.app \.row \.rowActions[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(css, /\.rowActions button\{[^}]*min-height:46px[^}]*font-size:14px/);
+  assert.match(css, /\.todayQueue \.paper>header\{[^}]*flex-direction:column/);
+  assert.match(css, /\.headerActions>a,\.headerActions>button\{width:44px!important;height:44px!important\}/);
+  assert.match(css, /\.fields input,\.fields select,[^{]+\{[^}]*font-size:16px/);
+  assert.match(css, /max-height:calc\(100dvh - 20px\)/);
+  assert.match(css, /\.rowPlayer p,\.rowReference b,[^{]+\{[^}]*overflow-wrap:anywhere/);
+});
+
 test("pins every browser request to the PickPoint tenant and shared project", async () => {
   const [registry, config, client, adapter] = await Promise.all([
     source("app/tenants/registry.ts"),
