@@ -210,6 +210,10 @@ test("protects selected courts, restores progress, and shows authoritative itemi
   assert.match(css, /\.pp-resume-notice/);
   assert.match(css, /\.pp-hold-notice/);
   assert.match(css, /\.pp-hold-timer/);
+  assert.match(css, /\.pp-hold-timer \{ position: relative;/);
+  assert.match(css, /\.pp-payment > dl > div/);
+  assert.match(css, /\.pp-summary-meta dd \{ min-width: 0;[^}]*overflow-wrap: anywhere;/);
+  assert.doesNotMatch(css, /\.pp-summary-meta dd \{[^}]*text-overflow: ellipsis/);
   assert.match(css, /@keyframes pp-hold-intro/);
   assert.match(css, /@keyframes pp-calendar-in/);
 });
