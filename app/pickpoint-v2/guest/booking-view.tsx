@@ -58,7 +58,8 @@ const durationRangeLabel = (time: string, durationHours: number) => {
 const money = (amount: number, currency = "PHP") => new Intl.NumberFormat("en-PH", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
 const bookingDateLabel = (date: string) => new Intl.DateTimeFormat("en-PH", { weekday: "short", day: "numeric", month: "short", year: "numeric" }).format(new Date(`${date}T12:00:00`));
 
-function CompleteBookingSummary({ confirmation, bookingDate }: { confirmation: BookingConfirmation; bookingDate: string }) {
+function CompleteBookingSummary({ confirmation, bookingDate, defaultExpanded = true }: { confirmation: BookingConfirmation; bookingDate: string; defaultExpanded?: boolean }) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const sessions = (confirmation.sessions?.length ? [...confirmation.sessions] : [{
     courtId: "primary",
     courtName: confirmation.courtName,
@@ -81,12 +82,16 @@ function CompleteBookingSummary({ confirmation, bookingDate }: { confirmation: B
     .sort((left, right) => left.courtName.localeCompare(right.courtName, undefined, { numeric: true }));
   const courtHours = sessions.reduce((total, session) => total + session.durationHours, 0);
   const feePerHour = courtHours ? confirmation.serviceFeeAmount / courtHours : 0;
-  return <section className="pp-selection-review pp-complete-summary" aria-labelledby="complete-summary-title">
-    <header><div><small>Booking summary</small><strong id="complete-summary-title">Review your reservation</strong></div><span>{courtHours} court-hour{courtHours === 1 ? "" : "s"}</span></header>
+  return <details className="pp-selection-review pp-complete-summary" open={expanded} onToggle={(event) => setExpanded(event.currentTarget.open)}>
+    <summary aria-label="Show or hide the complete booking summary">
+      <span><small>Booking summary</small><strong>Booking details</strong></span>
+      <span className="pp-summary-toggle-total"><small>Total due</small><strong>{money(confirmation.totalAmount, confirmation.currency)}</strong><ChevronDown aria-hidden="true" /></span>
+    </summary>
+    <div className="pp-summary-expanded-head"><strong>Reservation details</strong><span>{courtHours} court-hour{courtHours === 1 ? "" : "s"}</span></div>
     <dl className="pp-summary-meta"><div><dt>Playing date</dt><dd>{bookingDateLabel(bookingDate)}</dd></div><div><dt>Booking reference</dt><dd>{confirmation.reference}</dd></div></dl>
     <ul className="pp-summary-courts">{courtGroups.map((court) => <li key={court.courtId} className="pp-summary-court"><header><strong>{court.courtName}</strong><span>{court.courtHours} hour{court.courtHours === 1 ? "" : "s"} · {money(court.subtotalAmount, confirmation.currency)}</span></header><ul>{court.sessions.map((session, index) => { const hourlyRate = session.durationHours ? session.subtotalAmount / session.durationHours : session.subtotalAmount; return <li key={`${session.startTime}-${index}`}><span>{durationRangeLabel(session.startTime, session.durationHours)}</span><small>{money(hourlyRate, confirmation.currency)} × {session.durationHours} hour{session.durationHours === 1 ? "" : "s"}</small><strong>{money(session.subtotalAmount, confirmation.currency)}</strong></li>; })}</ul></li>)}</ul>
     <dl className="pp-price-breakdown"><div><dt>Court subtotal</dt><dd>{money(confirmation.subtotalAmount, confirmation.currency)}</dd></div><div><dt>Booking fee{feePerHour > 0 && <small>{money(feePerHour, confirmation.currency)} × {courtHours} court-hour{courtHours === 1 ? "" : "s"}</small>}</dt><dd>{money(confirmation.serviceFeeAmount, confirmation.currency)}</dd></div><div><dt>Total due</dt><dd>{money(confirmation.totalAmount, confirmation.currency)}</dd></div></dl>
-  </section>;
+  </details>;
 }
 
 function numberSetting(value: unknown, fallback: number) {
@@ -651,7 +656,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
         {step === "payment" && confirmation && paymentMethod && (
           <form className="pp-book-card pp-payment" onSubmit={sendReceipt}>
             <div className="pp-payment-title"><span>{paymentMethod.displayName}</span><strong>{money(confirmation.totalAmount, confirmation.currency)}</strong><p>Send the exact total to the venue account below, then upload the receipt.</p></div>
-            <CompleteBookingSummary confirmation={confirmation} bookingDate={date} />
+            <CompleteBookingSummary confirmation={confirmation} bookingDate={date} defaultExpanded={false} />
             <dl><div><dt>Account name</dt><dd>{paymentMethod.accountName || "Provided by the venue"}</dd></div><div><dt>Account number</dt><dd>{paymentMethod.accountNumber || paymentMethod.accountReference || "See venue instructions"}</dd></div></dl>
             {paymentMethod.instructions && <p className="pp-instructions">{paymentMethod.instructions}</p>}
             <label>Payment reference (optional)<input value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} /></label>
