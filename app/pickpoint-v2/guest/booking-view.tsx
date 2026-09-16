@@ -88,13 +88,13 @@ function CompleteBookingSummary({ confirmation, bookingDate, defaultExpanded = f
   const feePerHour = courtHours ? confirmation.serviceFeeAmount / courtHours : 0;
   return <details className="pp-selection-review pp-complete-summary" open={expanded} onToggle={(event) => setExpanded(event.currentTarget.open)}>
     <summary aria-label="Show or hide the complete booking summary">
-      <span className="pp-summary-toggle-total"><small>Total due</small><strong>{money(confirmation.totalAmount, confirmation.currency)}</strong></span>
+      <span className="pp-summary-toggle-total"><small>Total amount</small><strong>{money(confirmation.totalAmount, confirmation.currency)}</strong></span>
       <span className="pp-summary-toggle-action"><span>View details</span><ChevronDown aria-hidden="true" /></span>
     </summary>
     <div className="pp-summary-expanded-head"><span><small>Booking summary</small><strong>Reservation details</strong></span><span>{courtHours} court-hour{courtHours === 1 ? "" : "s"}</span></div>
     <dl className="pp-summary-meta"><div><dt>Playing date</dt><dd>{bookingDateLabel(bookingDate)}</dd></div><div><dt>Booking reference</dt><dd>{confirmation.reference}</dd></div></dl>
     <ul className="pp-summary-courts">{courtGroups.map((court) => { const customerCourtTotal = court.subtotalAmount + feePerHour * court.courtHours; return <li key={court.courtId} className="pp-summary-court"><header><strong>{court.courtName}</strong><span>{court.courtHours} hour{court.courtHours === 1 ? "" : "s"} · {money(customerCourtTotal, confirmation.currency)}</span></header><ul>{court.sessions.map((session, index) => { const venueHourlyRate = session.durationHours ? session.subtotalAmount / session.durationHours : session.subtotalAmount; const customerHourlyRate = venueHourlyRate + feePerHour; const customerSessionTotal = session.subtotalAmount + feePerHour * session.durationHours; return <li key={`${session.startTime}-${index}`}><span>{durationRangeLabel(session.startTime, session.durationHours)}</span><small>{money(customerHourlyRate, confirmation.currency)} × {session.durationHours} hour{session.durationHours === 1 ? "" : "s"}</small><strong>{money(customerSessionTotal, confirmation.currency)}</strong></li>; })}</ul></li>; })}</ul>
-    <dl className="pp-price-breakdown"><div><dt>Court time</dt><dd>{money(confirmation.totalAmount, confirmation.currency)}</dd></div><div><dt>Booking fee</dt><dd><span className="pp-free-fee">FREE</span></dd></div><div><dt>Total due</dt><dd>{money(confirmation.totalAmount, confirmation.currency)}</dd></div></dl>
+    <dl className="pp-price-breakdown"><div><dt>Court time</dt><dd>{money(confirmation.totalAmount, confirmation.currency)}</dd></div><div><dt>Booking fee</dt><dd><span className="pp-free-fee">FREE</span></dd></div><div><dt>Total amount</dt><dd>{money(confirmation.totalAmount, confirmation.currency)}</dd></div></dl>
   </details>;
 }
 
@@ -702,7 +702,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
         {step === "method" && confirmation && paymentMethods.length > 0 && (
           <form className="pp-book-card pp-payment pp-payment-method-step" onSubmit={continueToPayment}>
             <button type="button" className="pp-back" onClick={() => setStep("details")}><ArrowLeft /> Back to details</button>
-            <div className="pp-payment-title"><span>Total due</span><strong>{money(confirmation.totalAmount, confirmation.currency)}</strong></div>
+            <div className="pp-payment-title"><span>Total amount</span><strong>{money(confirmation.totalAmount, confirmation.currency)}</strong></div>
             <CompleteBookingSummary confirmation={confirmation} bookingDate={date} defaultExpanded={false} />
             <fieldset className="pp-payment-methods"><legend>Select a payment method</legend>{paymentMethods.map((method) => { const code = paymentCode(method); return <label key={code} className={paymentMethodCode === code ? "is-selected" : ""}><input type="radio" name="paymentMethod" value={code} checked={paymentMethodCode === code} onChange={() => { setPaymentMethodCode(code); setPaymentPolicyAccepted(false); setReceipt(null); setPaymentReference(""); setMessage(""); }} required /><span><strong>{method.displayName}</strong><small>{paymentMethodCode === code ? "Selected" : "Tap to select"}</small></span><Check aria-hidden="true" /></label>; })}</fieldset>
             {paymentMethod && <section className="pp-method-preview"><span>Selected destination</span><strong>{paymentMethod.displayName}</strong><small>{paymentMethod.accountName || "Venue payment account"} · {paymentMethod.accountNumber || paymentMethod.accountReference || "Details shown next"}</small></section>}
@@ -714,7 +714,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
         {step === "payment" && confirmation && paymentMethods.length > 0 && (
           <form className="pp-book-card pp-payment" onSubmit={sendReceipt}>
             <button type="button" className="pp-back" disabled={busy} onClick={() => setStep("method")}><ArrowLeft /> Change payment method</button>
-            <div className="pp-payment-title"><span>Total due</span><strong>{money(confirmation.totalAmount, confirmation.currency)}</strong></div>
+            <div className="pp-payment-title"><span>Total amount</span><strong>{money(confirmation.totalAmount, confirmation.currency)}</strong></div>
             <CompleteBookingSummary confirmation={confirmation} bookingDate={date} defaultExpanded={false} />
             {paymentMethod ? <div className="pp-payment-destination">
               <section className="pp-payment-panel pp-payment-account-card"><h3>{paymentMethod.displayName} details</h3><dl><div><dt>Account name</dt><dd>{paymentMethod.accountName || "Provided by the venue"}</dd></div><div><dt>Account number</dt><dd className="pp-copy-value"><span>{paymentMethod.accountNumber || paymentMethod.accountReference || "See venue instructions"}</span>{(paymentMethod.accountNumber || paymentMethod.accountReference) && <button type="button" onClick={copyPaymentAccount} aria-label={`Copy ${paymentMethod.displayName} account number`}>{accountCopied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}{accountCopied ? "Copied" : "Copy"}</button>}</dd></div></dl>{paymentMethod.instructions && <p className="pp-instructions">{paymentMethod.instructions}</p>}</section>
