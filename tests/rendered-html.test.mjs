@@ -257,8 +257,13 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(admin, /aria-busy=/);
   assert.match(admin, /Saving details…/);
   assert.match(admin, /Publishing…/);
-  assert.match(admin, /Approving…/);
+  assert.match(admin, /Confirming…/);
   assert.match(admin, /aria-live=\{error\?"assertive":"polite"\}/);
+  assert.match(admin, /Confirm payment/);
+  assert.match(admin, /Reject payment/);
+  assert.match(admin, /Detected reference/);
+  assert.match(admin, /Verification confidence/);
+  assert.doesNotMatch(admin, /<iframe src=\{review\.receipt\.signedUrl\}/);
   assert.match(admin, /Customer payment methods/);
   assert.match(admin, /Add payment method/);
   assert.match(admin, /paymentEvidence\.paymentMethod/);

@@ -35,3 +35,29 @@
 .toast>span>svg{flex:0 0 auto}
 @keyframes toastEnter{from{opacity:0;transform:translateY(-10px) scale(.98)}to{opacity:1;transform:none}}
 @media(max-width:620px){.toast{top:82px;right:16px}}
+
+/* Receipt review workspace: original evidence beside the decision data. */
+.receipt{width:min(1160px,100%);max-height:94vh;overflow:hidden;padding:0}
+.receipt>header{padding:22px 24px;border-bottom:1px solid var(--line)}
+.receiptBody{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(330px,.75fr);min-height:0;max-height:calc(94vh - 91px)}
+.receiptMedia{min-width:0;padding:20px;background:#eef2f6;display:flex;flex-direction:column;gap:12px}
+.receiptImage{min-height:360px;height:100%;overflow:hidden;border:1px solid #cfd9e5;border-radius:12px;background:#dfe6ee;display:grid;place-items:center}
+.receiptImage img{display:block;width:100%;height:100%;max-height:calc(94vh - 164px);object-fit:contain;object-position:center}
+.receiptMedia>a{display:inline-flex;align-items:center;gap:7px;margin:0;color:var(--b);font-weight:800;text-decoration:none}
+.receiptMedia>a svg{width:16px}
+.receiptDetails{min-width:0;overflow:auto;padding:22px 24px;background:white}
+.reviewState{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.reviewState span{padding:6px 9px;border-radius:99px;background:#fff0cc;color:#7a4b00;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.06em}
+.reviewState b{font-size:14px}
+.receiptDetails dl{margin:0 0 18px;display:grid;gap:0}
+.receiptDetails dl>div{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:10px 0;border-bottom:1px solid #e7edf3}
+.receiptDetails dt{color:var(--m);font-size:12px}
+.receiptDetails dd{margin:0;text-align:right;font-size:13px;font-weight:800;overflow-wrap:anywhere}
+.receiptDetails dd small{display:block;margin-top:3px;color:var(--m);font-weight:500}
+.reviewFlags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+.reviewFlags b{width:100%;font-size:12px}
+.reviewFlags span{padding:5px 8px;border-radius:6px;background:#fff0cc;color:#7a4b00;font-size:11px;font-weight:800;text-transform:capitalize}
+.receiptDetails label small{color:var(--m);font-weight:500}
+.receiptDetails footer{position:sticky;bottom:-22px;margin:18px -24px -22px;padding:16px 24px;background:white;border-top:1px solid var(--line)}
+.rejectAction{color:#9f302c!important;border-color:#e8b5b2!important;background:#fff7f6!important}
+@media(max-width:800px){.receipt{overflow:auto}.receiptBody{display:flex;flex-direction:column;max-height:none}.receiptMedia{padding:14px}.receiptImage{height:48vh;min-height:300px}.receiptImage img{max-height:48vh}.receiptDetails{overflow:visible;padding:20px}.receiptDetails footer{bottom:0;margin:18px -20px -20px;padding:14px 20px}.receiptDetails footer button{flex:1}}
