@@ -290,6 +290,9 @@ test("pins every browser request to the PickPoint tenant and shared project", as
   assert.match(config, /offPeakHourlyRate: 270/);
   assert.match(config, /peakHourlyRate: 320/);
   assert.match(client, /neqvrwtofiolcuxewdze\.supabase\.co/);
+  assert.match(client, /SHARED_SUPABASE_PUBLISHABLE_KEY/);
+  assert.match(client, /NEXT_PUBLIC_SUPABASE_URL\?\.trim\(\) \|\| SHARED_SUPABASE_ORIGIN/);
+  assert.match(client, /NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY\?\.trim\(\) \|\|/);
   assert.match(client, /REGISTERED_MANAGEMENT_ORIGIN/);
   assert.doesNotMatch(client, /reference: `DINK-/);
   assert.doesNotMatch(client, /tenantId\s*:/);

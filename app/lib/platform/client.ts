@@ -15,10 +15,14 @@ import type {
   TenantBootstrap,
 } from "./types";
 
-const publicSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? "";
-const publicSupabaseKey =
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() ?? "";
 const SHARED_SUPABASE_ORIGIN = "https://neqvrwtofiolcuxewdze.supabase.co";
+// These are browser-public project coordinates, never privileged credentials.
+// Keeping tenant-pinned fallbacks prevents a frontend-only rebuild from silently
+// dropping into preview mode when the build shell omits its public environment.
+const SHARED_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_UHMKYGsygjeMl79VRfPNVw_RyWiV5Yr";
+const publicSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || SHARED_SUPABASE_ORIGIN;
+const publicSupabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() ||
+  SHARED_SUPABASE_PUBLISHABLE_KEY;
 
 let browserClient: SupabaseClient | null = null;
 
