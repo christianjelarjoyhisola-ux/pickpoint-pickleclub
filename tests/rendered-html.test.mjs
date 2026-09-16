@@ -248,6 +248,9 @@ test("protects selected courts, restores progress, and shows authoritative itemi
   assert.match(css, /\.pp-payment-methods/);
   assert.match(css, /\.pp-method-preview/);
   assert.match(css, /\.pp-payment-policy/);
+  assert.match(css, /\.pp-book-card \.pp-selection-review[^}]*border-radius:\s*0/);
+  assert.match(css, /\.pp-book-card \.pp-payment-destination > dl[^}]*background:\s*transparent/);
+  assert.match(css, /\.pp-book-card \.pp-payment-policy \.pp-policy[^}]*border-radius:\s*0/);
   assert.match(css, /\.pp-payment-destination > dl > div/);
   assert.match(css, /\.pp-summary-meta dd \{ min-width: 0;[^}]*overflow-wrap: anywhere;/);
   assert.doesNotMatch(css, /\.pp-summary-meta dd \{[^}]*text-overflow: ellipsis/);

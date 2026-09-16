@@ -355,6 +355,16 @@
 .pp-confirmed h2 { margin: 0 0 8px; font-size: 2.5rem; letter-spacing: -.04em; }
 .pp-confirmed > p { color: #66748a; }
 .pp-confirmed .pp-actions { justify-content: center; }
+.pp-book-card .pp-selection-review { margin: 6px 0 24px; padding: 0; overflow: visible; border: 0; border-top: 1px solid var(--pp-line); border-bottom: 1px solid var(--pp-line); border-radius: 0; background: transparent; }
+.pp-book-card .pp-complete-summary > summary { padding-inline: 0; background: transparent; }
+.pp-book-card .pp-summary-expanded-head { padding-inline: 0; background: transparent; }
+.pp-book-card .pp-summary-meta { padding-inline: 0; }
+.pp-book-card .pp-complete-summary .pp-summary-courts { padding-inline: 0; }
+.pp-book-card .pp-complete-summary .pp-price-breakdown { padding-inline: 0; background: transparent; }
+.pp-book-card .pp-method-preview { padding: 14px 0; border: 0; border-top: 1px solid var(--pp-line); border-bottom: 1px solid var(--pp-line); border-radius: 0; background: transparent; }
+.pp-book-card .pp-payment-destination > dl { padding-inline: 0; border: 0; border-top: 1px solid var(--pp-line); border-bottom: 1px solid var(--pp-line); border-radius: 0; background: transparent; }
+.pp-book-card .pp-payment-policy .pp-policy { padding: 0; border: 0; border-bottom: 1px solid var(--pp-line); border-radius: 0; background: transparent; }
+.pp-book-card .pp-payment-policy .pp-policy > summary { padding: 13px 0; }
 .pp-lookup { width: min(720px, calc(100% - 40px)); min-height: 320px; margin: 0 auto 100px; }
 .pp-lookup form > div { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
 .pp-found { display: grid; grid-template-columns: 48px 1fr; gap: 15px; align-items: start; margin: 22px 0; padding: 20px; border-radius: 8px; background: #edf7dd; }
