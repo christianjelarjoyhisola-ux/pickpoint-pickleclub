@@ -61,6 +61,11 @@ const money = (amount: number, currency = "PHP") => new Intl.NumberFormat("en-PH
 const bookingDateLabel = (date: string) => new Intl.DateTimeFormat("en-PH", { weekday: "short", day: "numeric", month: "short", year: "numeric" }).format(new Date(`${date}T12:00:00`));
 const paymentCode = (method: PaymentMethod) => method.code || method.methodCode || method.displayName.toLowerCase().replace(/[^a-z0-9]+/g, "_");
 const isGcash = (method: PaymentMethod | null | undefined) => Boolean(method && paymentCode(method) === "gcash");
+const bookingStatusLabel = (status?: string | null) => status === "payment_review"
+  ? "Payment under review"
+  : status
+    ? status.replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase())
+    : "Payment under review";
 
 function CompleteBookingSummary({ confirmation, bookingDate, defaultExpanded = false }: { confirmation: BookingConfirmation; bookingDate: string; defaultExpanded?: boolean }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
@@ -726,7 +731,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
           </form>
         )}
         {step === "done" && confirmation && (
-          <section className="pp-book-card pp-confirmed is-submitted"><div className="pp-checkmark"><Check /></div><p className="pp-kicker">Receipt submitted</p><h2>{confirmation.reference}</h2><p>Your payment receipt was submitted successfully. Keep this reference to check your booking status.</p><dl><div><dt>Court</dt><dd>{confirmation.courtName}</dd></div><div><dt>Total</dt><dd>{money(confirmation.totalAmount, confirmation.currency)}</dd></div><div><dt>Payment</dt><dd>Receipt submitted</dd></div><div><dt>Booking</dt><dd>{receiptOutcome?.booking.status?.replaceAll("_", " ") || "Payment review"}</dd></div></dl><div className="pp-actions"><button className="pp-button pp-button-outline" onClick={resetSelection}>Book another time</button><Link className="pp-button pp-button-blue" href="/book?mode=manage">View this booking</Link></div></section>
+          <section className="pp-book-card pp-confirmed is-submitted"><div className="pp-checkmark"><Check /></div><p className="pp-kicker">Receipt submitted</p><h2>{confirmation.reference}</h2><p>Your payment receipt has been submitted for review. Once approved, you’ll receive your booking confirmation. Keep this reference to check your status.</p><dl><div><dt>Court</dt><dd>{confirmation.courtName}</dd></div><div><dt>Total</dt><dd>{money(confirmation.totalAmount, confirmation.currency)}</dd></div><div><dt>Payment</dt><dd>Receipt submitted</dd></div><div><dt>Booking</dt><dd>{bookingStatusLabel(receiptOutcome?.booking.status)}</dd></div></dl><div className="pp-actions"><button className="pp-button pp-button-outline" onClick={resetSelection}>Book another time</button><Link className="pp-button pp-button-blue" href="/book?mode=manage">View this booking</Link></div></section>
         )}
       </div>
     </GuestShell>

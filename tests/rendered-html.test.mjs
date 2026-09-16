@@ -250,6 +250,8 @@ test("protects selected courts, restores progress, and shows authoritative itemi
   assert.match(booking, /Submit payment receipt/);
   assert.match(booking, /Copy .* account number/);
   assert.match(booking, /Upload your payment receipt/);
+  assert.match(booking, /Once approved, you’ll receive your booking confirmation/);
+  assert.match(booking, /Payment under review/);
   assert.match(booking, /pp-payment-panel pp-payment-account-card/);
   assert.match(booking, /pp-payment-panel pp-payment-receipt-card/);
   assert.doesNotMatch(booking, /setAccepted/);
