@@ -12,8 +12,8 @@ export function GuestShell({ children, current }: GuestShellProps) {
     <div className="pp-app">
       <header className="pp-header">
         <Link className="pp-brand" href="/" aria-label="PickPoint Pickle Club home">
-          <Image className="pp-brand-wordmark" src="/pickpoint-wordmark-v3.png" alt="PickPoint Pickle Club" width={420} height={140} priority unoptimized />
           <Image className="pp-brand-mark" src="/pickpoint-mark-v4.png" alt="" width={72} height={64} priority unoptimized />
+          <Image className="pp-brand-wordmark" src="/pickpoint-wordmark-v3.png" alt="PickPoint Pickle Club" width={420} height={140} priority unoptimized />
         </Link>
         <nav className="pp-nav" aria-label="Main navigation">
           <Link aria-current={current === "home" ? "page" : undefined} className={`pp-mobile-home${current === "home" ? " is-current" : ""}`} href="/"><House aria-hidden="true" /><span>Home</span></Link>

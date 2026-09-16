@@ -14,9 +14,9 @@
 .pp-app :is(a, button, input, select, summary):focus-visible { outline: 3px solid var(--pp-blue); outline-offset: 3px; }
 .pp-header, .pp-hero, .pp-how, .pp-opening-note, .pp-page-head, .pp-court-list, .pp-book-head, .pp-book-layout, .pp-footer { width: min(1180px, calc(100% - 40px)); margin-inline: auto; }
 .pp-header { height: 92px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--pp-line); }
-.pp-brand { width: 270px; height: 62px; display: flex; align-items: center; gap: 9px; overflow: hidden; }
-.pp-brand .pp-brand-wordmark { width: 210px; height: auto; }
-.pp-brand .pp-brand-mark { width: 42px; height: auto; flex: 0 0 auto; }
+.pp-brand { width: 270px; height: 62px; display: flex; align-items: center; gap: 8px; overflow: hidden; }
+.pp-brand .pp-brand-wordmark { width: 185px; height: auto; }
+.pp-brand .pp-brand-mark { width: 68px; height: auto; flex: 0 0 auto; }
 .pp-nav { display: flex; align-items: center; gap: 8px; margin-left: auto; font-size: .88rem; font-weight: 700; }
 .pp-nav > a { padding: 11px 15px; border-radius: 999px; }
 .pp-nav svg, .pp-nav .pp-mobile-home { display: none; }
@@ -234,9 +234,9 @@
     padding: 6px 0;
     border-bottom-color: rgba(4,22,48,.09);
   }
-  .pp-brand { width: 191px; height: 48px; gap: 5px; }
+  .pp-brand { width: 210px; height: 48px; gap: 5px; }
   .pp-brand .pp-brand-wordmark { width: 151px; }
-  .pp-brand .pp-brand-mark { width: 32px; }
+  .pp-brand .pp-brand-mark { width: 54px; }
   .pp-admin-login { min-height: 44px; margin-left: auto; padding: 0 11px; font-size: .72rem; }
   .pp-admin-login svg { width: 16px; }
   .pp-nav {
@@ -392,9 +392,9 @@
 
 @media (max-width: 370px) {
   .pp-app { --pp-mobile-gutter: 15px; }
-  .pp-brand { width: 176px; gap: 4px; }
-  .pp-brand .pp-brand-wordmark { width: 139px; }
-  .pp-brand .pp-brand-mark { width: 29px; }
+  .pp-brand { width: 169px; gap: 4px; }
+  .pp-brand .pp-brand-wordmark { width: 120px; }
+  .pp-brand .pp-brand-mark { width: 45px; }
   .pp-admin-login { padding-inline: 8px; font-size: .68rem; }
   .pp-nav { right: 6px; left: 6px; }
   .pp-nav > a, .pp-nav .pp-mobile-home, .pp-nav .pp-nav-cta { font-size: .59rem; }
