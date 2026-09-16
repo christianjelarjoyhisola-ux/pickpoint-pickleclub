@@ -271,9 +271,13 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(admin, /area==="payments"/);
   assert.match(admin, /area==="settings"/);
   assert.doesNotMatch(admin, /area==="setup"/);
-  for (const operation of ["loadCalendarDay", "loadPaymentReceipt", "payment:reject", "booking:update", "schedule:unblock", "court:create", "business:update", "policy:publish", "remittance:update"]) {
+  for (const operation of ["loadCalendarDay", "loadPaymentReceipt", "payment:reject", "booking:update", "schedule:unblock", "court:create", "court:update", "business:update", "policy:publish", "remittance:update"]) {
     assert.match(admin, new RegExp(operation.replace(":", "\\:")));
   }
+  assert.match(admin, /Edit court/);
+  assert.match(admin, /Save court/);
+  assert.match(admin, /Cancelled \/ rejected/);
+  assert.match(admin, /bookingGroup/);
   assert.doesNotMatch(admin, /analytics|revenue chart|customer crm/i);
 });
 

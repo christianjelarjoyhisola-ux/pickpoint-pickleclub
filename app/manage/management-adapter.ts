@@ -411,8 +411,13 @@ export type Court = {
   sortOrder: number;
   opensAt: string | null;
   closesAt: string | null;
+  rateChangeAt: string | null;
   rateDay: number | null;
   ratePeak: number | null;
+  minimumHours: number;
+  maximumHours: number;
+  minimumLeadMinutes: number;
+  maximumAdvanceDays: number;
   photoUrl: string | null;
 };
 
@@ -646,8 +651,13 @@ export const previewSnapshot: ManagementSnapshot = {
     sortOrder: activeTenant.previewCourts.findIndex((item) => item.id === court.id),
     opensAt: activeTenant.venue.opensAt,
     closesAt: activeTenant.venue.closesAt,
+    rateChangeAt: activeTenant.booking.offPeakEndsAt,
     rateDay: activeTenant.booking.offPeakHourlyRate,
     ratePeak: activeTenant.booking.peakHourlyRate,
+    minimumHours: activeTenant.booking.minimumHours,
+    maximumHours: activeTenant.booking.maximumHours,
+    minimumLeadMinutes: activeTenant.booking.minimumLeadMinutes,
+    maximumAdvanceDays: activeTenant.booking.maximumAdvanceDays,
     photoUrl: null,
   })),
   bookings: [
@@ -2042,6 +2052,8 @@ function mapLiveCourt(row: JsonObject): Court {
   const sortOrder = exactInteger(row, ["sort_order", "sortOrder"]);
   const currency = value(row, ["currency"]);
   const schedule = scheduleForCourt(row);
+  const pricing = record(row.pricing_config ?? row.pricingConfig);
+  const regular = record(pricing?.regular);
   const publicConfig = record(row.public_config ?? row.publicConfig);
   const rawPhotoUrl = value(publicConfig ?? {}, ["photoUrl"]);
   const photoUrl = rawPhotoUrl.startsWith(
@@ -2064,12 +2076,17 @@ function mapLiveCourt(row: JsonObject): Court {
     sortOrder,
     opensAt: schedule?.opensAt ?? null,
     closesAt: schedule?.closesAt ?? null,
+    rateChangeAt: schedule?.bands[0]?.end ?? null,
     rateDay: schedule?.bands.length === 2
       ? schedule.bands[0]?.hourlyRate ?? null
       : null,
     ratePeak: schedule?.bands.length === 2
       ? schedule.bands[1]?.hourlyRate ?? null
       : null,
+    minimumHours: exactInteger(regular ?? {}, ["minimumHours"]) ?? 1,
+    maximumHours: exactInteger(regular ?? {}, ["maximumHours"]) ?? 3,
+    minimumLeadMinutes: exactInteger(publicConfig ?? {}, ["minimumLeadMinutes"]) ?? 0,
+    maximumAdvanceDays: exactInteger(publicConfig ?? {}, ["maximumAdvanceDays"]) ?? 30,
     photoUrl,
   };
 }
