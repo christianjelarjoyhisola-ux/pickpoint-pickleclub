@@ -13,6 +13,20 @@ type Step = "select" | "details" | "payment" | "done";
 type BookingViewProps = { initialMode: "book" | "manage"; initialCourtSlug?: string };
 type SlotState = "available" | "processing" | "pending" | "booked" | "maintenance" | "closed" | "lead-time" | "not-offered" | "checking";
 const HOLD_SECONDS = 10 * 60;
+const ACTIVE_BOOKING_KEY = "pickpoint-active-booking-v2";
+
+type BookingResumeDraft = {
+  version: 2;
+  savedAt: number;
+  step: Exclude<Step, "done">;
+  date: string;
+  selectedSlotKeys: string[];
+  confirmation: BookingConfirmation | null;
+  customer: { name: string; email: string; phone: string };
+  accepted: boolean;
+  paymentReference: string;
+  holdEndsAt: number | null;
+};
 
 const slotStateLabel: Record<SlotState, string> = {
   available: "Available",
@@ -37,6 +51,28 @@ const timeRangeLabel = (time: string) => {
   return `${compactHourLabel(time)}-${compactHourLabel(endTime)}`;
 };
 const money = (amount: number, currency = "PHP") => new Intl.NumberFormat("en-PH", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
+const bookingDateLabel = (date: string) => new Intl.DateTimeFormat("en-PH", { weekday: "short", day: "numeric", month: "short", year: "numeric" }).format(new Date(`${date}T12:00:00`));
+
+function CompleteBookingSummary({ confirmation, bookingDate }: { confirmation: BookingConfirmation; bookingDate: string }) {
+  const sessions = (confirmation.sessions?.length ? [...confirmation.sessions] : [{
+    courtId: "primary",
+    courtName: confirmation.courtName,
+    bookingDate,
+    startTime: confirmation.startsAt.slice(11, 16),
+    durationHours: 1,
+    startsAt: confirmation.startsAt,
+    endsAt: confirmation.endsAt,
+    subtotalAmount: confirmation.subtotalAmount,
+  }]).sort((left, right) => left.startsAt.localeCompare(right.startsAt) || left.courtName.localeCompare(right.courtName, undefined, { numeric: true }));
+  const courtHours = sessions.reduce((total, session) => total + session.durationHours, 0);
+  const feePerHour = courtHours ? confirmation.serviceFeeAmount / courtHours : 0;
+  return <section className="pp-selection-review pp-complete-summary" aria-labelledby="complete-summary-title">
+    <header><div><small>Booking summary</small><strong id="complete-summary-title">Review your reservation</strong></div><span>{courtHours} court-hour{courtHours === 1 ? "" : "s"}</span></header>
+    <dl className="pp-summary-meta"><div><dt>Playing date</dt><dd>{bookingDateLabel(bookingDate)}</dd></div><div><dt>Booking reference</dt><dd>{confirmation.reference}</dd></div></dl>
+    <ul className="pp-summary-items">{sessions.map((session, index) => <li key={`${session.courtId}-${session.startTime}-${index}`}><div><strong>{session.courtName}</strong><span>{timeRangeLabel(session.startTime)} · {session.durationHours} hour{session.durationHours === 1 ? "" : "s"}</span></div><strong>{money(session.subtotalAmount, confirmation.currency)}</strong></li>)}</ul>
+    <dl className="pp-price-breakdown"><div><dt>Court subtotal</dt><dd>{money(confirmation.subtotalAmount, confirmation.currency)}</dd></div><div><dt>Booking fee{feePerHour > 0 && <small>{money(feePerHour, confirmation.currency)} × {courtHours} court-hour{courtHours === 1 ? "" : "s"}</small>}</dt><dd>{money(confirmation.serviceFeeAmount, confirmation.currency)}</dd></div><div><dt>Total due</dt><dd>{money(confirmation.totalAmount, confirmation.currency)}</dd></div></dl>
+  </section>;
+}
 
 function numberSetting(value: unknown, fallback: number) {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
@@ -152,6 +188,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   const [accepted, setAccepted] = useState(false);
   const [receipt, setReceipt] = useState<File | null>(null);
   const [paymentReference, setPaymentReference] = useState("");
+  const [resumeNotice, setResumeNotice] = useState("");
   const [lookupReference, setLookupReference] = useState("");
   const [lookupResult, setLookupResult] = useState<Record<string, unknown> | null>(null);
   const [bookingClock] = useState(() => Date.now());
@@ -160,6 +197,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   const [remainingHoldSeconds, setRemainingHoldSeconds] = useState<number | null>(null);
   const bookingAttemptId = useRef<string | null>(null);
   const dateFieldRef = useRef<HTMLDivElement | null>(null);
+  const resumeChecked = useRef(false);
 
   const courts = useMemo(() => data?.courts ?? [], [data]);
   const live = isPublicBookingReady(data);
@@ -218,6 +256,77 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   }, [calendarOpen]);
 
   useEffect(() => {
+    let active = true;
+    Promise.resolve().then(async () => {
+      let draft: BookingResumeDraft | null = null;
+      try {
+        draft = JSON.parse(window.localStorage.getItem(ACTIVE_BOOKING_KEY) || "null") as BookingResumeDraft | null;
+      } catch { /* Ignore damaged browser storage. */ }
+      if (!active || !draft || draft.version !== 2 || !/^\d{4}-\d{2}-\d{2}$/.test(draft.date) || !Array.isArray(draft.selectedSlotKeys)) {
+        resumeChecked.current = true;
+        return;
+      }
+      const selectionIsRecent = Date.now() - draft.savedAt < 6 * 60 * 60 * 1000;
+      const activeReservation = draft.confirmation && draft.holdEndsAt && draft.holdEndsAt > Date.now();
+      if (!selectionIsRecent || (!activeReservation && draft.confirmation)) {
+        window.localStorage.removeItem(ACTIVE_BOOKING_KEY);
+        resumeChecked.current = true;
+        return;
+      }
+      if (activeReservation && draft.confirmation) {
+        try {
+          const result = await bookingStatus(draft.confirmation.reference, draft.confirmation.bookingToken);
+          const booking = result.booking as Record<string, unknown> | undefined;
+          if (["cancelled", "expired", "completed"].includes(String(booking?.status ?? "").toLowerCase())) {
+            window.localStorage.removeItem(ACTIVE_BOOKING_KEY);
+            resumeChecked.current = true;
+            return;
+          }
+        } catch {
+          window.localStorage.removeItem(ACTIVE_BOOKING_KEY);
+          resumeChecked.current = true;
+          return;
+        }
+      }
+      if (!active) return;
+      setDate(draft.date);
+      setCalendarMonth(draft.date.slice(0, 7));
+      setSelectedSlotKeys(draft.selectedSlotKeys);
+      setCustomer(draft.customer || { name: "", email: "", phone: "" });
+      setAccepted(draft.accepted === true);
+      setPaymentReference(draft.paymentReference || "");
+      setConfirmation(draft.confirmation);
+      setHoldEndsAt(activeReservation ? draft.holdEndsAt : null);
+      setRemainingHoldSeconds(activeReservation && draft.holdEndsAt ? Math.max(0, Math.ceil((draft.holdEndsAt - Date.now()) / 1000)) : null);
+      setStep(activeReservation ? draft.step : "select");
+      setResumeNotice(activeReservation ? "Welcome back. Your booking is still in progress." : "Welcome back. Your recent court selection has been restored.");
+      resumeChecked.current = true;
+    });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!resumeChecked.current) return;
+    if (step === "done" || (!confirmation && selectedSlotKeys.length === 0)) {
+      window.localStorage.removeItem(ACTIVE_BOOKING_KEY);
+      return;
+    }
+    const draft: BookingResumeDraft = {
+      version: 2,
+      savedAt: Date.now(),
+      step: step === "done" ? "select" : step,
+      date,
+      selectedSlotKeys,
+      confirmation,
+      customer,
+      accepted,
+      paymentReference,
+      holdEndsAt,
+    };
+    try { window.localStorage.setItem(ACTIVE_BOOKING_KEY, JSON.stringify(draft)); } catch { /* Private browsing may deny storage. */ }
+  }, [accepted, confirmation, customer, date, holdEndsAt, paymentReference, selectedSlotKeys, step]);
+
+  useEffect(() => {
     if (!confirmation || !holdEndsAt || (step !== "details" && step !== "payment")) return;
     const updateRemaining = () => {
       const remaining = Math.max(0, Math.ceil((holdEndsAt - Date.now()) / 1000));
@@ -231,7 +340,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
       setAccepted(false);
       bookingAttemptId.current = null;
       setStep("select");
-      setMessage("Your 10-minute hold expired. Please choose the court times again.");
+      setMessage("Your 10-minute booking window ended. Please choose the court times again.");
       getAvailability(date).then(setAvailability).catch(() => undefined);
     };
     const timer = window.setInterval(updateRemaining, 1000);
@@ -355,7 +464,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
       setHoldIntro(!window.matchMedia("(prefers-reduced-motion: reduce)").matches);
       setStep("details");
     } catch (reason) {
-      setMessage(reason instanceof Error ? reason.message : "We could not hold that time. Please choose another.");
+      setMessage(reason instanceof Error ? reason.message : "We could not protect that time. Please choose another.");
       getAvailability(date).then((result) => {
         setAvailability(result);
         setSelectedSlotKeys((current) => current.filter((key) => {
@@ -386,7 +495,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
         bookingAttemptId.current = null;
         setStep("select");
         getAvailability(date).then(setAvailability).catch(() => undefined);
-        setMessage("Your temporary hold expired. Please choose the court times again.");
+        setMessage("Your booking window ended. Please choose the court times again.");
       } else {
         setMessage(text);
       }
@@ -407,7 +516,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
       setStep("select");
       setAvailability(await getAvailability(date));
     } catch (reason) {
-      setMessage(reason instanceof Error ? reason.message : "The current hold could not be released.");
+      setMessage(reason instanceof Error ? reason.message : "The current selection could not be released.");
     } finally { setBusy(false); }
   }
 
@@ -428,7 +537,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     event.preventDefault();
     const reference = lookupReference.trim().toUpperCase();
     const token = storedToken(reference);
-    if (!token) { setMessage("This browser does not have the secure key for that reference. Contact the venue for help."); setLookupResult(null); return; }
+    if (!token) { setMessage("This browser does not have the secure key for that reference. Contact the venue for assistance."); setLookupResult(null); return; }
     setBusy(true); setMessage("");
     try { setLookupResult(await bookingStatus(reference, token)); }
     catch (reason) { setMessage(reason instanceof Error ? reason.message : "That booking could not be found."); }
@@ -469,8 +578,9 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
       <div id="booking-times" className={`pp-book-layout${holdIntro ? " is-hold-intro" : ""}`}>
         <ol className="pp-steps" aria-label="Booking progress">{["Time", "Details", "Payment", "Done"].map((label, index) => { const activeIndex = ["select", "details", "payment", "done"].indexOf(step); return <li key={label} aria-current={index === activeIndex ? "step" : undefined} className={index <= activeIndex ? "is-active" : ""}><i>{index < activeIndex ? <Check aria-hidden="true" /> : index + 1}</i><b>{label}</b></li>; })}</ol>
 
-        {holdIntro && <div className="pp-hold-intro" role="status"><Clock3 aria-hidden="true" /><span>Complete your booking within</span><strong>{holdCountdown}</strong><small>Your selected court times are now held.</small></div>}
-        {confirmation && (step === "details" || step === "payment") && <aside className="pp-hold-timer" aria-label={`Temporary court hold: ${holdCountdown} remaining`}><Clock3 aria-hidden="true" /><span><small>Complete your booking within</small><strong>{holdCountdown}</strong></span><em>Times held</em></aside>}
+        {holdIntro && <div className="pp-hold-intro" role="status"><Clock3 aria-hidden="true" /><span>Complete your booking within</span><strong>{holdCountdown}</strong><small>Your selected court times are protected.</small></div>}
+        {confirmation && (step === "details" || step === "payment") && <aside className="pp-hold-timer" aria-label={`Booking countdown: ${holdCountdown} remaining`}><Clock3 aria-hidden="true" /><span><small>Complete your booking within</small><strong>{holdCountdown}</strong></span><em>In progress</em></aside>}
+        {resumeNotice && <aside className="pp-resume-notice" role="status"><span>{resumeNotice}</span><button type="button" onClick={() => setResumeNotice("")}>Dismiss</button></aside>}
 
         {(loading || tenantError) && <div className="pp-state">{loading ? "Checking venue setup…" : tenantError}</div>}
         {data && !live && <div className="pp-setup"><span>Reservations are not open yet</span><h2>PickPoint is completing its court setup.</h2><p>Online booking will open after the venue confirms its courts, prices, payment details, and booking rules.</p><Link className="pp-button pp-button-outline" href="/">Return home</Link></div>}
@@ -505,27 +615,28 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
               {!availability && <div className="pp-schedule-loading">Checking availability…</div>}
             </div>
             <p className="pp-grid-note">Past times are hidden. All selected slots will be reserved together under one booking reference.</p>
-            {policy ? <><details className="pp-policy pp-time-policy"><summary>{policy.title}</summary><div><span>{policy.intro}</span><p>{policy.content}</p></div></details><label className="pp-check pp-hold-consent"><input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} required /><span><strong>I agree to the booking, cancellation, refund, and rescheduling policy.</strong><small>Continue creates a temporary hold while you enter your details.</small></span></label></> : <p className="pp-form-message" role="alert">The current booking policy could not be loaded. Please refresh before reserving.</p>}
+            {policy ? <><details className="pp-policy pp-time-policy"><summary>{policy.title}</summary><div><span>{policy.intro}</span><p>{policy.content}</p></div></details><label className="pp-check pp-hold-consent"><input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} required /><span><strong>I agree to the booking, cancellation, refund, and rescheduling policy.</strong><small>Continue protects your selected times for 10 minutes while you finish booking.</small></span></label></> : <p className="pp-form-message" role="alert">The current booking policy could not be loaded. Please refresh before reserving.</p>}
             {message && <p className="pp-form-message" role="alert">{message}</p>}
-            <div className="pp-card-action"><span>{selectedSlots.length ? <><small>{selectedSlots.length} court-hour{selectedSlots.length === 1 ? "" : "s"} · includes {money(estimatedBookingFee, primaryCourt?.currency)} fee</small><strong>{money(estimatedGrandTotal, primaryCourt?.currency)}</strong></> : "Choose at least one court time"}</span><button className="pp-button pp-button-blue" disabled={busy || !selectedSlots.length || !accepted || !policy?.version} onClick={holdSelection}>{busy ? "Holding your times…" : "Continue"} <ArrowRight /></button></div>
+            <div className="pp-card-action"><span>{selectedSlots.length ? <><small>{selectedSlots.length} court-hour{selectedSlots.length === 1 ? "" : "s"} · includes {money(estimatedBookingFee, primaryCourt?.currency)} fee</small><strong>{money(estimatedGrandTotal, primaryCourt?.currency)}</strong></> : "Choose at least one court time"}</span><button className="pp-button pp-button-blue" disabled={busy || !selectedSlots.length || !accepted || !policy?.version} onClick={holdSelection}>{busy ? "Securing your times…" : "Continue"} <ArrowRight /></button></div>
           </section>
         )}
 
         {step === "details" && selectedSlots.length > 0 && confirmation && (
           <form className="pp-book-card pp-details" onSubmit={saveDetails}>
             <button type="button" className="pp-back" disabled={busy} onClick={releaseHoldAndReturn}><ArrowLeft /> Change time</button>
-            <div className="pp-hold-notice"><span className="pp-pulse" /><div><strong>Your court times are being held.</strong><span>{holdExpiryLabel ? `Complete your details before ${holdExpiryLabel}.` : "Complete your details before the temporary hold expires."}</span></div></div>
+            <div className="pp-hold-notice"><span className="pp-pulse" /><div><strong>Booking in progress.</strong><span>{holdExpiryLabel ? `Finish your details before ${holdExpiryLabel} to keep these times.` : "Finish your details before the booking timer ends."}</span></div></div>
             <div className="pp-fields-row"><label>Full name<input value={customer.name} onChange={(event) => setCustomer({ ...customer, name: event.target.value })} autoComplete="name" required /></label><label>Mobile number<input value={customer.phone} onChange={(event) => setCustomer({ ...customer, phone: event.target.value })} autoComplete="tel" inputMode="tel" required /></label></div>
             <label>Email address<input type="email" value={customer.email} onChange={(event) => setCustomer({ ...customer, email: event.target.value })} autoComplete="email" required /></label>
-            <section className="pp-selection-review" aria-labelledby="selection-review-title"><div><strong id="selection-review-title">Your selected court times</strong><span>{selectedSlots.length} court-hour{selectedSlots.length === 1 ? "" : "s"}</span></div><ul>{selectedSlots.map((selection) => { const selectedCourt = courts.find((item) => item.id === selection.courtId); return <li key={slotKey(selection.courtId, selection.startTime)}><span>{timeRangeLabel(selection.startTime)}</span><strong>{selectedCourt?.name}</strong></li>; })}</ul><dl className="pp-price-breakdown"><div><dt>Court time</dt><dd>{money(confirmation.subtotalAmount, confirmation.currency)}</dd></div><div><dt>Booking fee</dt><dd>{money(confirmation.serviceFeeAmount, confirmation.currency)}</dd></div><div><dt>Total</dt><dd>{money(confirmation.totalAmount, confirmation.currency)}</dd></div></dl></section>
+            <CompleteBookingSummary confirmation={confirmation} bookingDate={date} />
             {message && <p className="pp-form-message" role="alert">{message}</p>}
-            <div className="pp-card-action"><span><small>{selectedSlots.length} court-hour{selectedSlots.length === 1 ? "" : "s"} held</small><strong>{date} · {money(confirmation.totalAmount, confirmation.currency)}</strong></span><button className="pp-button pp-button-blue" disabled={busy}>{busy ? "Saving details…" : "Continue to payment"} <ArrowRight /></button></div>
+            <div className="pp-card-action"><span><small>{selectedSlots.length} court-hour{selectedSlots.length === 1 ? "" : "s"} selected</small><strong>{bookingDateLabel(date)} · {money(confirmation.totalAmount, confirmation.currency)}</strong></span><button className="pp-button pp-button-blue" disabled={busy}>{busy ? "Saving details…" : "Continue to payment"} <ArrowRight /></button></div>
           </form>
         )}
 
         {step === "payment" && confirmation && paymentMethod && (
           <form className="pp-book-card pp-payment" onSubmit={sendReceipt}>
             <div className="pp-payment-title"><span>{paymentMethod.displayName}</span><strong>{money(confirmation.totalAmount, confirmation.currency)}</strong><p>Send the exact total to the venue account below, then upload the receipt.</p></div>
+            <CompleteBookingSummary confirmation={confirmation} bookingDate={date} />
             <dl><div><dt>Account name</dt><dd>{paymentMethod.accountName || "Provided by the venue"}</dd></div><div><dt>Account number</dt><dd>{paymentMethod.accountNumber || paymentMethod.accountReference || "See venue instructions"}</dd></div></dl>
             {paymentMethod.instructions && <p className="pp-instructions">{paymentMethod.instructions}</p>}
             <label>Payment reference (optional)<input value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} /></label>

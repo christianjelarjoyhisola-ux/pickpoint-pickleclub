@@ -172,7 +172,7 @@ test("shows truthful PickPoint slot states and hides elapsed times", async () =>
   assert.match(pendingMigration, /3a4bcfeb-e8a7-417a-8b0c-90c37c3a6175/);
 });
 
-test("holds selected courts before details and shows authoritative fees", async () => {
+test("protects selected courts, restores progress, and shows authoritative itemized fees", async () => {
   const [booking, client, css] = await Promise.all([
     source("app/pickpoint-v2/guest/booking-view.tsx"),
     source("app/lib/platform/client.ts"),
@@ -191,9 +191,17 @@ test("holds selected courts before details and shows authoritative fees", async 
   assert.match(booking, /remainingHoldSeconds/);
   assert.match(booking, /HOLD_SECONDS = 10 \* 60/);
   assert.match(booking, /cancelUnpaidBooking\(confirmation\.reference/);
-  assert.match(booking, /Your 10-minute hold expired/);
+  assert.match(booking, /Your 10-minute booking window ended/);
   assert.match(booking, /Complete your booking within/);
+  assert.match(booking, /ACTIVE_BOOKING_KEY/);
+  assert.match(booking, /bookingStatus\(draft\.confirmation\.reference/);
+  assert.match(booking, /Welcome back\. Your booking is still in progress/);
+  assert.match(booking, /CompleteBookingSummary/);
+  assert.match(booking, /Court subtotal/);
+  assert.match(booking, /Total due/);
   assert.match(css, /\.pp-price-breakdown/);
+  assert.match(css, /\.pp-complete-summary/);
+  assert.match(css, /\.pp-resume-notice/);
   assert.match(css, /\.pp-hold-notice/);
   assert.match(css, /\.pp-hold-timer/);
   assert.match(css, /@keyframes pp-hold-intro/);
