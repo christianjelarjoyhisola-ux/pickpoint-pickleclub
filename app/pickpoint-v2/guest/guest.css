@@ -46,7 +46,7 @@
 .pp-text-link { border-bottom: 1px solid currentColor; font-size: .9rem; font-weight: 700; }
 
 .pp-board { position: relative; min-height: 0; padding: 24px; overflow: hidden; border: 1px solid rgba(255,255,255,.08); border-radius: 24px; background: linear-gradient(145deg, #041630 0%, #08244a 100%); color: white; box-shadow: 0 28px 70px rgba(3,21,47,.2); }
-.pp-board::before { content: ""; position: absolute; right: -90px; bottom: -130px; width: 260px; height: 260px; border-radius: 50%; background: rgba(17,106,209,.18); pointer-events: none; }
+.pp-board::before { content: ""; position: absolute; right: -52px; bottom: -62px; z-index: 0; width: 190px; height: 190px; border: 1px solid rgba(184,240,0,.2); border-radius: 50%; background: linear-gradient(rgba(4,22,48,.3), rgba(4,22,48,.62)), url("/images/pickleball-balls.jpg") -140px -293px / 720px 540px no-repeat; box-shadow: 0 0 0 12px rgba(17,106,209,.08); opacity: .88; pointer-events: none; }
 .pp-board::after { display: none; }
 .pp-board-top { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; padding-bottom: 17px; border-bottom: 1px solid rgba(255,255,255,.12); color: #b8c5d7; font-size: .68rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
 .pp-status { display: inline-flex; align-items: center; gap: 7px; color: #dbe2ec; }
@@ -304,6 +304,7 @@
   .pp-actions .pp-button { width: 100%; min-height: 54px; border-radius: 12px; }
   .pp-actions .pp-text-link, .pp-actions .pp-closed-note { align-self: center; min-height: 44px; display: inline-flex; align-items: center; text-align: center; }
   .pp-board { min-height: 0; padding: 18px; border-radius: 22px; box-shadow: 0 22px 52px rgba(3,21,47,.19); }
+  .pp-board::before { right: -44px; bottom: -55px; width: 160px; height: 160px; background-position: -121px -243px; background-size: 620px 465px; box-shadow: 0 0 0 10px rgba(17,106,209,.08); }
   .pp-board-top { padding-bottom: 15px; font-size: .62rem; }
   .pp-board dl { gap: 9px; margin-top: 14px; }
   .pp-board dl > div { grid-template-columns: 30px minmax(0,1fr); gap: 8px; padding: 13px 11px; border-radius: 12px; }
