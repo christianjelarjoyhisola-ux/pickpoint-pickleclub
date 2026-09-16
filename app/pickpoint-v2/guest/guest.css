@@ -320,26 +320,28 @@
 .pp-method-preview > strong { color: var(--pp-navy); font-size: .9rem; }
 .pp-method-preview > small { color: #66758a; font-size: .72rem; }
 .pp-payment-prompt { margin: 0 0 18px; padding: 18px; border: 1px dashed #b9c8da; border-radius: 11px; background: #f8fafc; color: #63738a; text-align: center; }
-.pp-payment-destination { margin-top: 16px; }
-.pp-payment-destination > h3 { margin: 0 0 10px; color: var(--pp-navy); font-size: .9rem; }
-.pp-payment-destination > dl { margin: 0 0 16px; padding: 2px 14px; border: 1px solid var(--pp-line); border-radius: 12px; background: #f8fafc; }
+.pp-payment-destination { display: grid; gap: 12px; margin-top: 16px; }
+.pp-payment-panel, .pp-payment-policy { padding: 18px; border: 1px solid var(--pp-line); border-radius: 14px; background: white; box-shadow: 0 8px 24px rgba(4,23,51,.045); }
+.pp-payment-panel > h3 { margin: 0 0 10px; color: var(--pp-navy); font-size: .9rem; }
+.pp-payment-account-card > dl { margin: 0; padding: 0; }
 .pp-confirmed > dl { margin: 20px 0; }
-.pp-payment-destination > dl > div, .pp-confirmed > dl > div { display: flex; justify-content: space-between; gap: 20px; padding: 13px 0; border-bottom: 1px solid var(--pp-line); }
-.pp-payment-destination > dl > div:last-child { border-bottom: 0; }
-.pp-payment-destination > dl > div > dt, .pp-confirmed > dl > div > dt { color: #718096; font-size: .78rem; }
-.pp-payment-destination > dl > div > dd, .pp-confirmed > dl > div > dd { margin: 0; color: var(--pp-navy); font-size: .85rem; font-weight: 800; line-height: 1.35; text-align: right; }
+.pp-payment-account-card > dl > div, .pp-confirmed > dl > div { display: flex; justify-content: space-between; gap: 20px; padding: 13px 0; border-bottom: 1px solid var(--pp-line); }
+.pp-payment-account-card > dl > div:last-child { border-bottom: 0; }
+.pp-payment-account-card > dl > div > dt, .pp-confirmed > dl > div > dt { color: #718096; font-size: .78rem; }
+.pp-payment-account-card > dl > div > dd, .pp-confirmed > dl > div > dd { margin: 0; color: var(--pp-navy); font-size: .85rem; font-weight: 800; line-height: 1.35; text-align: right; }
 .pp-copy-value { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
 .pp-copy-value button { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 6px 10px; border: 1px solid #b8c7da; border-radius: 8px; background: #fff; color: var(--pp-blue); font: inherit; font-size: .72rem; font-weight: 850; cursor: pointer; }
 .pp-copy-value button:hover { border-color: var(--pp-blue); background: #edf6ff; }
 .pp-copy-value button:focus-visible { outline: 3px solid var(--pp-lime); outline-offset: 2px; }
 .pp-copy-value button svg { width: 14px; height: 14px; }
-.pp-receipt-heading { display: grid; gap: 4px; margin: 22px 0 13px; padding-top: 19px; border-top: 1px solid var(--pp-line); }
+.pp-receipt-heading { display: grid; gap: 4px; margin: 0 0 16px; }
 .pp-receipt-heading strong { color: var(--pp-navy); font-size: 1rem; }
 .pp-receipt-heading span { color: #66748a; font-size: .78rem; line-height: 1.45; }
-.pp-payment-destination > label > small { margin-top: -2px; color: #718096; font-size: .68rem; font-weight: 600; line-height: 1.45; }
-.pp-payment-policy { margin-top: 24px; padding-top: 6px; border-top: 1px solid var(--pp-line); }
-.pp-payment-policy .pp-policy { margin-bottom: 10px; background: #fbfcfe; }
+.pp-payment-receipt-card > label > small { margin-top: -2px; color: #718096; font-size: .68rem; font-weight: 600; line-height: 1.45; }
+.pp-payment-policy { margin-top: 12px; }
+.pp-payment-policy .pp-policy { margin: 0 0 12px; background: transparent; }
 .pp-payment-policy .pp-policy summary { font-family: var(--font-display); font-size: .95rem; }
+.pp-payment-policy .pp-check { margin: 0; padding: 14px 0 0; border-top: 1px solid var(--pp-line); border-radius: 0; background: transparent; }
 .pp-instructions { padding: 14px; border-radius: 7px; background: #eff6ff; color: #37516f; font-size: .84rem; }
 .pp-upload { position: relative; grid-template-columns: 28px 1fr; align-items: center; padding: 18px; border: 1px dashed #aebcce; border-radius: 7px; cursor: pointer; }
 .pp-upload svg { width: 22px; color: var(--pp-blue); }
@@ -359,8 +361,7 @@
 .pp-book-card .pp-selection-review { margin: 6px 0 24px; padding: 0; overflow: hidden; border: 1px solid var(--pp-line); border-radius: 12px; background: white; }
 .pp-book-card .pp-complete-summary > summary { background: #f7f9fc; }
 .pp-book-card .pp-method-preview { padding: 14px 0; border: 0; border-top: 1px solid var(--pp-line); border-bottom: 1px solid var(--pp-line); border-radius: 0; background: transparent; }
-.pp-book-card .pp-payment-destination > dl { padding-inline: 0; border: 0; border-top: 1px solid var(--pp-line); border-bottom: 1px solid var(--pp-line); border-radius: 0; background: transparent; }
-.pp-book-card .pp-payment-policy .pp-policy { padding: 0; border: 0; border-bottom: 1px solid var(--pp-line); border-radius: 0; background: transparent; }
+.pp-book-card .pp-payment-policy .pp-policy { padding: 0; border: 0; border-radius: 0; background: transparent; }
 .pp-book-card .pp-payment-policy .pp-policy > summary { padding: 13px 0; }
 .pp-lookup { width: min(720px, calc(100% - 40px)); min-height: 320px; margin: 0 auto 100px; }
 .pp-lookup form > div { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
@@ -564,8 +565,9 @@
   .pp-payment-title strong { font-size: 1.65rem; }
   .pp-payment-title p { font-size: .87rem; }
   .pp-payment-methods { grid-template-columns: 1fr; }
-  .pp-payment-destination > dl > div, .pp-confirmed > dl > div { gap: 12px; }
-  .pp-payment-destination > dl > div > dd, .pp-confirmed > dl > div > dd { max-width: 58%; overflow-wrap: anywhere; }
+  .pp-payment-panel, .pp-payment-policy { padding: 14px; border-radius: 14px; }
+  .pp-payment-account-card > dl > div, .pp-confirmed > dl > div { gap: 12px; }
+  .pp-payment-account-card > dl > div > dd, .pp-confirmed > dl > div > dd { max-width: 58%; overflow-wrap: anywhere; }
   .pp-copy-value { flex-wrap: wrap; }
   .pp-upload { min-height: 72px; padding: 14px; border-radius: 11px; }
   .pp-full { min-height: 54px; border-radius: 11px; }

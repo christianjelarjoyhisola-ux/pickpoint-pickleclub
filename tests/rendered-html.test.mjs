@@ -250,6 +250,8 @@ test("protects selected courts, restores progress, and shows authoritative itemi
   assert.match(booking, /Submit payment receipt/);
   assert.match(booking, /Copy .* account number/);
   assert.match(booking, /Upload your payment receipt/);
+  assert.match(booking, /pp-payment-panel pp-payment-account-card/);
+  assert.match(booking, /pp-payment-panel pp-payment-receipt-card/);
   assert.doesNotMatch(booking, /setAccepted/);
   assert.doesNotMatch(booking, /Verify payment receipt|Verifying payment|Payment verified|matched successfully/);
   assert.doesNotMatch(booking, /receiptOutcome\?\.status === "auto_approved"/);
@@ -257,9 +259,9 @@ test("protects selected courts, restores progress, and shows authoritative itemi
   assert.match(css, /\.pp-method-preview/);
   assert.match(css, /\.pp-payment-policy/);
   assert.match(css, /\.pp-book-card \.pp-selection-review[^}]*border-radius:\s*12px[^}]*background:\s*white/);
-  assert.match(css, /\.pp-book-card \.pp-payment-destination > dl[^}]*background:\s*transparent/);
+  assert.match(css, /\.pp-payment-panel, \.pp-payment-policy[^}]*border-radius:\s*14px[^}]*background:\s*white/);
   assert.match(css, /\.pp-book-card \.pp-payment-policy \.pp-policy[^}]*border-radius:\s*0/);
-  assert.match(css, /\.pp-payment-destination > dl > div/);
+  assert.match(css, /\.pp-payment-account-card > dl > div/);
   assert.match(css, /\.pp-summary-meta dd \{ min-width: 0;[^}]*overflow-wrap: anywhere;/);
   assert.doesNotMatch(css, /\.pp-summary-meta dd \{[^}]*text-overflow: ellipsis/);
   assert.match(css, /@keyframes pp-hold-intro/);
