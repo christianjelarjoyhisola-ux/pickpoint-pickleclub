@@ -553,12 +553,18 @@ export async function submitPaymentReceipt(options: {
   reference: string;
   token: string;
   method: string;
-  paymentReference?: string;
+  paymentReference: string;
   file: File;
-}) {
+}): Promise<PaymentReceiptSubmission> {
   if (platformMode() === "preview") {
     await new Promise((resolve) => setTimeout(resolve, 350));
-    return { ok: true, outcome: "manual_review", preview: true };
+    return {
+      ok: true,
+      status: "manual_review",
+      publicReason: "Receipt received for review.",
+      booking: { status: "payment_review", paymentStatus: "pending" },
+      preview: true,
+    };
   }
   const form = new FormData();
   form.append("receiptFile", options.file);
@@ -571,14 +577,21 @@ export async function submitPaymentReceipt(options: {
       "X-Booking-Reference": options.reference,
       "X-Booking-Token": options.token,
       "X-Payment-Method": options.method,
-      ...(options.paymentReference
-        ? { "X-Payment-Reference": options.paymentReference }
-        : {}),
+      "X-Payment-Reference": options.paymentReference,
     },
     body: form,
   });
-  return responseJson<Record<string, unknown>>(response);
+  return responseJson<PaymentReceiptSubmission>(response);
 }
+
+export type PaymentReceiptSubmission = {
+  ok: true;
+  status: "auto_approved" | "manual_review" | "approved";
+  publicReason?: string;
+  booking: { status: string; paymentStatus: string };
+  confirmationEmail?: "disabled" | "sent" | "failed";
+  preview?: true;
+};
 
 export function getSupabaseBrowserClient(): SupabaseClient {
   if (platformMode() !== "live") {

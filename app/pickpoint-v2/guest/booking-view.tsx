@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock3, Search, Upload } from "lucide-react";
 import { bookingStatus, cancelUnpaidBooking, completeBookingDetails, createBooking, getAvailability, submitPaymentReceipt } from "../../lib/platform/client";
+import type { PaymentReceiptSubmission } from "../../lib/platform/client";
 import type { AvailabilityResponse, BookingConfirmation, PaymentMethod, PublicCourt } from "../../lib/platform/types";
 import { GuestShell } from "./guest-shell";
 import { isPublicBookingReady } from "./readiness";
@@ -59,6 +60,7 @@ const durationRangeLabel = (time: string, durationHours: number) => {
 const money = (amount: number, currency = "PHP") => new Intl.NumberFormat("en-PH", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
 const bookingDateLabel = (date: string) => new Intl.DateTimeFormat("en-PH", { weekday: "short", day: "numeric", month: "short", year: "numeric" }).format(new Date(`${date}T12:00:00`));
 const paymentCode = (method: PaymentMethod) => method.code || method.methodCode || method.displayName.toLowerCase().replace(/[^a-z0-9]+/g, "_");
+const isGcash = (method: PaymentMethod | null | undefined) => Boolean(method && paymentCode(method) === "gcash");
 
 function CompleteBookingSummary({ confirmation, bookingDate, defaultExpanded = false }: { confirmation: BookingConfirmation; bookingDate: string; defaultExpanded?: boolean }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
@@ -217,6 +219,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   const [receipt, setReceipt] = useState<File | null>(null);
   const [paymentMethodCode, setPaymentMethodCode] = useState("");
   const [paymentReference, setPaymentReference] = useState("");
+  const [receiptOutcome, setReceiptOutcome] = useState<PaymentReceiptSubmission | null>(null);
   const [resumeNotice, setResumeNotice] = useState("");
   const [lookupReference, setLookupReference] = useState("");
   const [lookupResult, setLookupResult] = useState<Record<string, unknown> | null>(null);
@@ -467,7 +470,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     setMessage("");
   }
 
-  const resetSelection = () => { setStep("select"); setConfirmation(null); setHoldEndsAt(null); setRemainingHoldSeconds(null); setSelectedSlotKeys([]); setAccepted(false); setPaymentMethodCode(""); setPaymentReference(""); setReceipt(null); setMessage(""); bookingAttemptId.current = null; };
+  const resetSelection = () => { setStep("select"); setConfirmation(null); setHoldEndsAt(null); setRemainingHoldSeconds(null); setSelectedSlotKeys([]); setAccepted(false); setPaymentMethodCode(""); setPaymentReference(""); setReceipt(null); setReceiptOutcome(null); setMessage(""); bookingAttemptId.current = null; };
 
   async function holdSelection() {
     if (!selectedSlots.length || !live || !accepted || !policy?.version) return;
@@ -555,9 +558,23 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   async function sendReceipt(event: React.FormEvent) {
     event.preventDefault();
     if (!confirmation || !paymentMethod || !receipt) return;
+    const reference = paymentReference.trim().toUpperCase();
+    if (!reference) {
+      setMessage("Enter the transaction reference exactly as shown on your receipt.");
+      return;
+    }
+    if (isGcash(paymentMethod) && !/^\d{13}$/.test(reference.replace(/\D/g, ""))) {
+      setMessage("Enter the 13-digit GCash transaction reference shown on your receipt.");
+      return;
+    }
+    if (receipt.size > 2 * 1024 * 1024) {
+      setMessage("The receipt image must be 2 MB or smaller.");
+      return;
+    }
     setBusy(true); setMessage("");
     try {
-      await submitPaymentReceipt({ reference: confirmation.reference, token: confirmation.bookingToken, method: paymentCode(paymentMethod), paymentReference: paymentReference.trim() || undefined, file: receipt });
+      const outcome = await submitPaymentReceipt({ reference: confirmation.reference, token: confirmation.bookingToken, method: paymentCode(paymentMethod), paymentReference: isGcash(paymentMethod) ? reference.replace(/\D/g, "") : reference, file: receipt });
+      setReceiptOutcome(outcome);
       setHoldEndsAt(null);
       setRemainingHoldSeconds(null);
       setStep("done");
@@ -670,14 +687,14 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
             <div className="pp-payment-title"><span>Payment</span><strong>{money(confirmation.totalAmount, confirmation.currency)}</strong><p>Choose how you will pay, send the exact total, then upload the receipt.</p></div>
             <CompleteBookingSummary confirmation={confirmation} bookingDate={date} defaultExpanded={false} />
             <fieldset className="pp-payment-methods"><legend>Select a payment method</legend>{paymentMethods.map((method) => { const code = paymentCode(method); return <label key={code} className={paymentMethodCode === code ? "is-selected" : ""}><input type="radio" name="paymentMethod" value={code} checked={paymentMethodCode === code} onChange={() => { setPaymentMethodCode(code); setReceipt(null); setPaymentReference(""); setMessage(""); }} required /><span><strong>{method.displayName}</strong><small>{paymentMethodCode === code ? "Selected" : "Tap to select"}</small></span><Check aria-hidden="true" /></label>; })}</fieldset>
-            {paymentMethod ? <section className="pp-payment-destination"><h3>{paymentMethod.displayName} details</h3><dl><div><dt>Account name</dt><dd>{paymentMethod.accountName || "Provided by the venue"}</dd></div><div><dt>Account number</dt><dd>{paymentMethod.accountNumber || paymentMethod.accountReference || "See venue instructions"}</dd></div></dl>{paymentMethod.instructions && <p className="pp-instructions">{paymentMethod.instructions}</p>}<label>Payment reference (optional)<input value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} /></label><label className="pp-upload"><Upload /><span><strong>{receipt?.name || "Choose payment receipt"}</strong><small>PNG, JPG or WebP · maximum 2 MB</small></span><input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setReceipt(event.target.files?.[0] || null)} required /></label></section> : <p className="pp-payment-prompt">Select a payment method to see the account details.</p>}
+            {paymentMethod ? <section className="pp-payment-destination"><h3>{paymentMethod.displayName} details</h3><dl><div><dt>Account name</dt><dd>{paymentMethod.accountName || "Provided by the venue"}</dd></div><div><dt>Account number</dt><dd>{paymentMethod.accountNumber || paymentMethod.accountReference || "See venue instructions"}</dd></div></dl>{paymentMethod.instructions && <p className="pp-instructions">{paymentMethod.instructions}</p>}{isGcash(paymentMethod) && <div className="pp-auto-check"><Check aria-hidden="true" /><span><strong>Automatic receipt verification</strong><small>Send the exact amount and upload the original GCash receipt. Clear matches are confirmed immediately.</small></span></div>}<label>{isGcash(paymentMethod) ? "13-digit GCash transaction reference" : "Payment transaction reference"}<input value={paymentReference} inputMode={isGcash(paymentMethod) ? "numeric" : "text"} maxLength={isGcash(paymentMethod) ? 13 : 64} autoComplete="off" placeholder={isGcash(paymentMethod) ? "0000000000000" : "Enter the reference from your receipt"} onChange={(event) => setPaymentReference(isGcash(paymentMethod) ? event.target.value.replace(/\D/g, "").slice(0, 13) : event.target.value)} required /><small>Enter it exactly as shown. A reference can be used only once.</small></label><label className="pp-upload"><Upload /><span><strong>{receipt?.name || "Choose payment receipt"}</strong><small>Original PNG, JPG or WebP · maximum 2 MB</small></span><input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => { const file = event.target.files?.[0] || null; setReceipt(file); setMessage(file && file.size > 2 * 1024 * 1024 ? "The receipt image must be 2 MB or smaller." : ""); }} required /></label></section> : <p className="pp-payment-prompt">Select a payment method to see the account details.</p>}
             {message && <p className="pp-form-message" role="alert">{message}</p>}
-            <button className="pp-button pp-button-blue pp-full" disabled={busy || !paymentMethod || !receipt}>{busy ? "Submitting…" : "Submit receipt for review"} <ArrowRight /></button>
+            <button className="pp-button pp-button-blue pp-full" disabled={busy || !paymentMethod || !receipt || !paymentReference.trim()}>{busy ? "Verifying payment…" : "Verify payment receipt"} <ArrowRight /></button>
           </form>
         )}
 
         {step === "done" && confirmation && (
-          <section className="pp-book-card pp-confirmed"><div className="pp-checkmark"><Check /></div><p className="pp-kicker">Booking received</p><h2>{confirmation.reference}</h2><p>{paymentMethod ? "Your receipt was submitted for venue review. Keep this reference until payment is confirmed." : "Keep this reference. The venue will confirm the next step."}</p><dl><div><dt>Court</dt><dd>{confirmation.courtName}</dd></div><div><dt>Total</dt><dd>{money(confirmation.totalAmount, confirmation.currency)}</dd></div><div><dt>Status</dt><dd>{confirmation.status.replaceAll("_", " ")}</dd></div></dl><div className="pp-actions"><button className="pp-button pp-button-outline" onClick={resetSelection}>Book another time</button><Link className="pp-button pp-button-blue" href="/book?mode=manage">View this booking</Link></div></section>
+          <section className={`pp-book-card pp-confirmed ${receiptOutcome?.status === "auto_approved" ? "is-auto-approved" : "is-reviewing"}`}><div className="pp-checkmark"><Check /></div><p className="pp-kicker">{receiptOutcome?.status === "auto_approved" ? "Payment verified" : "Receipt received"}</p><h2>{confirmation.reference}</h2><p>{receiptOutcome?.status === "auto_approved" ? "Your payment matched successfully and your court booking is confirmed." : "Your receipt needs a quick venue review. Your selected court times remain protected while it is checked."}</p><dl><div><dt>Court</dt><dd>{confirmation.courtName}</dd></div><div><dt>Total</dt><dd>{money(confirmation.totalAmount, confirmation.currency)}</dd></div><div><dt>Payment</dt><dd>{receiptOutcome?.status === "auto_approved" ? "Verified" : "Pending review"}</dd></div><div><dt>Booking</dt><dd>{receiptOutcome?.booking.status?.replaceAll("_", " ") || "Payment review"}</dd></div></dl><div className="pp-actions"><button className="pp-button pp-button-outline" onClick={resetSelection}>Book another time</button><Link className="pp-button pp-button-blue" href="/book?mode=manage">View this booking</Link></div></section>
         )}
       </div>
     </GuestShell>

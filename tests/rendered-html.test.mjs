@@ -232,7 +232,12 @@ test("protects selected courts, restores progress, and shows authoritative itemi
   assert.match(booking, /Select a payment method/);
   assert.match(booking, /name="paymentMethod"/);
   assert.match(booking, /paymentMethodCode/);
+  assert.match(booking, /Automatic receipt verification/);
+  assert.match(booking, /13-digit GCash transaction reference/);
+  assert.match(booking, /Verify payment receipt/);
+  assert.match(booking, /receiptOutcome\?\.status === "auto_approved"/);
   assert.match(css, /\.pp-payment-methods/);
+  assert.match(css, /\.pp-auto-check/);
   assert.match(css, /\.pp-payment-destination > dl > div/);
   assert.match(css, /\.pp-summary-meta dd \{ min-width: 0;[^}]*overflow-wrap: anywhere;/);
   assert.doesNotMatch(css, /\.pp-summary-meta dd \{[^}]*text-overflow: ellipsis/);
