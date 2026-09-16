@@ -248,7 +248,7 @@ test("protects selected courts, restores progress, and shows authoritative itemi
 test("keeps the admin lean and capability-controlled", async () => {
   const admin = await source("app/pickpoint-v2/admin/PickPointDesk.tsx");
   assert.match(admin, /\["today","schedule","bookings","courts","payments","settings"\]/);
-  for (const action of ["booking:create", "booking:cancel", "booking:check-in", "payment:approve", "schedule:block", "tenant:publish"]) {
+  for (const action of ["booking:create", "booking:cancel", "payment:approve", "schedule:block", "tenant:publish"]) {
     assert.match(admin, new RegExp(action.replace(":", "\\:")));
   }
   assert.match(admin, /session\.capabilities/);
@@ -278,6 +278,11 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(admin, /Save court/);
   assert.match(admin, /Cancelled \/ rejected/);
   assert.match(admin, /bookingGroup/);
+  assert.match(admin, /booking:details-ui/);
+  assert.match(admin, /View details/);
+  assert.match(admin, /In progress/);
+  assert.match(admin, /receiptDetailsScroll/);
+  assert.doesNotMatch(admin, />Check in</);
   assert.doesNotMatch(admin, /analytics|revenue chart|customer crm/i);
 });
 

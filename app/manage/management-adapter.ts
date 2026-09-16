@@ -97,6 +97,8 @@ export type Booking = {
   courtId: string;
   bookingDate: string | null;
   startTime: string | null;
+  startsAt?: string | null;
+  endsAt?: string | null;
   paymentEvidence?: PaymentEvidence | null;
 };
 
@@ -3611,6 +3613,8 @@ function mapLiveBooking(
       ? value(row, ["local_booking_date"])
       : null,
     startTime: startsAt ? formatManilaClock(startsAt) : null,
+    startsAt: startsAt?.toISOString() ?? null,
+    endsAt: endsAt?.toISOString() ?? null,
     paymentEvidence,
   };
 }
