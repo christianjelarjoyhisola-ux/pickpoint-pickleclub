@@ -171,8 +171,8 @@
 .pp-slot-legend .is-pending::before { border-color: #4d91df; background: #1478d4; }
 .pp-slot-legend .is-booked::before { border-color: #d96a7b; background: #e98493; }
 .pp-slot-legend .is-maintenance::before { border-color: #7d8797; background: #8f99a8; }
-.pp-schedule-scroll { position: relative; max-height: 560px; overflow: auto; border: 1px solid var(--pp-line); border-radius: 12px; background: white; overscroll-behavior: contain; }
-.pp-schedule { width: 100%; min-width: 500px; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+.pp-schedule-scroll { position: relative; max-height: 560px; overflow-x: hidden; overflow-y: auto; border: 1px solid var(--pp-line); border-radius: 12px; background: white; overscroll-behavior: contain; touch-action: pan-y; }
+.pp-schedule { width: 100%; max-width: 100%; min-width: 0; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
 .pp-schedule th, .pp-schedule td { border-right: 1px solid var(--pp-line); border-bottom: 1px solid var(--pp-line); }
 .pp-schedule tr > :last-child { border-right: 0; }
 .pp-schedule tbody tr:last-child > * { border-bottom: 0; }
@@ -183,8 +183,8 @@
 .pp-schedule thead small { margin-top: 3px; color: #738197; font-weight: 600; }
 .pp-schedule tbody th { position: sticky; left: 0; z-index: 1; width: 92px; padding: 10px 8px; background: #fbfcfe; font-size: .75rem; white-space: nowrap; }
 .pp-schedule td { height: 60px; padding: 4px; background: white; }
-.pp-schedule td button { width: 100%; min-height: 50px; display: grid; place-content: center; gap: 3px; padding: 4px; border: 1px solid transparent; border-radius: 8px; background: white; color: var(--pp-navy); cursor: pointer; font-size: .72rem; font-weight: 800; transition: transform .1s ease, border-color .16s ease, background-color .16s ease, color .16s ease, box-shadow .16s ease; }
-.pp-schedule td button:hover:not(:disabled) { border-color: var(--pp-blue); background: #eff6ff; }
+.pp-schedule td button { width: 100%; min-height: 50px; display: grid; place-content: center; gap: 3px; padding: 4px; border: 1px solid transparent; border-radius: 8px; background: white; color: var(--pp-navy); cursor: pointer; font-size: .72rem; font-weight: 800; touch-action: manipulation; user-select: none; -webkit-user-drag: none; transition: transform .1s ease, border-color .16s ease, background-color .16s ease, color .16s ease, box-shadow .16s ease; }
+.pp-schedule td button:hover:not(:disabled):not(.is-selected) { border-color: var(--pp-blue); background: #eff6ff; }
 .pp-schedule td button:active:not(:disabled) { transform: scale(.975); }
 .pp-schedule td button.is-selected { border-color: var(--pp-navy); background: var(--pp-navy); color: white; box-shadow: 0 6px 16px rgba(4,22,48,.16); }
 .pp-schedule td button:disabled { background: #f1f4f7; color: #9aa5b4; cursor: not-allowed; }
@@ -486,7 +486,7 @@
   .pp-schedule-heading { align-items: center; margin-top: 24px; }
   .pp-schedule-heading span { max-width: 220px; line-height: 1.4; }
   .pp-schedule-scroll { max-height: 490px; border-radius: 11px; }
-  .pp-schedule { min-width: 320px; }
+  .pp-schedule { min-width: 0; }
   .pp-schedule thead th:first-child, .pp-schedule tbody th { width: 76px; }
   .pp-schedule thead th { height: 58px; padding: 7px 3px; font-size: .66rem; }
   .pp-schedule thead strong { font-size: .72rem; }
