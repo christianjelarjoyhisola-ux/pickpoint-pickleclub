@@ -147,16 +147,17 @@ test("supports a tenant-safe atomic multi-court booking grid", async () => {
 });
 
 test("shows truthful PickPoint slot states and hides elapsed times", async () => {
-  const [booking, client, css, migration] = await Promise.all([
+  const [booking, client, css, migration, pendingMigration] = await Promise.all([
     source("app/pickpoint-v2/guest/booking-view.tsx"),
     source("app/lib/platform/client.ts"),
     source("app/pickpoint-v2/guest/guest.css"),
     source("supabase/migrations/20260916030000_pickpoint_slot_states.sql"),
+    source("supabase/migrations/20260916040000_pickpoint_pending_slot_state.sql"),
   ]);
   assert.match(client, /get_pickpoint_public_availability/);
   assert.match(booking, /visibleScheduleTimes/);
   assert.match(booking, /Past times are hidden/);
-  for (const state of ["processing", "booked", "maintenance", "closed"]) {
+  for (const state of ["processing", "pending", "booked", "maintenance", "closed"]) {
     assert.match(booking, new RegExp(state));
     assert.match(css, new RegExp(`slot-${state}`));
   }
@@ -166,6 +167,29 @@ test("shows truthful PickPoint slot states and hides elapsed times", async () =>
   assert.match(migration, /request_origin_matches_tenant/);
   assert.match(migration, /when occupancy\.status = 'held' then 'processing'/);
   assert.match(migration, /then 'maintenance'/);
+  assert.match(pendingMigration, /booking\.payment_status/);
+  assert.match(pendingMigration, /then 'pending'/);
+  assert.match(pendingMigration, /3a4bcfeb-e8a7-417a-8b0c-90c37c3a6175/);
+});
+
+test("holds selected courts before details and shows authoritative fees", async () => {
+  const [booking, client, css] = await Promise.all([
+    source("app/pickpoint-v2/guest/booking-view.tsx"),
+    source("app/lib/platform/client.ts"),
+    source("app/pickpoint-v2/guest/guest.css"),
+  ]);
+  assert.match(booking, /function holdSelection/);
+  assert.match(booking, /Booking details pending/);
+  assert.match(booking, /__details_pending_v1__/);
+  assert.match(booking, /completeBookingDetails/);
+  assert.match(client, /complete_public_booking_details/);
+  assert.match(booking, /confirmation\.serviceFeeAmount/);
+  assert.match(booking, /confirmation\.totalAmount/);
+  assert.match(booking, /className="pp-calendar"/);
+  assert.match(booking, /aria-label="Choose a playing date"/);
+  assert.match(css, /\.pp-price-breakdown/);
+  assert.match(css, /\.pp-hold-notice/);
+  assert.match(css, /@keyframes pp-calendar-in/);
 });
 
 test("keeps the admin lean and capability-controlled", async () => {

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, CalendarDays, Check, ChevronLeft, ChevronRight, Search, Upload } from "lucide-react";
-import { bookingStatus, cancelUnpaidBooking, createBooking, getAvailability, submitPaymentReceipt } from "../../lib/platform/client";
+import { bookingStatus, cancelUnpaidBooking, completeBookingDetails, createBooking, getAvailability, submitPaymentReceipt } from "../../lib/platform/client";
 import type { AvailabilityResponse, BookingConfirmation, PaymentMethod, PublicCourt } from "../../lib/platform/types";
 import { GuestShell } from "./guest-shell";
 import { isPublicBookingReady } from "./readiness";
@@ -11,11 +11,12 @@ import { useTenant } from "./use-tenant";
 
 type Step = "select" | "details" | "payment" | "done";
 type BookingViewProps = { initialMode: "book" | "manage"; initialCourtSlug?: string };
-type SlotState = "available" | "processing" | "booked" | "maintenance" | "closed" | "lead-time" | "not-offered" | "checking";
+type SlotState = "available" | "processing" | "pending" | "booked" | "maintenance" | "closed" | "lead-time" | "not-offered" | "checking";
 
 const slotStateLabel: Record<SlotState, string> = {
   available: "Available",
   processing: "Processing",
+  pending: "Pending",
   booked: "Booked",
   maintenance: "Maintenance",
   closed: "Closed",
@@ -80,6 +81,27 @@ function addDays(value: Date, days: number) {
   return result;
 }
 
+function addMonths(value: string, monthsToAdd: number) {
+  const [year, month] = value.slice(0, 7).split("-").map(Number);
+  const result = new Date(year, month - 1 + monthsToAdd, 1, 12);
+  return `${result.getFullYear()}-${pad(result.getMonth() + 1)}`;
+}
+
+function calendarDates(month: string) {
+  const [year, monthNumber] = month.split("-").map(Number);
+  const first = new Date(year, monthNumber - 1, 1, 12);
+  const mondayOffset = (first.getDay() + 6) % 7;
+  const start = addDays(first, -mondayOffset);
+  return Array.from({ length: 42 }, (_, index) => isoDate(addDays(start, index)));
+}
+
+function bookingFeeAmount(fee: { feeMode?: string; feeAmount?: number } | undefined, subtotal: number, courtHours: number) {
+  const amount = numberSetting(fee?.feeAmount, 0);
+  if (fee?.feeMode === "fixed_per_hour") return amount * courtHours;
+  if (fee?.feeMode === "percentage") return subtotal * amount / 100;
+  return amount;
+}
+
 function clockAt(timestamp: number, timezone: string) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: timezone,
@@ -118,6 +140,8 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   const [mode, setMode] = useState(initialMode);
   const [step, setStep] = useState<Step>("select");
   const [date, setDate] = useState(() => isoDate(new Date()));
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(() => isoDate(new Date()).slice(0, 7));
   const [selectedSlotKeys, setSelectedSlotKeys] = useState<string[]>([]);
   const [availability, setAvailability] = useState<AvailabilityResponse | null>(null);
   const [busy, setBusy] = useState(false);
@@ -131,6 +155,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   const [lookupResult, setLookupResult] = useState<Record<string, unknown> | null>(null);
   const [bookingClock] = useState(() => Date.now());
   const bookingAttemptId = useRef<string | null>(null);
+  const dateFieldRef = useRef<HTMLDivElement | null>(null);
 
   const courts = useMemo(() => data?.courts ?? [], [data]);
   const live = isPublicBookingReady(data);
@@ -142,11 +167,17 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   const minimumDate = isoDate(new Date());
   const maximumDate = isoDate(addDays(new Date(), maximumAdvanceDays));
   const selectedDateLabel = new Intl.DateTimeFormat("en-PH", { weekday: "short", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${date}T12:00:00`));
+  const calendarMonthLabel = new Intl.DateTimeFormat("en-PH", { month: "long", year: "numeric" }).format(new Date(`${calendarMonth}-01T12:00:00`));
+  const calendarCells = useMemo(() => calendarDates(calendarMonth), [calendarMonth]);
+  const previousCalendarMonth = addMonths(calendarMonth, -1);
+  const nextCalendarMonth = addMonths(calendarMonth, 1);
 
   function chooseDate(nextDate: string) {
     setAvailability(null);
     setMessage("");
     setDate(nextDate);
+    setCalendarMonth(nextDate.slice(0, 7));
+    setCalendarOpen(false);
     setSelectedSlotKeys([]);
     bookingAttemptId.current = null;
   }
@@ -165,6 +196,22 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0 });
   }, [step]);
+
+  useEffect(() => {
+    if (!calendarOpen) return;
+    const closeCalendar = (event: MouseEvent) => {
+      if (!dateFieldRef.current?.contains(event.target as Node)) setCalendarOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setCalendarOpen(false);
+    };
+    document.addEventListener("mousedown", closeCalendar);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", closeCalendar);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [calendarOpen]);
 
   const scheduleTimes = useMemo(() => {
     if (!courts.length) return [];
@@ -195,6 +242,11 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     const selectedCourt = courts.find((court) => court.id === selection.courtId);
     return total + (selectedCourt ? rateFor(selectedCourt, selection.startTime) ?? 0 : 0);
   }, 0);
+  const estimatedBookingFee = bookingFeeAmount(data?.bookingFee, estimatedTotal, selectedSlots.length);
+  const estimatedGrandTotal = estimatedTotal + estimatedBookingFee;
+  const holdExpiryLabel = confirmation?.expiresAt
+    ? new Intl.DateTimeFormat("en-PH", { hour: "numeric", minute: "2-digit", timeZone: data?.tenant.timezone || "Asia/Manila" }).format(new Date(confirmation.expiresAt))
+    : null;
 
   function slotState(court: PublicCourt, startTime: string, source = availability): SlotState {
     const hour = minutes(startTime);
@@ -240,18 +292,29 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     setMessage("");
   }
 
-  const resetSelection = () => { setStep("select"); setConfirmation(null); setSelectedSlotKeys([]); setMessage(""); };
+  const resetSelection = () => { setStep("select"); setConfirmation(null); setSelectedSlotKeys([]); setAccepted(false); setMessage(""); bookingAttemptId.current = null; };
 
-  async function reserve(event: React.FormEvent) {
-    event.preventDefault();
+  async function holdSelection() {
     if (!selectedSlots.length || !live || !accepted || !policy?.version) return;
     setBusy(true); setMessage("");
     try {
       bookingAttemptId.current ||= crypto.randomUUID();
-      const result = await createBooking({ sessions: selectedSlots.map((selection) => ({ ...selection, bookingDate: date, durationHours: 1 })), customer, guestCount: 1, policyAccepted: true, policyVersion: policy.version, clientRequestId: bookingAttemptId.current });
+      const result = await createBooking({
+        sessions: selectedSlots.map((selection) => ({ ...selection, bookingDate: date, durationHours: 1 })),
+        customer: {
+          name: "Booking details pending",
+          email: `booking-${bookingAttemptId.current}@pending.pickpoint-pickleclub.invalid`,
+          phone: "0000000000",
+        },
+        guestCount: 1,
+        notes: "__details_pending_v1__",
+        policyAccepted: true,
+        policyVersion: policy.version,
+        clientRequestId: bookingAttemptId.current,
+      });
       setConfirmation(result);
       try { window.localStorage.setItem(`pickpoint-booking:${result.reference.toUpperCase()}`, result.bookingToken); } catch { /* Private browsing may deny storage. */ }
-      setStep(paymentMethod ? "payment" : "done");
+      setStep("details");
     } catch (reason) {
       setMessage(reason instanceof Error ? reason.message : "We could not hold that time. Please choose another.");
       getAvailability(date).then((result) => {
@@ -264,6 +327,45 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
       }).catch(() => undefined);
     }
     finally { setBusy(false); }
+  }
+
+  async function saveDetails(event: React.FormEvent) {
+    event.preventDefault();
+    if (!confirmation) return;
+    setBusy(true); setMessage("");
+    try {
+      await completeBookingDetails({ reference: confirmation.reference, token: confirmation.bookingToken, customer });
+      setStep(paymentMethod ? "payment" : "done");
+    } catch (reason) {
+      const text = reason instanceof Error ? reason.message : "Your player details could not be saved.";
+      if (/expired|no longer active/i.test(text)) {
+        setConfirmation(null);
+        setSelectedSlotKeys([]);
+        setAccepted(false);
+        bookingAttemptId.current = null;
+        setStep("select");
+        getAvailability(date).then(setAvailability).catch(() => undefined);
+        setMessage("Your temporary hold expired. Please choose the court times again.");
+      } else {
+        setMessage(text);
+      }
+    } finally { setBusy(false); }
+  }
+
+  async function releaseHoldAndReturn() {
+    if (!confirmation) { setStep("select"); return; }
+    setBusy(true); setMessage("");
+    try {
+      await cancelUnpaidBooking(confirmation.reference, confirmation.bookingToken);
+      setConfirmation(null);
+      setSelectedSlotKeys([]);
+      setAccepted(false);
+      bookingAttemptId.current = null;
+      setStep("select");
+      setAvailability(await getAvailability(date));
+    } catch (reason) {
+      setMessage(reason instanceof Error ? reason.message : "The current hold could not be released.");
+    } finally { setBusy(false); }
   }
 
   async function sendReceipt(event: React.FormEvent) {
@@ -327,20 +429,25 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
 
         {data && live && step === "select" && (
           <section className="pp-book-card">
-            <div className="pp-date-field">
+            <div className="pp-date-field" ref={dateFieldRef}>
               <span className="pp-field-label">Date</span>
               <div className="pp-date-picker">
                 <button type="button" aria-label="Previous day" disabled={date <= minimumDate} onClick={() => moveDate(-1)}><ChevronLeft aria-hidden="true" /></button>
-                <label className="pp-date-trigger">
+                <button type="button" className="pp-date-trigger" aria-haspopup="dialog" aria-expanded={calendarOpen} onClick={() => setCalendarOpen((current) => !current)}>
                   <CalendarDays aria-hidden="true" />
                   <span><small>Playing on</small><strong>{selectedDateLabel}</strong></span>
-                  <input aria-label="Choose booking date" type="date" value={date} min={minimumDate} max={maximumDate} onChange={(event) => chooseDate(event.target.value)} />
-                </label>
+                </button>
                 <button type="button" aria-label="Next day" disabled={date >= maximumDate} onClick={() => moveDate(1)}><ChevronRight aria-hidden="true" /></button>
               </div>
+              {calendarOpen && <section className="pp-calendar" role="dialog" aria-modal="false" aria-label="Choose a playing date">
+                <header><button type="button" aria-label="Previous month" disabled={previousCalendarMonth < minimumDate.slice(0, 7)} onClick={() => setCalendarMonth(previousCalendarMonth)}><ChevronLeft aria-hidden="true" /></button><strong>{calendarMonthLabel}</strong><button type="button" aria-label="Next month" disabled={nextCalendarMonth > maximumDate.slice(0, 7)} onClick={() => setCalendarMonth(nextCalendarMonth)}><ChevronRight aria-hidden="true" /></button></header>
+                <div className="pp-calendar-week" aria-hidden="true">{["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => <span key={day}>{day}</span>)}</div>
+                <div className="pp-calendar-grid">{calendarCells.map((day) => { const outsideMonth = day.slice(0, 7) !== calendarMonth; const disabled = day < minimumDate || day > maximumDate; const selected = day === date; return <button type="button" key={day} disabled={disabled} className={`${outsideMonth ? "is-outside " : ""}${selected ? "is-selected" : ""}`} aria-pressed={selected} aria-label={new Intl.DateTimeFormat("en-PH", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${day}T12:00:00`))} onClick={() => chooseDate(day)}>{Number(day.slice(-2))}</button>; })}</div>
+                <footer><button type="button" onClick={() => chooseDate(minimumDate)}>Today</button><span>Up to {maximumAdvanceDays} days ahead</span></footer>
+              </section>}
             </div>
             <div className="pp-schedule-heading"><div><strong>Choose court times</strong><span>Select one or more available one-hour slots.</span></div>{selectedSlots.length > 0 && <button type="button" onClick={() => setSelectedSlotKeys([])}>Clear</button>}</div>
-            <ul className="pp-slot-legend" aria-label="Court time status colors"><li className="is-available">Available</li><li className="is-processing">Processing</li><li className="is-booked">Booked</li><li className="is-maintenance">Maintenance</li></ul>
+            <ul className="pp-slot-legend" aria-label="Court time status colors"><li className="is-available">Available</li><li className="is-processing">Processing</li><li className="is-pending">Pending</li><li className="is-booked">Booked</li><li className="is-maintenance">Maintenance</li></ul>
             <div className="pp-schedule-scroll" aria-busy={!availability}>
               {visibleScheduleTimes.length > 0 ? <table className="pp-schedule">
                 <thead><tr><th scope="col">Time</th>{courts.map((item) => <th scope="col" key={item.id}><strong>{item.name}</strong><small>{timeLabel(item.opensAt)}–{timeLabel(item.closesAt)}</small></th>)}</tr></thead>
@@ -349,21 +456,21 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
               {!availability && <div className="pp-schedule-loading">Checking availability…</div>}
             </div>
             <p className="pp-grid-note">Past times are hidden. All selected slots will be reserved together under one booking reference.</p>
+            {policy ? <><details className="pp-policy pp-time-policy"><summary>{policy.title}</summary><div><span>{policy.intro}</span><p>{policy.content}</p></div></details><label className="pp-check pp-hold-consent"><input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} required /><span><strong>I agree to the booking, cancellation, refund, and rescheduling policy.</strong><small>Continue creates a temporary hold while you enter your details.</small></span></label></> : <p className="pp-form-message" role="alert">The current booking policy could not be loaded. Please refresh before reserving.</p>}
             {message && <p className="pp-form-message" role="alert">{message}</p>}
-            <div className="pp-card-action"><span>{selectedSlots.length ? <><small>{selectedSlots.length} court-hour{selectedSlots.length === 1 ? "" : "s"} selected</small><strong>{money(estimatedTotal, primaryCourt?.currency)}</strong></> : "Choose at least one court time"}</span><button className="pp-button pp-button-blue" disabled={!selectedSlots.length} onClick={() => setStep("details")}>Continue <ArrowRight /></button></div>
+            <div className="pp-card-action"><span>{selectedSlots.length ? <><small>{selectedSlots.length} court-hour{selectedSlots.length === 1 ? "" : "s"} · includes {money(estimatedBookingFee, primaryCourt?.currency)} fee</small><strong>{money(estimatedGrandTotal, primaryCourt?.currency)}</strong></> : "Choose at least one court time"}</span><button className="pp-button pp-button-blue" disabled={busy || !selectedSlots.length || !accepted || !policy?.version} onClick={holdSelection}>{busy ? "Holding your times…" : "Continue"} <ArrowRight /></button></div>
           </section>
         )}
 
-        {step === "details" && selectedSlots.length > 0 && (
-          <form className="pp-book-card pp-details" onSubmit={reserve}>
-            <button type="button" className="pp-back" onClick={() => setStep("select")}><ArrowLeft /> Change time</button>
+        {step === "details" && selectedSlots.length > 0 && confirmation && (
+          <form className="pp-book-card pp-details" onSubmit={saveDetails}>
+            <button type="button" className="pp-back" disabled={busy} onClick={releaseHoldAndReturn}><ArrowLeft /> Change time</button>
+            <div className="pp-hold-notice"><span className="pp-pulse" /><div><strong>Your court times are being held.</strong><span>{holdExpiryLabel ? `Complete your details before ${holdExpiryLabel}.` : "Complete your details before the temporary hold expires."}</span></div></div>
             <div className="pp-fields-row"><label>Full name<input value={customer.name} onChange={(event) => setCustomer({ ...customer, name: event.target.value })} autoComplete="name" required /></label><label>Mobile number<input value={customer.phone} onChange={(event) => setCustomer({ ...customer, phone: event.target.value })} autoComplete="tel" inputMode="tel" required /></label></div>
             <label>Email address<input type="email" value={customer.email} onChange={(event) => setCustomer({ ...customer, email: event.target.value })} autoComplete="email" required /></label>
-            <section className="pp-selection-review" aria-labelledby="selection-review-title"><div><strong id="selection-review-title">Your selected court times</strong><span>{selectedSlots.length} court-hour{selectedSlots.length === 1 ? "" : "s"} · {money(estimatedTotal, primaryCourt?.currency)}</span></div><ul>{selectedSlots.map((selection) => { const selectedCourt = courts.find((item) => item.id === selection.courtId); return <li key={slotKey(selection.courtId, selection.startTime)}><span>{timeRangeLabel(selection.startTime)}</span><strong>{selectedCourt?.name}</strong></li>; })}</ul></section>
-            {policy ? <details className="pp-policy"><summary>{policy.title}</summary><div><span>{policy.intro}</span><p>{policy.content}</p></div></details> : <p className="pp-form-message" role="alert">The current booking policy could not be loaded. Please refresh before reserving.</p>}
-            <label className="pp-check"><input type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} required disabled={!policy?.version} /><span><strong>I have read and agree to the current booking, cancellation, refund, and rescheduling policy.</strong><small>Your selected times are held only after the server accepts the complete request.</small></span></label>
+            <section className="pp-selection-review" aria-labelledby="selection-review-title"><div><strong id="selection-review-title">Your selected court times</strong><span>{selectedSlots.length} court-hour{selectedSlots.length === 1 ? "" : "s"}</span></div><ul>{selectedSlots.map((selection) => { const selectedCourt = courts.find((item) => item.id === selection.courtId); return <li key={slotKey(selection.courtId, selection.startTime)}><span>{timeRangeLabel(selection.startTime)}</span><strong>{selectedCourt?.name}</strong></li>; })}</ul><dl className="pp-price-breakdown"><div><dt>Court time</dt><dd>{money(confirmation.subtotalAmount, confirmation.currency)}</dd></div><div><dt>Booking fee</dt><dd>{money(confirmation.serviceFeeAmount, confirmation.currency)}</dd></div><div><dt>Total</dt><dd>{money(confirmation.totalAmount, confirmation.currency)}</dd></div></dl></section>
             {message && <p className="pp-form-message" role="alert">{message}</p>}
-            <div className="pp-card-action"><span><small>{selectedSlots.length} court-hour{selectedSlots.length === 1 ? "" : "s"}</small><strong>{date} · {money(estimatedTotal, primaryCourt?.currency)}</strong></span><button className="pp-button pp-button-blue" disabled={busy || !accepted || !policy?.version}>{busy ? "Holding your courts…" : selectedSlots.length === 1 ? "Reserve this time" : "Reserve selected times"} <ArrowRight /></button></div>
+            <div className="pp-card-action"><span><small>{selectedSlots.length} court-hour{selectedSlots.length === 1 ? "" : "s"} held</small><strong>{date} · {money(confirmation.totalAmount, confirmation.currency)}</strong></span><button className="pp-button pp-button-blue" disabled={busy}>{busy ? "Saving details…" : "Continue to payment"} <ArrowRight /></button></div>
           </form>
         )}
 

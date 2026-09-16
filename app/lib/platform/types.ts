@@ -89,7 +89,7 @@ export type AvailabilityCourt = {
   unavailable: Array<{
     startsAt: string;
     endsAt: string;
-    state?: "processing" | "booked";
+    state?: "processing" | "pending" | "booked";
   }>;
 };
 
