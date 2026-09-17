@@ -29,6 +29,15 @@ export function RouteLoadingScreen({
             unoptimized
           />
         </div>
+        <Image
+          className="route-loading-wordmark"
+          src="/pickpoint-wordmark-loader-v1.png"
+          alt=""
+          width={217}
+          height={73}
+          priority
+          unoptimized
+        />
         <span className="route-loading-progress" aria-hidden="true"><i /></span>
         <span className="sr-only">Loading PickPoint…</span>
       </div>

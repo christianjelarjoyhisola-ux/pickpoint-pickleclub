@@ -216,13 +216,13 @@ body:has(> .route-loading-portal)
 
 .route-loading-card {
   position: relative;
-  width: min(250px, 72vw);
-  aspect-ratio: 1 / 0.92;
+  width: min(292px, 82vw);
+  min-height: 318px;
   display: grid;
   align-content: center;
   justify-items: center;
-  gap: 24px;
-  padding: 28px;
+  gap: 13px;
+  padding: 30px 28px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 38px;
@@ -259,8 +259,8 @@ body:has(> .route-loading-portal)
 .route-loading-emblem {
   position: relative;
   z-index: 1;
-  width: 146px;
-  height: 146px;
+  width: 136px;
+  height: 136px;
   display: grid;
   align-items: center;
   justify-content: center;
@@ -273,8 +273,8 @@ body:has(> .route-loading-portal)
 .route-loading-mark {
   position: relative;
   z-index: 2;
-  width: 102px;
-  height: 92px;
+  width: 96px;
+  height: 86px;
   object-fit: contain;
   filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.34));
   animation: pickpoint-pickleclub-mark-float 1.8s ease-in-out infinite alternate;
@@ -312,14 +312,24 @@ body:has(> .route-loading-portal)
   transform: translateX(-50%);
 }
 
+.route-loading-wordmark {
+  position: relative;
+  z-index: 1;
+  width: 205px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 9px 16px rgba(0, 0, 0, 0.26));
+}
+
 .route-loading-progress {
   position: relative;
   z-index: 1;
-  width: 112px;
+  width: 120px;
   height: 4px;
   display: block;
   overflow: hidden;
   border-radius: 999px;
+  margin-top: 7px;
   background: rgba(255, 255, 255, 0.12);
 }
 

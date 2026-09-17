@@ -6,6 +6,7 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "generate:loader-wordmark": "node scripts/generate-loader-wordmark.mjs",
     "generate:social": "node scripts/generate-social-preview.mjs",
     "dev": "vinext dev",
     "build": "vinext build",

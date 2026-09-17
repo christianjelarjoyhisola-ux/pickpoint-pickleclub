@@ -494,11 +494,12 @@ test("pins every browser request to the PickPoint tenant and shared project", as
 });
 
 test("uses the supplied transparent PickPoint brand assets and palette", async () => {
-  const [guestCss, adminCss, logo, socialPreview] = await Promise.all([
+  const [guestCss, adminCss, logo, socialPreview, loaderWordmark] = await Promise.all([
     source("app/pickpoint-v2/guest/guest.css"),
     source("app/pickpoint-v2/admin/admin.module.css"),
     readFile(path.join(root, "public/pickpoint-mark-v4.png")),
     readFile(path.join(root, "public/pickpoint-share-v1.png")),
+    readFile(path.join(root, "public/pickpoint-wordmark-loader-v1.png")),
   ]);
   assert.match(guestCss, /#041630/i);
   assert.match(guestCss, /#b8f000/i);
@@ -516,6 +517,9 @@ test("uses the supplied transparent PickPoint brand assets and palette", async (
   assert.equal(logo[25], 6, "PNG must use RGBA color type");
   assert.equal(socialPreview.readUInt32BE(16), 1200);
   assert.equal(socialPreview.readUInt32BE(20), 630);
+  assert.equal(loaderWordmark.readUInt32BE(16), 520);
+  assert.equal(loaderWordmark.readUInt32BE(20), 174);
+  assert.ok(loaderWordmark.length < 50_000, "Loader wordmark must remain fast on cold mobile loads");
 });
 
 test("uses a branded, accessible startup and route loading experience", async () => {
@@ -530,6 +534,7 @@ test("uses a branded, accessible startup and route loading experience", async ()
   assert.match(startup, /MAXIMUM_VISIBLE_MS = 2500/);
   assert.match(startup, /document\.readyState === "complete"/);
   assert.match(loader, /pickpoint-mark-v2\.png/);
+  assert.match(loader, /pickpoint-wordmark-loader-v1\.png/);
   assert.match(loader, /role="status"/);
   assert.match(loader, /Loading PickPoint…/);
   assert.doesNotMatch(loader, /Preparing your next rally|Live courts|Court Desk/);
