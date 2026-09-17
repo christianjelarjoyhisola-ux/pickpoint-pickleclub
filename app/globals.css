@@ -258,11 +258,40 @@ body:has(> .route-loading-portal)
   filter: drop-shadow(0 7px 14px rgba(0, 0, 0, 0.24));
 }
 
-.route-loading-wordmark {
-  width: min(205px, calc(100% - 64px));
-  height: auto;
-  object-fit: contain;
+.route-loading-name {
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  line-height: 1;
+  text-transform: uppercase;
   filter: drop-shadow(0 7px 14px rgba(0, 0, 0, 0.2));
+}
+
+.route-loading-name b {
+  color: #fff;
+  font-family: var(--font-display), Arial, sans-serif;
+  font-size: clamp(1.18rem, 4.8vw, 1.65rem);
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: -0.065em;
+}
+
+.route-loading-name > span {
+  margin-top: 3px;
+  color: var(--citrus);
+  font-family: var(--font-display), Arial, sans-serif;
+  font-size: clamp(0.72rem, 3vw, 0.94rem);
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.route-loading-name small {
+  margin-top: 4px;
+  color: #25a4ff;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.17em;
 }
 
 .route-loading-card > p {

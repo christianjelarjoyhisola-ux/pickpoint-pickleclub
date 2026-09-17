@@ -524,7 +524,8 @@ test("uses a branded, accessible startup and route loading experience", async ()
   assert.match(startup, /MAXIMUM_VISIBLE_MS = 3000/);
   assert.match(startup, /document\.readyState === "complete"/);
   assert.match(loader, /pickpoint-mark-v2\.png/);
-  assert.match(loader, /pickpoint-wordmark-v3\.png/);
+  assert.match(loader, /<b>Pick Point<\/b>/);
+  assert.match(loader, /<span>Pickle Club<\/span>/);
   assert.match(loader, /role="status"/);
   assert.match(loader, /Preparing your next rally…/);
   assert.match(css, /\.startup-loading-root\.is-leaving/);
