@@ -526,14 +526,15 @@ test("uses a branded, accessible startup and route loading experience", async ()
     source("app/globals.css"),
   ]);
   assert.match(layout, /<StartupLoadingScreen \/>/);
-  assert.match(startup, /MINIMUM_VISIBLE_MS = 1400/);
-  assert.match(startup, /MAXIMUM_VISIBLE_MS = 3000/);
+  assert.match(startup, /MINIMUM_VISIBLE_MS = 900/);
+  assert.match(startup, /MAXIMUM_VISIBLE_MS = 2500/);
   assert.match(startup, /document\.readyState === "complete"/);
   assert.match(loader, /pickpoint-mark-v2\.png/);
-  assert.match(loader, /<b>Pick Point<\/b>/);
-  assert.match(loader, /<span>Pickle Club<\/span>/);
   assert.match(loader, /role="status"/);
-  assert.match(loader, /Preparing your next rally…/);
+  assert.match(loader, /Loading PickPoint…/);
+  assert.doesNotMatch(loader, /Preparing your next rally|Live courts|Court Desk/);
+  assert.match(css, /\.route-loading-orbit/);
+  assert.match(css, /pickpoint-pickleclub-mark-float/);
   assert.match(css, /\.startup-loading-root\.is-leaving/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
   assert.doesNotMatch(startup, /(?:4000|5000|6000)/);

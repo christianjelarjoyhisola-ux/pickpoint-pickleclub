@@ -16,30 +16,21 @@ export function RouteLoadingScreen({
       aria-atomic="true"
     >
       <div className="route-loading-card">
-        <div className="route-loading-brand" aria-hidden="true">
+        <div className="route-loading-emblem" aria-hidden="true">
+          <span className="route-loading-halo" />
+          <span className="route-loading-orbit"><i /></span>
           <Image
             className="route-loading-mark"
             src="/pickpoint-mark-v2.png"
             alt=""
-            width={96}
-            height={86}
+            width={120}
+            height={107}
             priority
             unoptimized
           />
-          <span className="route-loading-name">
-            <b>Pick Point</b>
-            <span>Pickle Club</span>
-            <small>Play. Rally. Connect.</small>
-          </span>
         </div>
-        <div className="route-loading-court" aria-hidden="true">
-          <span className="route-loading-court-line" />
-          <span className="route-loading-runner" />
-        </div>
-        <p>PickPoint Court Desk</p>
-        <strong>Preparing your next rally…</strong>
-        <span>Live courts. Clear times. Ready to play.</span>
         <span className="route-loading-progress" aria-hidden="true"><i /></span>
+        <span className="sr-only">Loading PickPoint…</span>
       </div>
     </div>
   );
