@@ -16,6 +16,7 @@ const localBindingConfig = {
   main: "./worker/index.ts",
   compatibility_date: "2026-09-15",
   compatibility_flags: ["nodejs_compat"],
+  workers_dev: true,
   routes: [
     { pattern: "pickpointpickle.com", custom_domain: true },
     { pattern: "www.pickpointpickle.com", custom_domain: true },

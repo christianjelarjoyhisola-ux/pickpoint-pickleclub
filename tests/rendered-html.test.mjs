@@ -469,6 +469,7 @@ test("pins every browser request to the PickPoint tenant and shared project", as
   assert.match(client, /https:\/\/pickpointpickle\.com/);
   assert.match(viteConfig, /pattern: "pickpointpickle\.com", custom_domain: true/);
   assert.match(viteConfig, /pattern: "www\.pickpointpickle\.com", custom_domain: true/);
+  assert.match(viteConfig, /workers_dev: true/);
   assert.match(domainOperation, /provision_tenant_domain/);
   assert.match(domainOperation, /v_hostname constant text := 'pickpointpickle\.com'/);
   assert.doesNotMatch(client, /reference: `DINK-/);
