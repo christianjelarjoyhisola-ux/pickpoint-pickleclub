@@ -19,7 +19,7 @@ export function RouteLoadingScreen({
         <div className="route-loading-brand" aria-hidden="true">
           <Image
             className="route-loading-mark"
-            src="/pickpoint-mark-v4.png"
+            src="/pickpoint-mark-v2.png"
             alt=""
             width={96}
             height={86}
