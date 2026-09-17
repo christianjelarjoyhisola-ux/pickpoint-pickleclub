@@ -72,7 +72,14 @@ test("groups month and all-time charts without horizontal-only data", () => {
     { date: "2026-02-02", totalBookingCount: 1, recordedBookingHours: 1, bookedHours: 1, paidBookingCount: 1, venueSalesPaid: 305, platformBookingFeesPaid: 15, grossPaid: 320, recordedRefunds: 0, lifecycleCounts: counts({ completed: 1 }) },
   ];
   const source = report("2026-01-03", "2026-02-02", { daily, grossPaid: 910, paidBookingCount: 3, totalBookingCount: 3 });
-  const months = dashboardChartPoints("allTime", source, []);
+  const months = dashboardChartPoints("allTime", source);
   assert.deepEqual(months.map(item => [item.key, item.bookings, item.revenue]), [["2026-01", 2, 590], ["2026-02", 1, 320]]);
-  assert.equal(dashboardChartPoints("previousMonth", source, []).length, 3);
+  assert.equal(dashboardChartPoints("previousMonth", source).length, 3);
+});
+
+test("uses daily chart points instead of hourly buckets for today", () => {
+  const source = report("2026-09-17", "2026-09-17");
+  assert.deepEqual(dashboardChartPoints("today", source), [
+    { key: "2026-09-17", label: "Sep 17", bookings: 1, revenue: 315 },
+  ]);
 });

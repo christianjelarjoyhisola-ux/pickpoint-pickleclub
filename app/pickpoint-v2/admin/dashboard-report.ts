@@ -1,4 +1,4 @@
-import type { Booking, RegularBookingReport } from "../../manage/management-adapter";
+import type { RegularBookingReport } from "../../manage/management-adapter";
 
 export type DashboardPeriod = "today" | "last7" | "previousMonth" | "currentMonth" | "allTime";
 export type DashboardChartMode = "bookings" | "revenue";
@@ -138,20 +138,7 @@ export function mergeRegularBookingReports(reports: RegularBookingReport[]): Reg
 
 export type DashboardChartPoint = { key: string; label: string; bookings: number; revenue: number };
 
-export function dashboardChartPoints(period: DashboardPeriod, report: RegularBookingReport, bookings: Booking[]): DashboardChartPoint[] {
-  if (period === "today") {
-    const date = report.range.dateTo;
-    return Array.from({ length: 19 }, (_, index) => {
-      const hour = index + 5;
-      const hourBookings = bookings.filter(booking => booking.bookingDate === date && Number.parseInt(booking.startTime?.slice(0, 2) ?? "-1") === hour);
-      return {
-        key: `${date}-${hour}`,
-        label: `${hour % 12 || 12}${hour < 12 ? "a" : "p"}`,
-        bookings: hourBookings.length,
-        revenue: hourBookings.filter(booking => booking.payment === "paid").reduce((total, booking) => total + booking.amount, 0),
-      };
-    });
-  }
+export function dashboardChartPoints(period: DashboardPeriod, report: RegularBookingReport): DashboardChartPoint[] {
   const buckets = new Map<string, DashboardChartPoint>();
   for (const item of report.breakdowns.daily) {
     const date = dateAtNoon(item.date);
