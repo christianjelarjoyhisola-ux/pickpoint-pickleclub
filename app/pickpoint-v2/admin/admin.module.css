@@ -37,12 +37,12 @@
 @media(max-width:620px){.toast{top:82px;right:16px}}
 
 /* Receipt review workspace: original evidence beside the decision data. */
-.receipt{width:min(1160px,100%);max-height:94vh;overflow:hidden;padding:0}
+.receipt{width:min(1160px,100%);height:min(900px,calc(100dvh - 36px));max-height:calc(100dvh - 36px);display:grid;grid-template-rows:auto minmax(0,1fr);overflow:hidden;padding:0}
 .receipt>header{padding:22px 24px;border-bottom:1px solid var(--line)}
-.receiptBody{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(330px,.75fr);height:calc(94vh - 91px);min-height:0}
+.receiptBody{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(330px,.75fr);height:auto;min-height:0}
 .receiptMedia{min-width:0;padding:20px;background:#eef2f6;display:flex;flex-direction:column;gap:12px}
 .receiptImage{min-height:360px;height:100%;overflow:hidden;border:1px solid #cfd9e5;border-radius:12px;background:#dfe6ee;display:grid;place-items:center}
-.receiptImage img{display:block;width:100%;height:100%;max-height:calc(94vh - 164px);object-fit:contain;object-position:center}
+.receiptImage img{display:block;width:100%;height:100%;max-height:calc(100dvh - 142px);object-fit:contain;object-position:center}
 .receiptMedia>a{display:inline-flex;align-items:center;gap:7px;margin:0;color:var(--b);font-weight:800;text-decoration:none}
 .receiptMedia>a svg{width:16px}
 .receiptDetails{min-width:0;min-height:0;overflow:hidden;padding:0;background:white;display:flex;flex-direction:column}
@@ -60,13 +60,15 @@
 .reviewFlags span{padding:5px 8px;border-radius:6px;background:#fff0cc;color:#7a4b00;font-size:11px;font-weight:800;text-transform:capitalize}
 .receiptDetails label small{color:var(--m);font-weight:500}
 .receiptDetails footer{position:static;flex:0 0 auto;margin:0;padding:16px 24px;background:white;border-top:1px solid var(--line)}
-.rejectAction{color:#9f302c!important;border-color:#e8b5b2!important;background:#fff7f6!important}
+.receiptDetails footer button{flex:1;min-width:0;color:var(--i)}
+.rejectAction{color:var(--i)!important;border-color:#e8b5b2!important;background:#fff7f6!important}
 @media(max-width:800px){.receipt{overflow:auto}.receiptBody{display:flex;flex-direction:column;height:auto;max-height:none}.receiptMedia{padding:14px}.receiptImage{height:48vh;min-height:300px}.receiptImage img{max-height:48vh}.receiptDetails{overflow:visible;display:block}.receiptDetailsScroll{overflow:visible;padding:20px}.receiptDetails footer{position:sticky;bottom:0;margin:0;padding:14px 20px}.receiptDetails footer button{flex:1}}
 
 /* Compact operational controls for booking status and court editing. */
 .bookingFilters{display:flex;gap:8px;margin-bottom:14px;padding:5px;border:1px solid var(--line);border-radius:12px;background:white;overflow-x:auto;scrollbar-width:none}
 .bookingFilters::-webkit-scrollbar{display:none}.bookingFilters button{flex:0 0 auto;min-height:40px;border:0;border-radius:8px;padding:0 12px;background:transparent;color:var(--m);display:flex;align-items:center;gap:9px;font-weight:800;cursor:pointer}.bookingFilters button b{min-width:24px;padding:3px 6px;border-radius:99px;background:#eaf0f6;color:var(--i);font-size:11px}.bookingFilters .bookingFilterActive{background:var(--n);color:white;box-shadow:0 6px 14px #03142d20}.bookingFilters .bookingFilterActive b{background:var(--l);color:var(--n)}
-.bookingColumns{display:grid;grid-template-columns:145px minmax(200px,1fr) 120px 145px auto;gap:16px;padding:13px 3px;border-bottom:1px solid var(--line);color:#748399;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.bookingColumns{display:grid;grid-template-columns:minmax(125px,.85fr) minmax(230px,1.6fr) minmax(130px,.8fr) minmax(125px,.8fr) minmax(340px,1.5fr);gap:16px;padding:13px 3px;border-bottom:1px solid var(--line);color:#748399;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.bookingColumns~.row{grid-template-columns:minmax(125px,.85fr) minmax(230px,1.6fr) minmax(130px,.8fr) minmax(125px,.8fr) minmax(340px,1.5fr)}
 .todayQueue{display:grid;gap:16px}.todayQueue .paper>header{display:flex;align-items:center;justify-content:space-between}.todayQueue .paper>header h2{font-size:22px}.todayQueue .paper>header p{max-width:620px}.todayEmpty{margin:0;padding:24px 3px 4px;color:var(--m);font-size:14px}
 .row .inProgress{color:#075985;background:#e0f2fe}
 .bookingDetails{width:min(900px,100%);overflow:hidden;display:flex;flex-direction:column}
@@ -84,8 +86,8 @@
 .courtActions{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap}.courtActions>button,.courtPhoto{min-height:38px;border:1px solid var(--line);border-radius:8px;padding:0 12px;background:white;color:var(--b);display:inline-flex;align-items:center;gap:7px;font:800 13px var(--font-body);cursor:pointer}.courtActions>button{color:var(--i)}.courtActions .courtPhoto{margin-top:0}.courtEditor{width:min(720px,100%)}.courtEditor .fields small{color:var(--m);font-weight:500;line-height:1.35}
 @media(max-width:700px){.detailReceiptGrid{grid-template-columns:1fr}.detailReceiptPreview img{height:42vh;min-height:260px}}
 @media(max-width:620px){.bookingFilters{margin-left:-2px;margin-right:-2px}.bookingFilters button{padding:0 10px}.courtActions>*{flex:1;justify-content:center}.courtEditor{max-height:96vh}.bookingDetailBody{padding:20px}.bookingDetailBody dl{grid-template-columns:1fr}.bookingDetailStatus,.detailSectionTitle{align-items:flex-start;flex-direction:column}}
-@media(max-width:950px){.bookingColumns{grid-template-columns:110px 1fr 120px}.bookingColumns span:nth-child(n+4){display:none}}
-@media(max-width:620px){.bookingColumns{display:none}}
+@media(max-width:1150px){.bookingColumns,.bookingColumns~.row{grid-template-columns:110px minmax(220px,1fr) 140px}.bookingColumns span:nth-child(n+4){display:none}.bookingColumns~.row .rowStatus,.bookingColumns~.row .rowActions{grid-column:2}}
+@media(max-width:760px){.bookingColumns{display:none}}
 
 /* Mobile admin: preserve readable content and full-size actions instead of shrinking the desk UI. */
 .app{overflow-x:clip}
@@ -93,8 +95,9 @@
 .rowPlayer p,.rowReference b,.block span,.court>div{min-width:0;overflow-wrap:anywhere}
 .rowActions{flex-wrap:wrap}
 .rowActions button{appearance:none;opacity:1;color:var(--i);border-color:#cbd7e4;background:white}
-.rowActions .reviewAction{border-color:var(--b);background:var(--b);color:white;box-shadow:0 5px 12px rgba(20,120,212,.18)}
-.rowActions .cancelAction{border-color:#efc7cc;background:#fff7f7;color:#a6323e}
+.rowActions .reviewAction{border-color:#80b9eb;background:#e7f3ff;color:var(--i);box-shadow:0 5px 12px rgba(20,120,212,.12)}
+.rowActions .cancelAction{border-color:#efc7cc;background:#fff7f7;color:var(--i)}
+.scheduleTools{display:grid;justify-items:end;gap:10px}.scheduleView{display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:11px;background:white}.scheduleView button{min-height:42px;border:0;border-radius:8px;padding:0 13px;background:transparent;color:#526278;font-weight:850;cursor:pointer}.scheduleView button small{display:block;color:inherit;font-size:9px;font-weight:800}.scheduleView .scheduleViewActive{background:var(--n);color:white;box-shadow:0 5px 12px rgba(3,20,45,.14)}.scheduleTools .date{width:auto}.date .todayButton{width:auto;padding:0 11px;color:var(--b);font-weight:850}.date .todayButton:disabled{color:#8895a6;cursor:default}.scheduleAgenda{min-width:0}.agendaBlocks{margin-top:8px;padding:18px 3px 0;border-top:1px solid var(--line)}.agendaBlocks>h3{margin:0 0 4px;font:700 17px var(--font-display)}
 .rowActions button:disabled{opacity:.46;cursor:wait;box-shadow:none;filter:saturate(.45)}
 .fields .wide{grid-column:1/-1}
 
@@ -218,6 +221,10 @@
 
   .bookingFilters button{min-height:44px;font-size:13px}
   .date{width:100%;display:grid;grid-template-columns:44px minmax(0,1fr) 44px}
+  .scheduleTools{width:100%;justify-items:stretch}
+  .scheduleView{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .scheduleView button{width:100%}
+  .scheduleTools .date{grid-template-columns:auto 44px minmax(0,1fr) 44px}
   .date button{width:44px;height:44px}
   .date input{width:100%;min-width:0;font-size:16px;text-align:center}
   .block span{font-size:13px;line-height:1.4}
