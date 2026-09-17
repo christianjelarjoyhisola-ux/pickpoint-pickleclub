@@ -296,7 +296,7 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(admin, /area==="payments"/);
   assert.match(admin, /area==="settings"/);
   assert.doesNotMatch(admin, /area==="setup"/);
-  for (const operation of ["loadCalendarDay", "loadPaymentReceipt", "payment:reject", "booking:update", "schedule:unblock", "court:create", "court:update", "business:update", "policy:publish", "remittance:update"]) {
+  for (const operation of ["loadCalendarDay", "loadPaymentReceipt", "payment:reject", "booking:update", "schedule:unblock", "court:create", "court:update", "business:update", "policy:publish", "remittance:update", "remittance:prepare", "remittance:submit"]) {
     assert.match(admin, new RegExp(operation.replace(":", "\\:")));
   }
   assert.match(admin, /Edit court/);
@@ -335,6 +335,11 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(admin, /Accumulated booking fee/);
   assert.match(admin, /Remit the booking fee/);
   assert.match(admin, /Copy payment account/);
+  assert.match(admin, /CURRENT ACCUMULATION PERIOD/);
+  assert.match(admin, /Prepare cutoff/);
+  assert.match(admin, /Upload payment receipt/);
+  assert.match(admin, /maximum 8 MB/);
+  assert.match(admin, /From \$\{pretty\(start\)\} through \$\{pretty\(through\)\}/);
   assert.match(admin, /remittance history/i);
   assert.match(admin, /n!=="remittance"\|\|can\("finance:view"\)/);
   assert.doesNotMatch(admin, /area==="today"[^\n]*<BookingFilters/);

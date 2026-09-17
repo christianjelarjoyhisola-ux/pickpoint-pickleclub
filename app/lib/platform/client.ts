@@ -1225,6 +1225,79 @@ export async function getBookingFeeRemittanceHistory(
   );
 }
 
+export async function prepareBookingFeeRemittance(
+  accessToken: string,
+  idempotencyKey: string,
+): Promise<unknown> {
+  return rpc<unknown>(
+    "prepare_booking_fee_remittance",
+    {
+      p_tenant_slug: activeTenant.identity.slug,
+      p_hostname: managementHostname({ mutation: true }),
+      p_idempotency_key: idempotencyKey,
+      p_owner_override: false,
+      p_override_due_on: null,
+      p_override_reason: null,
+    },
+    accessToken,
+  );
+}
+
+function imageDataUrl(file: File): Promise<string> {
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+    throw new PlatformRequestError(
+      415,
+      "REMITTANCE_IMAGE_TYPE_INVALID",
+      "Use a JPEG, PNG, or WebP payment receipt.",
+    );
+  }
+  if (file.size < 1 || file.size > 8 * 1024 * 1024) {
+    throw new PlatformRequestError(
+      413,
+      "REMITTANCE_IMAGE_TOO_LARGE",
+      "The payment receipt must be 8 MB or smaller.",
+    );
+  }
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => typeof reader.result === "string"
+      ? resolve(reader.result)
+      : reject(new Error("REMITTANCE_IMAGE_READ_FAILED"));
+    reader.onerror = () => reject(new Error("REMITTANCE_IMAGE_READ_FAILED"));
+    reader.readAsDataURL(file);
+  });
+}
+
+export async function submitBookingFeeRemittance(
+  accessToken: string,
+  input: {
+    remittanceId: string;
+    amount: number;
+    paymentMethod: string;
+    paymentRef: string;
+    note?: string | null;
+    idempotencyKey: string;
+    proof: File;
+  },
+): Promise<unknown> {
+  managementHostname({ mutation: true });
+  const proofDataUrl = await imageDataUrl(input.proof);
+  return authenticatedFunction<unknown>(
+    "tenant-remittance-asset",
+    accessToken,
+    {
+      action: "submit-proof",
+      remittanceId: input.remittanceId,
+      amount: input.amount,
+      paymentMethod: input.paymentMethod,
+      paymentRef: input.paymentRef,
+      note: input.note || null,
+      idempotencyKey: input.idempotencyKey,
+      proofDataUrl,
+    },
+  );
+}
+
 export async function getManagerCourts(accessToken: string) {
   return rpc<Array<Record<string, unknown>>>(
     "get_tenant_courts_for_manager",

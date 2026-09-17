@@ -20,6 +20,7 @@ import {
   getManagerReportingBounds,
   getManagerSession,
   getPaymentReceiptView,
+  prepareBookingFeeRemittance,
   getRemittanceDestination,
   getTenantPolicy,
   listManagerBlocks,
@@ -32,6 +33,7 @@ import {
   rescheduleBooking,
   saveRemittanceDestination,
   saveTenantPolicy,
+  submitBookingFeeRemittance,
   updateActivationSettings,
   updateBusinessSettings,
   uploadTenantPaymentQr,
@@ -307,6 +309,7 @@ export type RemittanceDashboard = {
   nextDueOn: string;
   canPrepare: { allowed: boolean; reason: string };
   accumulated: {
+    coverageStartAt: string | null;
     bookingsCount: number;
     billableHours: number;
     flatFeeBookingCount: number;
@@ -1545,6 +1548,26 @@ export const managementAdapter: ManagementAdapter = {
       return { ok: true, message: "The platform remittance destination was saved." };
     }
 
+    if (action.type === "remittance:prepare") {
+      assertRemittanceManager(authority);
+      assertNoPayload(action.payload);
+      await prepareBookingFeeRemittance(session.access_token, crypto.randomUUID());
+      return {
+        ok: true,
+        message: "The remittance was cut off. New booking fees are now accumulating in a new period.",
+      };
+    }
+
+    if (action.type === "remittance:submit") {
+      assertRemittanceManager(authority);
+      const payload = remittanceSubmissionPayload(action.payload);
+      await submitBookingFeeRemittance(session.access_token, payload);
+      return {
+        ok: true,
+        message: "The payment receipt was uploaded and is now awaiting verification.",
+      };
+    }
+
     if (
       action.type === "court:create" || action.type === "court:update" ||
       action.type === "court:delete" || action.type === "settings:schedule"
@@ -2141,6 +2164,12 @@ function mapLiveCourt(row: JsonObject): Court {
     maximumAdvanceDays: exactInteger(publicConfig ?? {}, ["maximumAdvanceDays"]) ?? 30,
     photoUrl,
   };
+}
+
+function assertRemittanceManager(session: VerifiedManagerSession): void {
+  if (session.isSystemOwner || session.membershipRole !== "owner") {
+    throw new Error("REMITTANCE_OWNER_ACCESS_DENIED");
+  }
 }
 
 function sharedLiveConfiguration(courtRows: JsonObject[]): Pick<
@@ -3277,6 +3306,10 @@ function remittanceDashboard(candidate: unknown): RemittanceDashboard {
       reason: reportText(permission.reason, errorCode, 500),
     },
     accumulated: {
+      coverageStartAt: reportNullableInstant(
+        accumulatedRow.coverage_start_at,
+        errorCode,
+      ),
       bookingsCount: reportInteger(accumulatedRow.bookings_count, errorCode),
       billableHours: reportNumber(accumulatedRow.billable_hours, errorCode),
       flatFeeBookingCount: reportInteger(
@@ -3290,6 +3323,38 @@ function remittanceDashboard(candidate: unknown): RemittanceDashboard {
     ),
     settledTotal: reportNumber(row.settled_total, errorCode),
     paymentDestination,
+  };
+}
+
+function remittanceSubmissionPayload(candidate: unknown) {
+  const errorCode = "REMITTANCE_SUBMISSION_INPUT_INVALID";
+  const row = payloadObject(candidate, errorCode);
+  assertAllowedKeys(
+    row,
+    new Set(["remittanceId", "amount", "paymentMethod", "paymentRef", "note", "idempotencyKey", "proof"]),
+    errorCode,
+  );
+  const proof = row.proof;
+  if (!(proof instanceof File)) throw new Error(errorCode);
+  const amount = Number(row.amount);
+  const paymentMethod = typeof row.paymentMethod === "string" ? row.paymentMethod.trim() : "";
+  const paymentRef = typeof row.paymentRef === "string" ? row.paymentRef.trim() : "";
+  const note = typeof row.note === "string" ? row.note.trim() : "";
+  const idempotencyKey = typeof row.idempotencyKey === "string" ? row.idempotencyKey.trim() : "";
+  if (
+    !Number.isFinite(amount) || amount <= 0 ||
+    !["gcash", "maya", "bank_transfer", "cash", "other"].includes(paymentMethod) ||
+    paymentRef.length < 4 || paymentRef.length > 120 ||
+    note.length > 1_000 || idempotencyKey.length < 8 || idempotencyKey.length > 128
+  ) throw new Error(errorCode);
+  return {
+    remittanceId: requiredUuid(row.remittanceId, errorCode),
+    amount,
+    paymentMethod,
+    paymentRef,
+    note: note || null,
+    idempotencyKey,
+    proof,
   };
 }
 
