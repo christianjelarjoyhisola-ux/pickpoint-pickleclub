@@ -312,6 +312,10 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(admin, /No receipt has been uploaded for this booking/);
   assert.match(admin, /In progress/);
   assert.match(admin, /receiptDetailsScroll/);
+  const adminStyles = await source("app/pickpoint-v2/admin/admin.module.css");
+  assert.match(adminStyles, /\.receiptBody\{[^}]*height:100%[^}]*align-items:stretch/);
+  assert.match(adminStyles, /\.receiptDetails\{[^}]*height:100%[^}]*display:grid[^}]*grid-template-rows:minmax\(0,1fr\) auto/);
+  assert.match(adminStyles, /\.receiptDetailsScroll\{[^}]*min-height:0[^}]*overflow-y:auto/);
   assert.doesNotMatch(admin, />Check in</);
   assert.match(admin, /Every booking in one place/);
   assert.match(admin, /status updates automatically/i);
