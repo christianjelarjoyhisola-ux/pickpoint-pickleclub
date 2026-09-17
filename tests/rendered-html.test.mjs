@@ -293,6 +293,11 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.doesNotMatch(admin, /<iframe src=\{review\.receipt\.signedUrl\}/);
   assert.match(admin, /Customer payment methods/);
   assert.match(admin, /Add payment method/);
+  assert.match(admin, /Delete method/);
+  assert.match(admin, /deletePaymentMethod/);
+  assert.match(admin, /paymentMethods=cfg\.paymentMethods\.filter\(item=>item\.methodCode!==configuredMethod\.methodCode\)/);
+  assert.match(admin, /Existing booking and payment history will stay unchanged/);
+  assert.match(admin, /expectedRevision:cfg\.revision,paymentMethods/);
   assert.match(admin, /paymentEvidence\.paymentMethod/);
   assert.match(admin, /area==="courts"/);
   assert.match(admin, /area==="payments"/);
