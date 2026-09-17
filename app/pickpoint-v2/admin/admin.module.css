@@ -345,3 +345,245 @@
 .slotSummary{margin-top:14px;padding:14px 16px;border:1px solid #b8dc8f;border-radius:10px;background:#f2fae8;display:flex;align-items:center;gap:12px}.slotSummary>span{flex:0 0 34px;height:34px;border-radius:50%;background:var(--l);display:grid;place-items:center}.slotSummary>span svg{width:17px}.slotSummary small{color:#5d7900!important;font-size:9px!important;letter-spacing:.1em!important}.slotSummary b{display:block;margin-top:4px;font:700 15px var(--font-display)}.slotSummary p{margin:4px 0 0;color:#637080;font-size:12px}
 .customTime{display:grid;grid-template-columns:1fr 1fr;gap:14px}.customTimeError{margin:10px 0 0;color:#98362d;font-size:12px;font-weight:750}.slotMessage,.slotError{min-height:100px;margin:0;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--m);font-size:13px}.slotMessage svg{width:17px}.slotError{color:#98362d}.mobileSlotNote{display:none}.closureForm .fields label>small{color:var(--m);font-size:10px;font-weight:600;letter-spacing:0;text-transform:none}
 @media(max-width:760px){.closureForm{max-height:calc(100dvh - 20px)}.slotPicker{padding:14px}.slotPickerIntro{flex-direction:column}.slotPickerIntro>button{width:100%}.timeSlots{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.timeSlots>button{min-height:58px;padding:7px}.timeSlots b{font-size:11px}.timeSlots small{font-size:9px!important}.timeSlots>.slotUnavailable{display:none}.mobileSlotNote{display:block;margin:10px 0 0;color:var(--m);font-size:10px;text-align:center}.customTime{grid-template-columns:1fr}.slotSummary{align-items:flex-start}.closureForm footer{grid-template-columns:1fr 1.35fr}}
+
+/* Premium control-room system: persistent desktop navigation, refined hierarchy, and unified feedback. */
+.app,.login,.center{
+  --n:#061a33;
+  --n2:#0b2746;
+  --b:#1178d4;
+  --b2:#075fb1;
+  --l:#b7ef00;
+  --i:#10243c;
+  --m:#65758a;
+  --line:#dce5ee;
+  --soft:#f5f8fb;
+  --surface:#fff;
+  --shadow-sm:0 1px 2px rgba(6,26,51,.05),0 8px 24px rgba(6,26,51,.045);
+  --shadow-md:0 2px 4px rgba(6,26,51,.05),0 18px 48px rgba(6,26,51,.085);
+  --radius:18px;
+}
+.app{
+  min-height:100dvh;
+  overflow-x:clip;
+  background:
+    radial-gradient(circle at 92% 1%,rgba(17,120,212,.09),transparent 28rem),
+    radial-gradient(circle at 3% 55%,rgba(183,239,0,.055),transparent 22rem),
+    #f4f7fa;
+}
+.work{position:relative;isolation:isolate}
+.work>*{animation:premiumSectionIn .34s cubic-bezier(.2,.8,.2,1) both}
+@keyframes premiumSectionIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.title{align-items:flex-end;margin-bottom:28px}
+.title>div{min-width:0}
+.title small{display:inline-flex;align-items:center;gap:8px;color:var(--b);font-size:10px;line-height:1;letter-spacing:.17em}
+.title small:before{content:"";width:18px;height:2px;border-radius:9px;background:var(--l);box-shadow:0 0 0 3px rgba(183,239,0,.16)}
+.title h1{max-width:800px;margin:11px 0 9px;color:var(--n);font-size:clamp(34px,3.3vw,48px);line-height:1.02;letter-spacing:-.045em}
+.title p{max-width:680px;color:#617188;font-size:15px;line-height:1.55}
+
+.paper,.lane,.performancePanel,.attentionPanel,.closureSummary article,.operationsOverview article,.remittancePay,.remittanceLedger,.timelineShell{
+  border-color:rgba(194,207,221,.72);
+  border-radius:var(--radius);
+  background:rgba(255,255,255,.94);
+  box-shadow:var(--shadow-sm);
+}
+.paper,.lane{padding:26px 28px}
+.paper>header{padding-bottom:19px}
+.paper h2,.lane h2,.attentionPanel h2,.performanceHeader h2,.remittanceSummary h2{color:var(--n);letter-spacing:-.02em}
+.paper header p,.lane header p{max-width:720px;font-size:13px;line-height:1.55}
+.list{gap:0}
+
+.app button,.app a,.app input,.app select,.app textarea,.login button,.login a,.login input{
+  transition:border-color .18s ease,background-color .18s ease,color .18s ease,box-shadow .18s ease,transform .18s ease,opacity .18s ease;
+}
+.app button:not(:disabled):active,.login button:not(:disabled):active{transform:translateY(1px) scale(.99)}
+.app button:disabled,.login button:disabled{cursor:not-allowed;opacity:.52}
+.primary,.actions button,.form footer button,.formActions button,.receipt footer button,.panelLink,.courtActions>button,.courtPhoto{
+  min-height:46px;
+  border-radius:12px;
+  padding-inline:17px;
+  font-size:13px;
+  letter-spacing:-.01em;
+}
+.primary,.actions .primary{
+  border-color:#a7d900;
+  background:linear-gradient(135deg,#c5f51f 0%,#aee500 100%);
+  color:#07192e;
+  box-shadow:0 8px 20px rgba(132,180,0,.18),inset 0 1px rgba(255,255,255,.45);
+}
+.primary:hover:not(:disabled),.actions .primary:hover:not(:disabled){background:linear-gradient(135deg,#d0fa3a,#b7ef00);box-shadow:0 10px 24px rgba(132,180,0,.25);transform:translateY(-1px)}
+.row aside button,.courtActions>button,.formActions button,.panelLink,.attentionPanel>header>button,.remittanceSummary>header>button,.dashboardError button{
+  border-color:#d6e0ea;
+  border-radius:10px;
+  background:#fff;
+  color:#22364f;
+}
+.row aside button:hover:not(:disabled),.courtActions>button:hover:not(:disabled),.formActions button:hover:not(:disabled),.panelLink:hover:not(:disabled){border-color:#aac5df;background:#f2f7fc;color:var(--b2);transform:translateY(-1px)}
+.rowActions .cancelAction,.formActions .deleteAction{border-color:#efc8cc;background:#fff7f7;color:#a02f3b}
+.rowActions .reviewAction{border-color:#b8d69a;background:#f5fbe9;color:#486b00}
+
+.app input,.app select,.app textarea,.login input{
+  border-color:#cfdae6;
+  border-radius:11px;
+  background:#fff;
+  color:var(--i);
+  box-shadow:inset 0 1px 2px rgba(6,26,51,.025);
+}
+.app input:hover,.app select:hover,.app textarea:hover,.login input:hover{border-color:#aebed0}
+.app input:focus,.app select:focus,.app textarea:focus,.login input:focus{
+  outline:0;
+  border-color:var(--b);
+  box-shadow:0 0 0 4px rgba(17,120,212,.12),inset 0 1px 2px rgba(6,26,51,.02);
+}
+.search{height:52px;margin-bottom:18px;border-color:#cfdae6;border-radius:13px;box-shadow:0 4px 14px rgba(6,26,51,.035)}
+.search:focus-within{border-color:var(--b);box-shadow:0 0 0 4px rgba(17,120,212,.11)}
+.search input{box-shadow:none!important}
+
+.row{padding:19px 8px;border-color:#e7edf3;border-radius:12px}
+.row:hover{background:#f8fafc}
+.row h3{color:var(--n);letter-spacing:-.01em}
+.row time b,.rowReference b{color:#1b314a}
+.row em{border:1px solid transparent;font-size:11px;letter-spacing:.01em}
+.row .confirmed,.row .checked_in,.row .completed{border-color:#d7eaba;background:#f1f9e4;color:#416400}
+.row .payment_review,.row .payment_attention{border-color:#f0d394;background:#fff8e7;color:#865300}
+.row .cancelled,.row .expired{border-color:#f1cecb;background:#fff3f1;color:#973a32}
+.bookingColumns{padding:14px 9px;color:#6d7e93}
+.bookingFilters,.periodSelector,.chartToggle,.scheduleView{border-color:#d8e2ec;border-radius:13px;background:#eef3f8}
+.bookingFilters{padding:5px;box-shadow:inset 0 1px 2px rgba(6,26,51,.035)}
+.bookingFilters button,.periodSelector button,.chartToggle button,.scheduleView button{border-radius:9px}
+.bookingFilters .bookingFilterActive,.periodSelector .toggleActive,.chartToggle .toggleActive,.scheduleView .scheduleViewActive{background:linear-gradient(145deg,var(--n2),var(--n));box-shadow:0 6px 16px rgba(6,26,51,.18)}
+
+.operationsOverview{gap:14px;margin-bottom:18px}
+.operationsOverview article{position:relative;overflow:hidden;padding:20px 21px}
+.operationsOverview article:after{content:"";position:absolute;right:-18px;bottom:-24px;width:76px;height:76px;border-radius:50%;background:rgba(17,120,212,.055)}
+.operationsOverview article:nth-child(2):after{background:rgba(183,239,0,.11)}
+.operationsOverview small,.businessMetrics small,.performanceHeader>div>small,.attentionPanel>header small,.remittanceSummary>header small{color:#718198;letter-spacing:.12em}
+.operationsOverview strong{margin-top:11px;letter-spacing:-.04em}
+.liveQueues{gap:14px;margin-bottom:18px}
+.liveQueues .paper{padding:22px}
+.attentionPanel,.performancePanel{margin-bottom:18px;padding:24px}
+.attentionPanel{border-color:#efd49b;background:linear-gradient(145deg,#fffdf8,#fff8e8)}
+.performanceHeader{align-items:center;padding-bottom:20px}
+.businessMetrics{gap:12px;margin-top:20px}
+.businessMetrics article{padding:17px;border-color:#e1e8ef;border-radius:13px;background:linear-gradient(145deg,#fafcfe,#f5f8fb)}
+.businessMetrics strong{letter-spacing:-.035em}
+.chartPanel{margin-top:14px;padding:20px;border-color:#e1e8ef;border-radius:15px;background:#fbfcfe}
+.performanceChart{height:230px;border-color:#dce5ee}
+.performanceBar>div>span{border-radius:8px 8px 3px 3px;background:linear-gradient(180deg,#218de8 0%,#0967bc 100%);box-shadow:0 8px 18px rgba(17,120,212,.18)}
+.remittanceSummary{position:relative;overflow:hidden;padding:24px;border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);background:linear-gradient(135deg,#061a33 0%,#0b2d50 68%,#0f3b5a 100%);box-shadow:0 18px 48px rgba(6,26,51,.18)}
+.remittanceSummary:after{content:"";position:absolute;right:-90px;top:-120px;width:300px;height:300px;border:1px solid rgba(183,239,0,.16);border-radius:50%;box-shadow:0 0 0 48px rgba(17,120,212,.06),0 0 0 96px rgba(17,120,212,.035);pointer-events:none}
+.remittanceSummary>*{position:relative;z-index:1}
+.remittanceSummary>header>button:hover{border-color:#ffffff66;background:#ffffff1a;transform:translateY(-1px)}
+.closureSummary{gap:14px}
+.closureSummary article{padding:22px}
+.timelineShell{overflow:hidden}
+
+.loadingLine{width:max-content;max-width:100%;min-height:42px;display:flex;align-items:center;gap:9px;margin:0 0 14px;padding:9px 13px;border:1px solid #d8e4ef;border-radius:99px;background:rgba(255,255,255,.9);box-shadow:var(--shadow-sm);font-size:12px}
+.loadingLine:not(:has(svg)):before{content:"";width:14px;height:14px;border:2px solid #d5e0ea;border-top-color:var(--b);border-radius:50%;animation:actionSpin .72s linear infinite}
+.dashboardSkeleton i,.dashboardSkeleton span{background:linear-gradient(100deg,#edf2f6 20%,#fafcfd 42%,#edf2f6 64%);background-size:240% 100%;animation:premiumShimmer 1.35s ease-in-out infinite}
+@keyframes premiumShimmer{to{background-position:-240% 0}}
+.center>svg{animation:actionSpin .85s linear infinite;color:var(--b)}
+.app button[aria-busy="true"],.login button[aria-busy="true"]{position:relative;overflow:hidden}
+.app button[aria-busy="true"]:after,.login button[aria-busy="true"]:after{content:"";position:absolute;inset:auto 0 0;height:2px;background:linear-gradient(90deg,transparent,var(--b),transparent);animation:busySweep 1s linear infinite}
+@keyframes busySweep{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+
+.scrim{background:rgba(3,17,34,.72);backdrop-filter:blur(7px);animation:scrimIn .18s ease-out}
+.form,.receipt,.courtEditor,.bookingDetails{border:1px solid rgba(255,255,255,.75);border-radius:20px;box-shadow:0 30px 90px rgba(2,16,34,.28);animation:dialogIn .25s cubic-bezier(.2,.8,.2,1)}
+.form header,.receipt>header{background:rgba(255,255,255,.96)}
+.form footer,.receiptDetails footer{background:rgba(255,255,255,.96);backdrop-filter:blur(12px)}
+.fields{gap:18px}
+.form header button,.receipt header>button{border-radius:12px}
+@keyframes scrimIn{from{opacity:0}to{opacity:1}}
+@keyframes dialogIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+
+.toast{top:92px;border:0;border-radius:14px;padding:15px 16px;background:#fff;box-shadow:0 18px 54px rgba(6,26,51,.18)}
+.toast.notice{border-left:4px solid #83b600;color:#365900}
+.toast.alert{border-left:4px solid #d34b57;color:#8f2731}
+.toast button{border-radius:9px}
+
+.login{background:
+  radial-gradient(circle at 15% 15%,rgba(17,120,212,.27),transparent 24rem),
+  radial-gradient(circle at 35% 88%,rgba(183,239,0,.12),transparent 22rem),
+  var(--n)}
+.login>section{position:relative;overflow:hidden}
+.login>section:after{content:"";position:absolute;right:-16rem;bottom:-16rem;width:32rem;height:32rem;border:1px solid rgba(255,255,255,.1);border-radius:50%;box-shadow:0 0 0 70px rgba(255,255,255,.025),0 0 0 140px rgba(255,255,255,.018)}
+.login form{border:1px solid rgba(255,255,255,.72);border-radius:24px;box-shadow:0 30px 90px rgba(0,0,0,.22)}
+.login form h2{color:var(--n);letter-spacing:-.045em}
+
+@media(min-width:1024px){
+  .header{position:fixed;inset:0 0 auto;z-index:40;height:78px;min-height:78px;padding:0 24px;grid-template-columns:250px minmax(0,1fr) auto;border-bottom:1px solid #dce5ee;background:rgba(255,255,255,.985);box-shadow:0 5px 22px rgba(6,26,51,.055);backdrop-filter:none}
+  .header>a{width:max-content}
+  .header>a img{width:160px;height:52px}
+  .headerActions>button:first-child{display:none!important}
+  .header nav{position:fixed;inset:78px auto 0 0;width:252px;height:auto;max-height:none;padding:24px 14px 18px;display:flex;flex-direction:column;gap:7px;overflow-y:auto;border:0;border-right:1px solid rgba(255,255,255,.08);border-radius:0;background:linear-gradient(180deg,#061a33 0%,#071e39 64%,#0a2845 100%);box-shadow:12px 0 34px rgba(6,26,51,.08);opacity:1;visibility:visible;pointer-events:auto;transform:none}
+  .header nav:before{content:"MANAGEMENT";padding:0 14px 8px;color:#7590ad;font-size:9px;font-weight:900;letter-spacing:.16em}
+  .header nav button{min-height:50px;padding:0 14px;border:1px solid transparent;border-radius:12px;color:#afbed0;background:transparent}
+  .header nav button>span{min-width:0;display:flex;align-items:center;gap:12px}
+  .header nav button>span svg{width:18px;height:18px;color:#7490ac}
+  .header nav button>svg{width:15px;height:15px;color:var(--l)}
+  .header nav button:hover{border-color:#ffffff12;background:#ffffff0b;color:#fff}
+  .header nav button:hover>span svg{color:#d5e5f6}
+  .header nav button.active{border-color:#ffffff18;background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(255,255,255,.075));color:#fff;box-shadow:inset 3px 0 var(--l),0 8px 20px rgba(0,0,0,.12)}
+  .header nav button.active>span svg{color:var(--l)}
+  .work{max-width:none;margin:0 0 0 252px;padding:122px clamp(30px,4vw,66px) 86px}
+  .toast{top:96px}
+}
+
+@media(max-width:1023px){
+  .header nav button>span{display:flex;align-items:center;gap:11px}
+  .header nav button>span svg{width:17px;height:17px;color:#71849a}
+  .header nav button.active>span svg{color:var(--l)}
+}
+
+@media(max-width:760px){
+  .app{background:linear-gradient(180deg,#eef3f7 0,#f7f9fb 210px,#f4f7fa 100%)}
+  .work{padding:26px 12px max(58px,env(safe-area-inset-bottom))}
+  .title{gap:18px;margin-bottom:22px}
+  .title h1{margin:9px 0 8px;font-size:clamp(31px,9vw,39px);line-height:1.04}
+  .title p{font-size:14px;line-height:1.5}
+  .title small{font-size:9px}
+  .actions{display:grid;grid-template-columns:1fr}
+  .actions button,.title>.primary{min-height:50px}
+  .paper,.lane,.performancePanel,.attentionPanel,.remittanceSummary,.timelineShell{border-radius:16px}
+  .paper,.lane{padding:18px}
+  .paper>header{padding-bottom:16px}
+  .paper h2,.lane h2{font-size:19px}
+  .list{gap:10px;padding-top:10px}
+  .paper .row,.lane .row{padding:15px;border:1px solid #e1e8ef;border-radius:13px;background:#fbfcfd}
+  .paper .row:hover,.lane .row:hover{background:#fbfcfd}
+  .bookingColumns~.row{min-width:0;max-width:100%;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"time status" "player player" "reference reference" "actions actions"}
+  .bookingColumns~.row>*{min-width:0;max-width:100%}
+  .rowReference{border-top-color:#e1e8ef!important}
+  .rowActions button{min-height:46px;border-radius:10px}
+  .bookingFilters{margin-bottom:14px}
+  .search{width:100%;margin-bottom:14px}
+  .operationsOverview{gap:10px}
+  .operationsOverview article{padding:16px}
+  .liveQueues{gap:12px}
+  .liveQueues .paper,.attentionPanel,.performancePanel,.remittanceSummary,.upcomingSection .paper{padding:18px}
+  .businessMetrics article{padding:14px}
+  .chartPanel{padding:15px}
+  .periodSelector{scroll-snap-type:x proximity}
+  .periodSelector button{scroll-snap-align:start}
+  .performanceChart{height:205px}
+  .remittanceSummary{background:linear-gradient(150deg,#061a33,#0b3155)}
+  .closureSummary{gap:10px}
+  .closureSummary article{padding:18px}
+  .toast{left:12px;right:12px;top:80px;width:auto}
+  .login>section{min-height:38vh;padding:34px 26px}
+  .login h1{font-size:clamp(38px,12vw,58px)}
+  .login form{min-height:62vh;margin:0;border:0;border-radius:24px 24px 0 0;padding:38px 24px max(34px,env(safe-area-inset-bottom));box-shadow:0 -18px 60px rgba(0,0,0,.16)}
+}
+
+@media(max-width:410px){
+  .work{padding-inline:10px}
+  .operationsOverview,.businessMetrics{grid-template-columns:1fr 1fr}
+  .operationsOverview article,.businessMetrics article{min-height:112px}
+  .periodSelector{margin-inline:-2px}
+  .formActions{grid-template-columns:1fr}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .work>*,.scrim,.form,.receipt,.courtEditor,.bookingDetails,.toast{animation:none!important}
+  .app *,.login *{scroll-behavior:auto!important;transition-duration:.01ms!important}
+}

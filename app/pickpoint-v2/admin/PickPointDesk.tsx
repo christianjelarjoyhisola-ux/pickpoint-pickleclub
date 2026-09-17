@@ -4,7 +4,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import {useCallback,useEffect,useMemo,useRef,useState,type CSSProperties,type FormEvent} from "react";
-import {Check,ChevronLeft,ChevronRight,Clock3,ExternalLink,ImagePlus,KeyRound,Menu,Plus,Power,RefreshCw,Search,X} from "lucide-react";
+import {CalendarDays,Check,ChevronLeft,ChevronRight,CircleDollarSign,Clock3,ExternalLink,ImagePlus,KeyRound,LayoutDashboard,ListChecks,Menu,Plus,Power,RefreshCw,Search,Settings,ShieldOff,WalletCards,X} from "lucide-react";
 import {formatPeso,managementAdapter,type Booking,type CalendarDaySnapshot,type Court,type CourtBlock,type ManagementCapability,type ManagementContext,type ManagementInsights,type ManagementSnapshot,type PaymentMethodConfiguration,type PaymentReceiptView,type RegularBookingReport,type RemittanceSummary} from "../../manage/management-adapter";
 import {currentOwnerSession,platformMode,signInOwner,signOutOwner,uploadTenantCourtPhoto} from "../../lib/platform/client";
 import {activeTenant} from "../../tenants/registry";
@@ -13,6 +13,7 @@ import s from "./admin.module.css";
 type Area="today"|"schedule"|"closures"|"bookings"|"courts"|"payments"|"remittance"|"settings"; type Composer="booking"|"block"|null; type BookingView="all"|"pending"|"confirmed"|"completed"|"cancelled"; type ScheduleView="timeline"|"agenda";
 const nav:Area[]=["today","schedule","closures","bookings","courts","payments","remittance","settings"];
 const navLabels:Record<Area,string>={today:"Today",schedule:"Schedule",closures:"Court closures",bookings:"Bookings",courts:"Courts",payments:"Payments",remittance:"Remittance",settings:"Settings"};
+const navIcons:Record<Area,typeof LayoutDashboard>={today:LayoutDashboard,schedule:CalendarDays,closures:ShieldOff,bookings:ListChecks,courts:Clock3,payments:WalletCards,remittance:CircleDollarSign,settings:Settings};
 const labels:Record<Booking["status"],string>={confirmed:"Confirmed",awaiting_receipt:"Awaiting receipt",receipt_processing:"Receipt processing",payment_review:"Review payment",payment_attention:"Payment attention",checked_in:"Checked in",completed:"Completed",cancelled:"Cancelled",expired:"Expired"};
 const defaultPolicyIntro="Please review these simple rules before reserving a PickPoint court.";
 const defaultPolicyContent=`1. Reservations are subject to court availability and are confirmed only after PickPoint accepts the booking and any required payment proof.
@@ -116,12 +117,12 @@ return <main id="main-content" className={s.app}>
 <header className={s.header}>
   <a href="/"><Image src="/pickpoint-wordmark-v3.png" width={190} height={64} alt="PickPoint Pickle Club" unoptimized/><i>Court Desk</i></a>
   <div className={s.headerActions}>
-    <button className={menuOpen?s.headerActionActive:""} aria-label="Open management menu" aria-expanded={menuOpen} onClick={()=>setMenuOpen(open=>!open)}><Menu/></button>
-    <a href="/" aria-label="Open public booking site"><ExternalLink/></a>
-    <button aria-label="Open settings" onClick={()=>{setArea("settings");setMenuOpen(false)}}><KeyRound/></button>
-    <button className={s.signOut} aria-label="Sign out" disabled={busy("session:signout")} aria-busy={busy("session:signout")} onClick={async()=>{if(pendingAction)return;const key=actionKey("session:signout");setPendingAction(key);try{await signOutOwner();reportCache.current.clear();reportBounds.current=undefined;setReport(null);setInsights(null);setSigned(false);setSnap(null)}catch(e){setError(message(e))}finally{setPendingAction(current=>current===key?"":current)}}}>{busy("session:signout")?<RefreshCw className={s.spinner}/>:<Power/>}</button>
+    <button className={menuOpen?s.headerActionActive:""} aria-label={menuOpen?"Close management menu":"Open management menu"} aria-expanded={menuOpen} title="Menu" onClick={()=>setMenuOpen(open=>!open)}><Menu/></button>
+    <a href="/" aria-label="Open public booking site" title="Public booking site"><ExternalLink/></a>
+    <button aria-label="Open settings" title="Settings" onClick={()=>{setArea("settings");setMenuOpen(false)}}><KeyRound/></button>
+    <button className={s.signOut} aria-label="Sign out" title="Sign out" disabled={busy("session:signout")} aria-busy={busy("session:signout")} onClick={async()=>{if(pendingAction)return;const key=actionKey("session:signout");setPendingAction(key);try{await signOutOwner();reportCache.current.clear();reportBounds.current=undefined;setReport(null);setInsights(null);setSigned(false);setSnap(null)}catch(e){setError(message(e))}finally{setPendingAction(current=>current===key?"":current)}}}>{busy("session:signout")?<RefreshCw className={s.spinner}/>:<Power/>}</button>
   </div>
-  <nav className={menuOpen?s.navOpen:""} aria-label="Management areas">{nav.filter(n=>n!=="remittance"||can("finance:view")).map(n=><button key={n} className={area===n?s.active:""} onClick={()=>{setArea(n);setMenuOpen(false)}}><span>{navLabels[n]}</span>{area===n&&<Check/>}</button>)}</nav>
+  <nav className={menuOpen?s.navOpen:""} aria-label="Management areas">{nav.filter(n=>n!=="remittance"||can("finance:view")).map(n=>{const NavIcon=navIcons[n];return <button key={n} className={area===n?s.active:""} aria-current={area===n?"page":undefined} onClick={()=>{setArea(n);setMenuOpen(false)}}><span><NavIcon/>{navLabels[n]}</span>{area===n&&<Check/>}</button>})}</nav>
 </header>
 {(error||notice)&&<div className={`${s.toast} ${error?s.alert:s.notice}`} role={error?"alert":"status"} aria-live={error?"assertive":"polite"}><span>{!error&&<Check/>}{error||notice}</span><button onClick={()=>{setError("");setNotice("")}} aria-label="Dismiss notification"><X/></button></div>}
 <div className={s.work}>
