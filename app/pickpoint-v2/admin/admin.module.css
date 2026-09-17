@@ -309,3 +309,27 @@
 @media(max-width:900px){.operationsOverview{grid-template-columns:repeat(2,minmax(0,1fr))}.liveQueues{grid-template-columns:1fr}.businessMetrics{grid-template-columns:repeat(2,minmax(0,1fr))}.businessMetrics article:last-child{grid-column:1/-1}.performanceHeader{flex-direction:column}.periodSelector{width:100%}.remittanceSummary dl{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.operationsOverview{gap:9px}.operationsOverview article{padding:14px;border-radius:12px}.operationsOverview strong{font-size:24px}.operationsOverview span{font-size:11px}.liveQueues .paper,.attentionPanel,.performancePanel,.remittanceSummary,.upcomingSection .paper{padding:16px;border-radius:12px}.liveQueues .row,.attentionPanel .row{grid-template-columns:minmax(0,1fr) minmax(118px,auto);grid-template-areas:"time status" "player player" "reference reference" "actions actions";gap:12px 14px}.liveQueues .rowReference,.liveQueues .rowStatus,.liveQueues .rowActions,.attentionPanel .rowStatus,.attentionPanel .rowActions{grid-column:auto}.attentionPanel>header,.remittanceSummary>header,.chartPanel>header{align-items:flex-start;flex-direction:column}.attentionPanel>header>button,.remittanceSummary>header>button{width:100%}.periodSelector button,.chartToggle button{min-height:44px}.businessMetrics{gap:8px}.businessMetrics article{padding:13px}.businessMetrics strong{font-size:19px}.chartPanel{padding:14px}.chartPanel>header{gap:12px}.chartToggle{width:100%;display:grid;grid-template-columns:1fr 1fr}.chartToggle button{width:100%}.performanceChart{height:190px;gap:2px}.performanceBar small{font-size:8px}.remittanceSummary dl{grid-template-columns:repeat(2,minmax(0,1fr))}.remittanceSummary dl>div{padding-right:10px}.remittanceSummary dd{font-size:16px}.dashboardSkeleton{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboardSkeleton span{height:190px}.panelLink{width:100%}}
 @media(max-width:360px){.operationsOverview,.businessMetrics,.remittanceSummary dl{grid-template-columns:repeat(2,minmax(0,1fr))}.operationsOverview article,.businessMetrics article{padding:12px}.operationsOverview strong{font-size:22px}.operationsOverview small,.businessMetrics small{font-size:9px}.businessMetrics article:last-child{grid-column:1/-1}.periodSelector button{padding-inline:10px}}
+
+/* Dedicated court-closure workspace. */
+.closureSummary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.closureSummary article{min-width:0;padding:20px 22px;border:1px solid var(--line);border-radius:14px;background:white;box-shadow:0 10px 28px rgba(3,20,45,.045)}
+.closureSummary small,.closureRow>div>small{display:block;color:var(--b);font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.closureSummary strong{display:block;margin:8px 0 5px;color:var(--n);font:700 28px/1 var(--font-display);overflow-wrap:anywhere}
+.closureSummary span{color:var(--m);font-size:12px;line-height:1.4}
+.closureList{display:flex;flex-direction:column}
+.closureRow{display:grid;grid-template-columns:190px minmax(220px,1fr) auto auto;align-items:center;gap:18px;padding:18px 3px;border-bottom:1px solid var(--line)}
+.closureRow:last-child{border-bottom:0}
+.closureRow time{display:flex;flex-direction:column;gap:5px}
+.closureRow time small{color:var(--b);font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.closureRow time b{font-size:14px}
+.closureRow h3{margin:5px 0 0;font:700 17px var(--font-display)}
+.closureRow p{margin:6px 0 0;color:var(--m);font-size:13px;line-height:1.4}
+.closureRow p b{color:var(--i)}
+.closureRow>span{justify-self:start;padding:7px 10px;border-radius:99px;font-size:11px;font-weight:850}
+.closureUpcoming{color:#315800;background:#e9f8d2}
+.closurePast{color:#677487;background:#edf1f5}
+.closureRow>button{min-height:40px;border:1px solid #efc7cc;border-radius:8px;background:#fff7f7;padding:0 13px;color:var(--i);font-weight:800;cursor:pointer}
+.closureRow>button:disabled{opacity:.45;cursor:wait}
+
+@media(max-width:900px){.closureRow{grid-template-columns:155px minmax(190px,1fr) auto}.closureRow>button{grid-column:2/-1;justify-self:end}}
+@media(max-width:760px){.closureSummary{grid-template-columns:1fr;gap:9px}.closureSummary article{padding:16px}.closureRow{grid-template-columns:minmax(0,1fr) auto;gap:12px 14px;padding:17px 0}.closureRow time,.closureRow>div{grid-column:1/-1}.closureRow>button{grid-column:1/-1;width:100%;min-height:46px}.closureRow>span{grid-row:1;grid-column:2;align-self:start}}

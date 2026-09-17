@@ -272,7 +272,8 @@ test("protects selected courts, restores progress, and shows authoritative itemi
 
 test("keeps the admin lean and capability-controlled", async () => {
   const admin = await source("app/pickpoint-v2/admin/PickPointDesk.tsx");
-  assert.match(admin, /\["today","schedule","bookings","courts","payments","remittance","settings"\]/);
+  assert.match(admin, /\["today","schedule","closures","bookings","courts","payments","remittance","settings"\]/);
+  assert.match(admin, /closures:"Court closures"/);
   for (const action of ["booking:create", "booking:cancel", "payment:approve", "schedule:block", "tenant:publish"]) {
     assert.match(admin, new RegExp(action.replace(":", "\\:")));
   }
@@ -323,6 +324,11 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(admin, /Reference & total/);
   assert.match(admin, /function TodayCourtList/);
   assert.match(admin, /function CourtTimeline/);
+  assert.match(admin, /function ClosureManager/);
+  assert.match(admin, /area==="closures"/);
+  assert.match(admin, /Scheduled court closures/);
+  assert.match(admin, /Block court time/);
+  assert.doesNotMatch(admin, /function Actions[^\n]+schedule:block/);
   assert.match(admin, /function compactTimeRange/);
   assert.match(admin, /compactTimeRange\(value,value\+60\)/);
   assert.match(admin, /compactTimeRange\(rawStart,rawEnd\)/);
@@ -385,6 +391,10 @@ test("keeps every admin area usable on phones and small tablets", async () => {
   assert.match(admin, /Timeline <small>Recommended<\/small>/);
   assert.match(css, /\.timelineScroller\{[^}]*overflow-x:auto/);
   assert.match(css, /\.timelineCorner,\.timelineCourt\{[^}]*position:sticky[^}]*left:0/);
+  assert.match(css, /\.closureSummary\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+  assert.match(css, /\.closureRow\{display:grid;grid-template-columns:190px minmax\(220px,1fr\) auto auto/);
+  assert.match(css, /@media\(max-width:760px\)\{\.closureSummary\{grid-template-columns:1fr/);
+  assert.match(css, /\.closureRow>button\{grid-column:1\/-1;width:100%;min-height:46px/);
   assert.match(css, /\.rowActions button:disabled\{[^}]*opacity:\.46/);
   assert.match(css, /\.todayQueue \.paper>header\{[^}]*flex-direction:column/);
   assert.match(css, /\.headerActions>a,\.headerActions>button\{width:44px!important;height:44px!important\}/);
