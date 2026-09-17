@@ -340,6 +340,8 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(admin, /Upload payment receipt/);
   assert.match(admin, /maximum 8 MB/);
   assert.match(admin, /From \$\{pretty\(start\)\} through \$\{pretty\(through\)\}/);
+  assert.match(admin, /second:"2-digit"/);
+  assert.match(admin, /PHT/);
   assert.match(admin, /remittance history/i);
   assert.match(admin, /n!=="remittance"\|\|can\("finance:view"\)/);
   assert.doesNotMatch(admin, /area==="today"[^\n]*<BookingFilters/);
