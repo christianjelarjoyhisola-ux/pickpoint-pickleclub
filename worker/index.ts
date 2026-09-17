@@ -36,6 +36,32 @@ const CONTENT_SECURITY_POLICY = [
 
 const CANONICAL_HOSTNAME = "pickpointpickle.com";
 const WWW_HOSTNAME = `www.${CANONICAL_HOSTNAME}`;
+const SHARED_SUPABASE_ORIGIN = "https://neqvrwtofiolcuxewdze.supabase.co";
+const REGISTERED_TENANT_ORIGIN = "https://pickpoint-pickleclub.christianjelarjoyhisola.workers.dev";
+const PLATFORM_PROXY_PREFIX = "/__platform/";
+const ALLOWED_PLATFORM_PATH = /^(?:rest\/v1\/rpc\/[a-z0-9_-]+|functions\/v1\/[a-z0-9_-]+)$/;
+
+async function proxyPlatformRequest(request: Request, url: URL): Promise<Response> {
+  if (request.method !== "POST") {
+    return new Response("Method not allowed", { status: 405, headers: { Allow: "POST" } });
+  }
+  const platformPath = url.pathname.slice(PLATFORM_PROXY_PREFIX.length);
+  if (!ALLOWED_PLATFORM_PATH.test(platformPath)) {
+    return new Response("Not found", { status: 404 });
+  }
+
+  const headers = new Headers(request.headers);
+  headers.delete("cookie");
+  headers.delete("host");
+  headers.set("Origin", REGISTERED_TENANT_ORIGIN);
+  const target = new URL(`/${platformPath}${url.search}`, SHARED_SUPABASE_ORIGIN);
+  return fetch(target, {
+    method: "POST",
+    headers,
+    body: request.body,
+    redirect: "manual",
+  });
+}
 
 function withSecurityHeaders(response: Response, request: Request): Response {
   const headers = new Headers(response.headers);
@@ -85,6 +111,10 @@ const worker = {
     if (url.hostname.toLowerCase() === WWW_HOSTNAME) {
       url.hostname = CANONICAL_HOSTNAME;
       return withSecurityHeaders(Response.redirect(url, 308), request);
+    }
+
+    if (url.pathname.startsWith(PLATFORM_PROXY_PREFIX)) {
+      return withSecurityHeaders(await proxyPlatformRequest(request, url), request);
     }
 
     if (url.pathname === "/_vinext/image") {

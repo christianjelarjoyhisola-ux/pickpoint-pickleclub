@@ -246,8 +246,15 @@ function tenantPlatformHostname(): string {
     : hostname;
 }
 
+function platformApiUrl(path: string): string {
+  if (typeof window !== "undefined" && PICKPOINT_PUBLIC_HOSTNAMES.has(currentHostname())) {
+    return `${window.location.origin}/__platform/${path.replace(/^\/+/, "")}`;
+  }
+  return `${publicSupabaseUrl.replace(/\/$/, "")}/${path.replace(/^\/+/, "")}`;
+}
+
 function edgeUrl(functionName: string): string {
-  return `${publicSupabaseUrl.replace(/\/$/, "")}/functions/v1/${functionName}?tenantSlug=${activeTenant.identity.slug}`;
+  return `${platformApiUrl(`functions/v1/${functionName}`)}?tenantSlug=${activeTenant.identity.slug}`;
 }
 
 function publicHeaders(accessToken?: string): HeadersInit {
@@ -278,7 +285,7 @@ async function rpc<T>(
   accessToken?: string,
 ) {
   const response = await fetch(
-    `${publicSupabaseUrl.replace(/\/$/, "")}/rest/v1/rpc/${functionName}`,
+    platformApiUrl(`rest/v1/rpc/${functionName}`),
     {
       method: "POST",
       headers: publicHeaders(accessToken),

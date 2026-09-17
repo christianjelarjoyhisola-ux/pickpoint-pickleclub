@@ -447,7 +447,7 @@ test("keeps every admin area usable on phones and small tablets", async () => {
 });
 
 test("pins every browser request to the PickPoint tenant and shared project", async () => {
-  const [registry, config, client, adapter, reportingBounds, viteConfig, domainOperation] = await Promise.all([
+  const [registry, config, client, adapter, reportingBounds, viteConfig, domainOperation, worker] = await Promise.all([
     source("app/tenants/registry.ts"),
     source("app/tenants/pickpoint-pickleclub/config.ts"),
     source("app/lib/platform/client.ts"),
@@ -455,6 +455,7 @@ test("pins every browser request to the PickPoint tenant and shared project", as
     source("supabase/migrations/20260917010000_pickpoint_reporting_bounds.sql"),
     source("vite.config.ts"),
     source("operations/2026-09-17-register-pickpointpickle-domain.sql"),
+    source("worker/index.ts"),
   ]);
   assert.match(registry, /ACTIVE_TENANT_SLUG = "pickpoint-pickleclub" as const/);
   assert.match(config, /productionDomain: "pickpointpickle\.com"/);
@@ -470,6 +471,11 @@ test("pins every browser request to the PickPoint tenant and shared project", as
   assert.match(client, /REGISTERED_TENANT_HOSTNAME = "pickpoint-pickleclub\.christianjelarjoyhisola\.workers\.dev"/);
   assert.match(client, /PICKPOINT_PUBLIC_HOSTNAMES\.has\(hostname\)[\s\S]*REGISTERED_TENANT_HOSTNAME/);
   assert.match(client, /p_hostname: tenantPlatformHostname\(\)/);
+  assert.match(client, /\/__platform\/\$\{path\.replace/);
+  assert.match(worker, /PLATFORM_PROXY_PREFIX = "\/__platform\/"/);
+  assert.match(worker, /headers\.set\("Origin", REGISTERED_TENANT_ORIGIN\)/);
+  assert.match(worker, /request\.method !== "POST"/);
+  assert.match(worker, /headers\.delete\("cookie"\)/);
   assert.match(viteConfig, /pattern: "pickpointpickle\.com", custom_domain: true/);
   assert.match(viteConfig, /pattern: "www\.pickpointpickle\.com", custom_domain: true/);
   assert.match(viteConfig, /workers_dev: true/);
