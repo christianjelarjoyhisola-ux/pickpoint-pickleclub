@@ -524,6 +524,8 @@ export type CourtBlock = {
   date: string;
   dateValue: string | null;
   time: string;
+  startTime: string | null;
+  endTime: string | null;
   reason: string;
   publicLabel: string;
   internalReason: string | null;
@@ -839,6 +841,8 @@ export const previewSnapshot: ManagementSnapshot = {
       date: "Aug 8, 2026",
       dateValue: "2026-08-08",
       time: "2:00–3:00 PM",
+      startTime: "14:00",
+      endTime: "15:00",
       reason: "Maintenance",
       publicLabel: "Maintenance",
       internalReason: "Net adjustment",
@@ -850,6 +854,8 @@ export const previewSnapshot: ManagementSnapshot = {
       date: "Aug 12, 2026",
       dateValue: "2026-08-12",
       time: "6:00–8:00 AM",
+      startTime: "06:00",
+      endTime: "08:00",
       reason: "Closed",
       publicLabel: "Closed",
       internalReason: "Monthly deep clean",
@@ -3789,6 +3795,8 @@ function mapLiveBlock(
     time: start && end
       ? `${formatManilaTime(start)}–${formatManilaTime(end)}`
       : "All day",
+    startTime: normalizedClock(startRaw),
+    endTime: normalizedClock(endRaw),
     reason: publicLabel,
     publicLabel,
     internalReason: internalReason || null,

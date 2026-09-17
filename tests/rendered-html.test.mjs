@@ -322,6 +322,13 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(admin, /Time & date/);
   assert.match(admin, /Reference & total/);
   assert.match(admin, /function TodayCourtList/);
+  assert.match(admin, /function CourtTimeline/);
+  assert.match(admin, />Timeline <small>Recommended<\/small>/);
+  assert.match(admin, />Agenda<\/button>/);
+  assert.match(admin, /Scroll horizontally through the court schedule/);
+  assert.match(admin, /Open · no bookings/);
+  assert.match(admin, /timelineNow/);
+  assert.doesNotMatch(admin, /Court cards/);
   assert.match(admin, /The next reservations later today/);
   assert.match(admin, /The next five reservations from tomorrow onward/);
   assert.match(admin, /function DashboardOverview/);
@@ -370,8 +377,10 @@ test("keeps every admin area usable on phones and small tablets", async () => {
   assert.match(css, /\.rowActions \.reviewAction\{[^}]*background:#e7f3ff[^}]*color:var\(--i\)/);
   assert.match(css, /\.rowActions \.cancelAction\{[^}]*background:#fff7f7[^}]*color:var\(--i\)/);
   assert.match(css, /\.bookingColumns~\.row\{grid-template-columns:/);
-  assert.match(admin, /type ScheduleView="agenda"\|"courts"/);
-  assert.match(admin, /Agenda <small>Recommended<\/small>/);
+  assert.match(admin, /type ScheduleView="timeline"\|"agenda"/);
+  assert.match(admin, /Timeline <small>Recommended<\/small>/);
+  assert.match(css, /\.timelineScroller\{[^}]*overflow-x:auto/);
+  assert.match(css, /\.timelineCorner,\.timelineCourt\{[^}]*position:sticky[^}]*left:0/);
   assert.match(css, /\.rowActions button:disabled\{[^}]*opacity:\.46/);
   assert.match(css, /\.todayQueue \.paper>header\{[^}]*flex-direction:column/);
   assert.match(css, /\.headerActions>a,\.headerActions>button\{width:44px!important;height:44px!important\}/);
