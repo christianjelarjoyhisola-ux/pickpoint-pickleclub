@@ -520,8 +520,8 @@ test("uses a branded, accessible startup and route loading experience", async ()
     source("app/globals.css"),
   ]);
   assert.match(layout, /<StartupLoadingScreen \/>/);
-  assert.match(startup, /MINIMUM_VISIBLE_MS = 900/);
-  assert.match(startup, /MAXIMUM_VISIBLE_MS = 2500/);
+  assert.match(startup, /MINIMUM_VISIBLE_MS = 1400/);
+  assert.match(startup, /MAXIMUM_VISIBLE_MS = 3000/);
   assert.match(startup, /document\.readyState === "complete"/);
   assert.match(loader, /pickpoint-mark-v4\.png/);
   assert.match(loader, /pickpoint-wordmark-v3\.png/);

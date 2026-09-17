@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { RouteLoadingScreen } from "./route-loading-screen";
 
-const MINIMUM_VISIBLE_MS = 900;
-const MAXIMUM_VISIBLE_MS = 2500;
+const MINIMUM_VISIBLE_MS = 1400;
+const MAXIMUM_VISIBLE_MS = 3000;
 const EXIT_MS = 360;
 
 export function StartupLoadingScreen() {
