@@ -447,15 +447,17 @@ test("keeps every admin area usable on phones and small tablets", async () => {
 });
 
 test("pins every browser request to the PickPoint tenant and shared project", async () => {
-  const [registry, config, client, adapter, reportingBounds] = await Promise.all([
+  const [registry, config, client, adapter, reportingBounds, viteConfig, domainOperation] = await Promise.all([
     source("app/tenants/registry.ts"),
     source("app/tenants/pickpoint-pickleclub/config.ts"),
     source("app/lib/platform/client.ts"),
     source("app/manage/management-adapter.ts"),
     source("supabase/migrations/20260917010000_pickpoint_reporting_bounds.sql"),
+    source("vite.config.ts"),
+    source("operations/2026-09-17-register-pickpointpickle-domain.sql"),
   ]);
   assert.match(registry, /ACTIVE_TENANT_SLUG = "pickpoint-pickleclub" as const/);
-  assert.match(config, /pickpoint-pickleclub\.christianjelarjoyhisola\.workers\.dev/);
+  assert.match(config, /productionDomain: "pickpointpickle\.com"/);
   assert.match(config, /minimumLeadMinutes: 0/);
   assert.match(config, /offPeakHourlyRate: 270/);
   assert.match(config, /peakHourlyRate: 320/);
@@ -463,7 +465,12 @@ test("pins every browser request to the PickPoint tenant and shared project", as
   assert.match(client, /SHARED_SUPABASE_PUBLISHABLE_KEY/);
   assert.match(client, /NEXT_PUBLIC_SUPABASE_URL\?\.trim\(\) \|\| SHARED_SUPABASE_ORIGIN/);
   assert.match(client, /NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY\?\.trim\(\) \|\|/);
-  assert.match(client, /REGISTERED_MANAGEMENT_ORIGIN/);
+  assert.match(client, /REGISTERED_MANAGEMENT_ORIGINS/);
+  assert.match(client, /https:\/\/pickpointpickle\.com/);
+  assert.match(viteConfig, /pattern: "pickpointpickle\.com", custom_domain: true/);
+  assert.match(viteConfig, /pattern: "www\.pickpointpickle\.com", custom_domain: true/);
+  assert.match(domainOperation, /provision_tenant_domain/);
+  assert.match(domainOperation, /v_hostname constant text := 'pickpointpickle\.com'/);
   assert.doesNotMatch(client, /reference: `DINK-/);
   assert.doesNotMatch(client, /tenantId\s*:/);
   assert.doesNotMatch(client, /SUPABASE_SERVICE|service[_-]?role/i);
@@ -543,4 +550,7 @@ test("keeps hardened production response headers", async () => {
   assert.equal(response.headers.get("x-content-type-options"), "nosniff");
   assert.equal(response.headers.get("x-frame-options"), "DENY");
   assert.match(response.headers.get("strict-transport-security") ?? "", /max-age=31536000/);
+  const redirect = await render("/manage?from=www", "https://www.pickpointpickle.com");
+  assert.equal(redirect.status, 308);
+  assert.equal(redirect.headers.get("location"), "https://pickpointpickle.com/manage?from=www");
 });

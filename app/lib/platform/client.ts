@@ -270,7 +270,10 @@ async function rpc<T>(
   return responseJson<T>(response);
 }
 
-const REGISTERED_MANAGEMENT_ORIGIN = "https://pickpoint-pickleclub.christianjelarjoyhisola.workers.dev";
+const REGISTERED_MANAGEMENT_ORIGINS = new Set([
+  "https://pickpointpickle.com",
+  "https://pickpoint-pickleclub.christianjelarjoyhisola.workers.dev",
+]);
 
 function managementHostname(options: { mutation?: boolean } = {}): string {
   if (typeof window === "undefined") {
@@ -281,7 +284,7 @@ function managementHostname(options: { mutation?: boolean } = {}): string {
     );
   }
   const origin = window.location.origin.toLowerCase();
-  if (options.mutation && origin !== REGISTERED_MANAGEMENT_ORIGIN) {
+  if (options.mutation && !REGISTERED_MANAGEMENT_ORIGINS.has(origin)) {
     throw new PlatformRequestError(
       403,
       "LIVE_TENANT_ORIGIN_MISMATCH",

@@ -34,6 +34,9 @@ const CONTENT_SECURITY_POLICY = [
   "frame-ancestors 'none'",
 ].join("; ");
 
+const CANONICAL_HOSTNAME = "pickpointpickle.com";
+const WWW_HOSTNAME = `www.${CANONICAL_HOSTNAME}`;
+
 function withSecurityHeaders(response: Response, request: Request): Response {
   const headers = new Headers(response.headers);
   const isHttps = new URL(request.url).protocol === "https:";
@@ -78,6 +81,11 @@ function withSecurityHeaders(response: Response, request: Request): Response {
 const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+
+    if (url.hostname.toLowerCase() === WWW_HOSTNAME) {
+      url.hostname = CANONICAL_HOSTNAME;
+      return withSecurityHeaders(Response.redirect(url, 308), request);
+    }
 
     if (url.pathname === "/_vinext/image") {
       const allowedWidths = [...DEFAULT_DEVICE_SIZES, ...DEFAULT_IMAGE_SIZES];

@@ -16,6 +16,10 @@ const localBindingConfig = {
   main: "./worker/index.ts",
   compatibility_date: "2026-09-15",
   compatibility_flags: ["nodejs_compat"],
+  routes: [
+    { pattern: "pickpointpickle.com", custom_domain: true },
+    { pattern: "www.pickpointpickle.com", custom_domain: true },
+  ],
   d1_databases: d1
     ? [
         {

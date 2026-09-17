@@ -15,7 +15,7 @@ export type PickPointTenantConfig = {
     locale: "en-PH";
     currency: "PHP";
     timezone: "Asia/Manila";
-    productionDomain: "pickpoint-pickleclub.christianjelarjoyhisola.workers.dev";
+    productionDomain: "pickpointpickle.com";
   };
   activation: {
     status: "setup_required";
@@ -72,7 +72,7 @@ export const pickPointConfig = {
     locale: "en-PH",
     currency: "PHP",
     timezone: "Asia/Manila",
-    productionDomain: "pickpoint-pickleclub.christianjelarjoyhisola.workers.dev",
+    productionDomain: "pickpointpickle.com",
   },
   activation: {
     status: "setup_required",

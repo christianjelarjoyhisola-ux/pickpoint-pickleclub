@@ -17,7 +17,8 @@ A premium, mobile-first court booking site and owner workspace for the isolated
 
 - Supabase project: `neqvrwtofiolcuxewdze` only.
 - Immutable tenant slug: `pickpoint-pickleclub`.
-- Registered origin: `pickpoint-pickleclub.christianjelarjoyhisola.workers.dev`.
+- Primary production origin: `pickpointpickle.com`.
+- Fallback Workers origin: `pickpoint-pickleclub.christianjelarjoyhisola.workers.dev`.
 - The browser never accepts a tenant UUID and cannot switch tenants.
 - Live reads and writes use the platform's tenant-aware RPCs, Edge Functions,
   Row Level Security, origin checks, and overlap constraints.

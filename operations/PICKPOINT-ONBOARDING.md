@@ -32,10 +32,12 @@ tenant UUIDs or expose a service-role key.
 2. Confirm the permanent public name, exact domain, city/address, court count,
    court names/types, operating hours, rates, booking limits, cancellation and
    reschedule policy, contact details, and payment/remittance destinations.
-3. Completed for the private Sites origin:
-   `pickpoint-pickleclub.christianjelarjoyhisola.workers.dev`. Add only any future
-   owner-approved custom hostname through `provision_tenant_domain`; add the
-   same exact URLs to the Supabase Auth redirect allowlist. Do not use wildcards.
+3. Completed for the fallback Workers origin:
+   `pickpoint-pickleclub.christianjelarjoyhisola.workers.dev`. The owner-approved
+   primary hostname is `pickpointpickle.com`; register it through
+   `provision_tenant_domain` and add the exact URL to the Supabase Auth redirect
+   allowlist. Do not use wildcards. `www.pickpointpickle.com` redirects to the
+   primary hostname before the application handles the request.
 4. Provision the first owner membership through
    `provision_tenant_membership`; never commit an owner UUID or password.
 5. Configure courts and rates through `manage_tenant_court` and the shared
@@ -56,7 +58,7 @@ tenant UUIDs or expose a service-role key.
 
 ## Required production values still missing
 
-- Any owner-approved custom production domain
+- Register and verify `pickpointpickle.com` as the primary production domain
 - Full venue address and public map/location wording
 - Final court inventory, types, amenities, and accessibility details
 - Final operating and holiday hours
