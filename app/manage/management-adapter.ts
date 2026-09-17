@@ -2690,11 +2690,11 @@ function blockedDatePayload(candidate: unknown) {
   const startsAt = typeof payload.startsAt === "string" ? payload.startsAt.trim() : null;
   const endsAt = typeof payload.endsAt === "string" ? payload.endsAt.trim() : null;
   if (
-    !DATE_PATTERN.test(startDate) || !DATE_PATTERN.test(endDate) ||
+    !DATE_PATTERN.test(startDate) || !DATE_PATTERN.test(endDate) || endDate < startDate ||
     !BLOCK_LABELS.has(publicLabel as "Reserved") ||
     (internalReason !== null && internalReason.length > 200) ||
     ((startsAt === null) !== (endsAt === null)) ||
-    (startsAt !== null && (!WHOLE_HOUR_PATTERN.test(startsAt) || !WHOLE_HOUR_PATTERN.test(endsAt ?? "") || endsAt! <= startsAt))
+    (startsAt !== null && (!WHOLE_HOUR_PATTERN.test(startsAt) || !WHOLE_HOUR_PATTERN.test(endsAt ?? "") || (endDate === startDate && endsAt! <= startsAt)))
   ) {
     throw new Error("BLOCK_CONFIGURATION_INVALID");
   }
