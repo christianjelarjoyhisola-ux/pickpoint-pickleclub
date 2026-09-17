@@ -494,10 +494,11 @@ test("pins every browser request to the PickPoint tenant and shared project", as
 });
 
 test("uses the supplied transparent PickPoint brand assets and palette", async () => {
-  const [guestCss, adminCss, logo] = await Promise.all([
+  const [guestCss, adminCss, logo, socialPreview] = await Promise.all([
     source("app/pickpoint-v2/guest/guest.css"),
     source("app/pickpoint-v2/admin/admin.module.css"),
     readFile(path.join(root, "public/pickpoint-mark-v4.png")),
+    readFile(path.join(root, "public/pickpoint-share-v1.png")),
   ]);
   assert.match(guestCss, /#041630/i);
   assert.match(guestCss, /#b8f000/i);
@@ -505,11 +506,16 @@ test("uses the supplied transparent PickPoint brand assets and palette", async (
   const shell = await source("app/pickpoint-v2/guest/guest-shell.tsx");
   assert.match(shell, /pickpoint-wordmark-v3\.png/);
   assert.match(shell, /pp-brand-mark/);
-  assert.match(await source("app/layout.tsx"), /pickpoint-mark-v4\.png/);
+  const layout = await source("app/layout.tsx");
+  assert.match(layout, /pickpoint-mark-v4\.png/);
+  assert.match(layout, /pickpoint-share-v1\.png/);
+  assert.match(layout, /summary_large_image/);
   assert.doesNotMatch(guestCss, /\.pp-hero-title > img \{ display: none/);
   assert.equal(logo.readUInt32BE(16), 1327);
   assert.equal(logo.readUInt32BE(20), 1186);
   assert.equal(logo[25], 6, "PNG must use RGBA color type");
+  assert.equal(socialPreview.readUInt32BE(16), 1200);
+  assert.equal(socialPreview.readUInt32BE(20), 630);
 });
 
 test("uses a branded, accessible startup and route loading experience", async () => {

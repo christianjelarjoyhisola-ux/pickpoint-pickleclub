@@ -17,6 +17,12 @@ const sora = Sora({
 const title = "PickPoint Pickle Club — Book your court";
 const description =
   "Choose a court, see live availability, and reserve your next game at PickPoint Pickle Club.";
+const socialImage = {
+  url: "/pickpoint-share-v1.png",
+  width: 1200,
+  height: 630,
+  alt: "PickPoint Pickle Club — live court availability and simple booking",
+};
 
 function safeRequestOrigin(requestHeaders: Headers): string {
   const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
@@ -52,11 +58,14 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: "PickPoint Pickle Club",
       title,
       description,
+      url: "/",
+      images: [socialImage],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title,
       description,
+      images: [socialImage.url],
     },
     icons: {
       icon: [{ url: "/pickpoint-mark-v4.png", type: "image/png" }],
