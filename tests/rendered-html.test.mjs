@@ -326,6 +326,7 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(admin, /function compactTimeRange/);
   assert.match(admin, /compactTimeRange\(value,value\+60\)/);
   assert.match(admin, /compactTimeRange\(rawStart,rawEnd\)/);
+  assert.match(admin, /hourWidth=96/);
   assert.match(admin, />Timeline <small>Recommended<\/small>/);
   assert.match(admin, />Agenda<\/button>/);
   assert.match(admin, /Scroll horizontally through the court schedule/);
