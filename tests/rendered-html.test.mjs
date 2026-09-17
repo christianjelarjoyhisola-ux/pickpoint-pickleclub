@@ -337,6 +337,9 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(admin, /state\?s\.slotUnavailable/);
   assert.match(admin, /custom\?!customValid:!selection/);
   assert.match(admin, /defaultValue="Closed"/);
+  assert.match(admin, /selectedWindow=\{start:custom\?customStart:selection\?timeValue\(selection\.start\):"",end:custom\?customEnd:selection\?timeValue\(selection\.end\):""\}/);
+  assert.match(admin, /onSubmit=\{event=>onSubmit\(event,selectedWindow\)\}/);
+  assert.match(admin, /closureWindow\?\.start\|\|String\(f\.get\("start"\)\)/);
   assert.match(admin, /endsAt<=startsAt\?shift\(startDate,1\):startDate/);
   assert.match(adapter, /endDate < startDate/);
   assert.match(adapter, /endDate === startDate && endsAt! <= startsAt/);
