@@ -185,12 +185,23 @@ img {
     max(20px, env(safe-area-inset-left));
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 34%, rgba(37, 76, 132, 0.34), transparent 38%),
-    rgba(11, 33, 53, 0.94);
+    radial-gradient(circle at 50% 34%, rgba(20, 120, 212, 0.28), transparent 36%),
+    radial-gradient(circle at 16% 86%, rgba(184, 240, 0, 0.1), transparent 28%),
+    rgba(4, 22, 48, 0.975);
   color: var(--white);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
   animation: pickpoint-pickleclub-route-reveal 140ms ease both;
+}
+
+.startup-loading-root.is-leaving .route-loading-screen {
+  pointer-events: none;
+  animation: pickpoint-pickleclub-startup-exit 360ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+body:has(> .startup-loading-root)
+  > .route-loading-screen[data-loading-source="boundary"] {
+  display: none;
 }
 
 body:has(> .route-loading-portal)
@@ -199,16 +210,54 @@ body:has(> .route-loading-portal)
 }
 
 .route-loading-card {
-  width: min(320px, 100%);
+  position: relative;
+  width: min(380px, 100%);
   display: grid;
   justify-items: center;
-  gap: 8px;
-  padding: clamp(24px, 7vw, 34px);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 28px;
-  background: rgba(16, 32, 25, 0.82);
-  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.32);
+  gap: 10px;
+  padding: clamp(26px, 7vw, 38px);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 30px;
+  background: linear-gradient(145deg, rgba(16, 43, 76, 0.96), rgba(5, 25, 52, 0.98));
+  box-shadow: 0 34px 110px rgba(0, 0, 0, 0.4), inset 0 1px rgba(255, 255, 255, 0.1);
   text-align: center;
+}
+
+.route-loading-card::before {
+  position: absolute;
+  width: 190px;
+  height: 190px;
+  right: -82px;
+  bottom: -100px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(184, 240, 0, 0.42), rgba(20, 120, 212, 0.08) 54%, transparent 68%);
+  content: "";
+}
+
+.route-loading-brand {
+  position: relative;
+  z-index: 1;
+  width: min(278px, 90%);
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.route-loading-mark {
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+  filter: drop-shadow(0 7px 14px rgba(0, 0, 0, 0.24));
+}
+
+.route-loading-wordmark {
+  width: min(205px, calc(100% - 64px));
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 7px 14px rgba(0, 0, 0, 0.2));
 }
 
 .route-loading-card > p {
@@ -238,67 +287,65 @@ body:has(> .route-loading-portal)
 
 .route-loading-court {
   position: relative;
-  width: 132px;
-  height: 92px;
+  width: min(232px, 82%);
+  height: 28px;
   display: grid;
   place-items: center;
+  margin: 7px 0 3px;
+  overflow: hidden;
 }
 
 .route-loading-court-line {
   position: absolute;
-  top: 48%;
-  right: 2px;
-  left: 2px;
-  height: 2px;
+  top: 13px;
+  right: 0;
+  left: 0;
+  height: 1px;
   border-radius: 999px;
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.78) 18%,
-    rgba(255, 255, 255, 0.78) 82%,
+    rgba(255, 255, 255, 0.7) 14%,
+    rgba(255, 255, 255, 0.7) 86%,
     transparent
   );
 }
 
-.route-loading-ball-wrap {
-  position: relative;
-  z-index: 2;
-  display: block;
-  animation: pickpoint-pickleclub-ball-hop 1.05s cubic-bezier(0.45, 0, 0.25, 1) infinite;
-  will-change: transform;
-}
-
-.route-loading-ball {
-  display: block;
-  width: clamp(52px, 15vw, 64px);
-  aspect-ratio: 1;
-  border: 3px solid rgba(255, 255, 255, 0.88);
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 29% 24%, var(--ink) 0 3px, transparent 3.8px),
-    radial-gradient(circle at 68% 19%, var(--ink) 0 3px, transparent 3.8px),
-    radial-gradient(circle at 76% 54%, var(--ink) 0 3px, transparent 3.8px),
-    radial-gradient(circle at 45% 72%, var(--ink) 0 3px, transparent 3.8px),
-    radial-gradient(circle at 20% 58%, var(--ink) 0 3px, transparent 3.8px),
-    var(--citrus);
-  box-shadow:
-    0 0 0 8px rgba(130, 245, 0, 0.08),
-    0 13px 28px rgba(0, 0, 0, 0.28);
-  animation: pickpoint-pickleclub-ball-roll 760ms linear infinite;
-  will-change: transform;
-}
-
-.route-loading-shadow {
+.route-loading-runner {
   position: absolute;
-  z-index: 1;
-  bottom: 6px;
-  width: 58px;
-  height: 9px;
+  z-index: 2;
+  top: 9px;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.92);
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.34);
-  filter: blur(4px);
-  animation: pickpoint-pickleclub-ball-shadow 1.05s ease-in-out infinite;
-  will-change: transform, opacity;
+  background: var(--citrus);
+  box-shadow: 0 0 0 6px rgba(184, 240, 0, 0.11), 0 0 20px rgba(184, 240, 0, 0.5);
+  animation: pickpoint-pickleclub-court-run 1.45s cubic-bezier(0.45, 0, 0.25, 1) infinite alternate;
+  will-change: transform;
+}
+
+.route-loading-progress {
+  position: relative;
+  z-index: 1;
+  width: min(238px, 84%);
+  height: 3px;
+  display: block;
+  margin-top: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.route-loading-progress i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 44%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--citrus), #efffa8);
+  box-shadow: 0 0 16px rgba(184, 240, 0, 0.4);
+  animation: pickpoint-pickleclub-progress 1.25s ease-in-out infinite;
 }
 
 @keyframes pickpoint-pickleclub-route-reveal {
@@ -306,26 +353,18 @@ body:has(> .route-loading-portal)
   to { opacity: 1; }
 }
 
-@keyframes pickpoint-pickleclub-ball-roll {
-  to { transform: rotate(360deg); }
+@keyframes pickpoint-pickleclub-startup-exit {
+  to { opacity: 0; transform: scale(1.012); }
 }
 
-@keyframes pickpoint-pickleclub-ball-hop {
-  0%,
-  100% { transform: translateY(8px); }
-  50% { transform: translateY(-10px); }
+@keyframes pickpoint-pickleclub-court-run {
+  from { transform: translateX(6px); }
+  to { transform: translateX(216px); }
 }
 
-@keyframes pickpoint-pickleclub-ball-shadow {
-  0%,
-  100% {
-    opacity: 0.52;
-    transform: scaleX(1);
-  }
-  50% {
-    opacity: 0.24;
-    transform: scaleX(0.66);
-  }
+@keyframes pickpoint-pickleclub-progress {
+  from { transform: translateX(-112%); }
+  to { transform: translateX(328%); }
 }
 
 @media (prefers-contrast: more) {
@@ -359,9 +398,8 @@ body:has(> .route-loading-portal)
     animation: none !important;
   }
 
-  .route-loading-ball-wrap,
-  .route-loading-ball,
-  .route-loading-shadow {
+  .route-loading-runner,
+  .route-loading-progress i {
     animation: none !important;
     transform: none !important;
     will-change: auto;

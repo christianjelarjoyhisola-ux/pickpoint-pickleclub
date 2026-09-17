@@ -512,6 +512,26 @@ test("uses the supplied transparent PickPoint brand assets and palette", async (
   assert.equal(logo[25], 6, "PNG must use RGBA color type");
 });
 
+test("uses a branded, accessible startup and route loading experience", async () => {
+  const [layout, startup, loader, css] = await Promise.all([
+    source("app/layout.tsx"),
+    source("app/startup-loading-screen.tsx"),
+    source("app/route-loading-screen.tsx"),
+    source("app/globals.css"),
+  ]);
+  assert.match(layout, /<StartupLoadingScreen \/>/);
+  assert.match(startup, /MINIMUM_VISIBLE_MS = 900/);
+  assert.match(startup, /MAXIMUM_VISIBLE_MS = 2500/);
+  assert.match(startup, /document\.readyState === "complete"/);
+  assert.match(loader, /pickpoint-mark-v4\.png/);
+  assert.match(loader, /pickpoint-wordmark-v3\.png/);
+  assert.match(loader, /role="status"/);
+  assert.match(loader, /Preparing your next rally…/);
+  assert.match(css, /\.startup-loading-root\.is-leaving/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.doesNotMatch(startup, /(?:4000|5000|6000)/);
+});
+
 test("keeps the guest booking flow phone-safe and understandable", async () => {
   const [css, shell, booking, home, courts, admin, client, courtPhotoMigration] = await Promise.all([
     source("app/pickpoint-v2/guest/guest.css"),

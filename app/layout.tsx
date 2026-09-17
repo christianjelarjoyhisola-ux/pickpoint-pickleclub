@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, Sora } from "next/font/google";
 import { headers } from "next/headers";
 import "./globals.css";
+import { StartupLoadingScreen } from "./startup-loading-screen";
 
 const dmSans = DM_Sans({
   variable: "--font-body",
@@ -77,6 +78,7 @@ export default function RootLayout({
         <a className="skip-link" href="#main-content">
           Skip to main content
         </a>
+        <StartupLoadingScreen />
         {children}
       </body>
     </html>
