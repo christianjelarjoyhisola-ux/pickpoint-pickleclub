@@ -467,6 +467,9 @@ test("pins every browser request to the PickPoint tenant and shared project", as
   assert.match(client, /NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY\?\.trim\(\) \|\|/);
   assert.match(client, /REGISTERED_MANAGEMENT_ORIGINS/);
   assert.match(client, /https:\/\/pickpointpickle\.com/);
+  assert.match(client, /REGISTERED_TENANT_HOSTNAME = "pickpoint-pickleclub\.christianjelarjoyhisola\.workers\.dev"/);
+  assert.match(client, /PICKPOINT_PUBLIC_HOSTNAMES\.has\(hostname\)[\s\S]*REGISTERED_TENANT_HOSTNAME/);
+  assert.match(client, /p_hostname: tenantPlatformHostname\(\)/);
   assert.match(viteConfig, /pattern: "pickpointpickle\.com", custom_domain: true/);
   assert.match(viteConfig, /pattern: "www\.pickpointpickle\.com", custom_domain: true/);
   assert.match(viteConfig, /workers_dev: true/);

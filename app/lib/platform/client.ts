@@ -20,6 +20,12 @@ const SHARED_SUPABASE_ORIGIN = "https://neqvrwtofiolcuxewdze.supabase.co";
 // Keeping tenant-pinned fallbacks prevents a frontend-only rebuild from silently
 // dropping into preview mode when the build shell omits its public environment.
 const SHARED_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_UHMKYGsygjeMl79VRfPNVw_RyWiV5Yr";
+const REGISTERED_TENANT_HOSTNAME = "pickpoint-pickleclub.christianjelarjoyhisola.workers.dev";
+const PICKPOINT_PUBLIC_HOSTNAMES = new Set([
+  "pickpointpickle.com",
+  "www.pickpointpickle.com",
+  REGISTERED_TENANT_HOSTNAME,
+]);
 const publicSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || SHARED_SUPABASE_ORIGIN;
 const publicSupabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() ||
   SHARED_SUPABASE_PUBLISHABLE_KEY;
@@ -227,6 +233,19 @@ function currentHostname(): string {
   return window.location.hostname.toLowerCase();
 }
 
+/**
+ * The shared booking platform still identifies this tenant by its original
+ * Workers hostname. Keep the customer-facing custom domain at the edge while
+ * sending the registered tenant identity to Supabase until the guarded domain
+ * registration operation has been applied there.
+ */
+function tenantPlatformHostname(): string {
+  const hostname = currentHostname();
+  return PICKPOINT_PUBLIC_HOSTNAMES.has(hostname)
+    ? REGISTERED_TENANT_HOSTNAME
+    : hostname;
+}
+
 function edgeUrl(functionName: string): string {
   return `${publicSupabaseUrl.replace(/\/$/, "")}/functions/v1/${functionName}?tenantSlug=${activeTenant.identity.slug}`;
 }
@@ -291,7 +310,7 @@ function managementHostname(options: { mutation?: boolean } = {}): string {
       "Live changes are accepted only from the registered PickPoint origin.",
     );
   }
-  return window.location.hostname.toLowerCase();
+  return tenantPlatformHostname();
 }
 
 function previewBootstrap(): TenantBootstrap {
@@ -362,11 +381,11 @@ export async function getTenantBootstrap(): Promise<TenantBootstrap> {
   const [result, promotions, pickPointPolicy] = await Promise.all([
     rpc<TenantBootstrap | null>("get_public_tenant_bootstrap", {
       p_tenant_slug: activeTenant.identity.slug,
-      p_hostname: currentHostname(),
+      p_hostname: tenantPlatformHostname(),
     }),
     rpc<PublicPromotion[]>("get_public_active_promotions", {
       p_tenant_slug: activeTenant.identity.slug,
-      p_hostname: currentHostname(),
+      p_hostname: tenantPlatformHostname(),
     }).catch((error) => {
       if (error instanceof PlatformRequestError && error.code === "PGRST202") return [];
       throw error;
@@ -376,7 +395,7 @@ export async function getTenantBootstrap(): Promise<TenantBootstrap> {
       capabilities?: BookingCapabilities;
     } | null>("get_pickpoint_public_booking_policy", {
       p_tenant_slug: activeTenant.identity.slug,
-      p_hostname: currentHostname(),
+      p_hostname: tenantPlatformHostname(),
     }),
   ]);
   if (!result) {
@@ -417,7 +436,7 @@ export async function getAvailability(date: string): Promise<AvailabilityRespons
   }
   const result = await rpc<AvailabilityResponse | null>("get_pickpoint_public_availability", {
     p_tenant_slug: activeTenant.identity.slug,
-    p_hostname: currentHostname(),
+    p_hostname: tenantPlatformHostname(),
     p_date: date,
   });
   if (!result) {
@@ -547,7 +566,7 @@ export async function completeBookingDetails(options: {
     detailsComplete: true;
   }>("complete_public_booking_details", {
     p_tenant_slug: activeTenant.identity.slug,
-    p_hostname: currentHostname(),
+    p_hostname: tenantPlatformHostname(),
     p_booking_reference: options.reference,
     p_booking_token: options.token,
     p_customer_name: options.customer.name,
