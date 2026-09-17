@@ -543,6 +543,8 @@ test("keeps the guest booking flow phone-safe and understandable", async () => {
   assert.doesNotMatch(booking, /Send the exact total to the selected account, then submit your receipt/);
   assert.doesNotMatch(booking, /blockingReasons\.map/);
   assert.match(home, /Get directions/);
+  assert.match(home, /live \|\| loading/);
+  assert.match(home, /Checking booking availability…/);
   assert.match(home, /Online booking is opening soon/);
   assert.match(courts, /clock12/);
   assert.match(courts, /aria-expanded=/);
