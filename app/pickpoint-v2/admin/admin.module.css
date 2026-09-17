@@ -325,6 +325,8 @@
 .closureRow h3{margin:5px 0 0;font:700 17px var(--font-display)}
 .closureRow p{margin:6px 0 0;color:var(--m);font-size:13px;line-height:1.4}
 .closureRow p b{color:var(--i)}
+.closureRow .closureNote{display:flex;align-items:baseline;gap:7px;margin-top:8px;color:#66758a}
+.closureNote span{color:var(--b);font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
 .closureRow>span{justify-self:start;padding:7px 10px;border-radius:99px;font-size:11px;font-weight:850}
 .closureUpcoming{color:#315800;background:#e9f8d2}
 .closurePast{color:#677487;background:#edf1f5}

@@ -329,6 +329,10 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(admin, /function ClosureComposer/);
   assert.match(admin, /area==="closures"/);
   assert.match(admin, /Scheduled court closures/);
+  assert.match(admin, /Note \(optional\)/);
+  assert.match(admin, /Visible only to staff/);
+  assert.match(admin, /No note added/);
+  assert.match(admin, /className=\{s\.closureNote\}/);
   assert.match(admin, /Block court time/);
   assert.match(admin, /Select time slots/);
   assert.match(admin, /Choose one or more consecutive one-hour slots/);
@@ -409,6 +413,7 @@ test("keeps every admin area usable on phones and small tablets", async () => {
   assert.match(css, /\.timelineCorner,\.timelineCourt\{[^}]*position:sticky[^}]*left:0/);
   assert.match(css, /\.closureSummary\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
   assert.match(css, /\.closureRow\{display:grid;grid-template-columns:190px minmax\(220px,1fr\) auto auto/);
+  assert.match(css, /\.closureRow \.closureNote\{display:flex;align-items:baseline;gap:7px/);
   assert.match(css, /@media\(max-width:760px\)\{\.closureSummary\{grid-template-columns:1fr/);
   assert.match(css, /\.closureRow>button\{grid-column:1\/-1;width:100%;min-height:46px/);
   assert.match(css, /\.timeSlots\{display:grid;grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
