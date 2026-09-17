@@ -199,6 +199,11 @@ img {
   animation: pickpoint-pickleclub-startup-exit 360ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
+body:has(> .startup-loading-root),
+body:has(> .route-loading-portal) {
+  overflow: hidden;
+}
+
 body:has(> .startup-loading-root)
   > .route-loading-screen[data-loading-source="boundary"] {
   display: none;
