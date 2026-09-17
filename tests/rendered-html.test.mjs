@@ -333,6 +333,7 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(admin, /Select time slots/);
   assert.match(admin, /Choose one or more consecutive one-hour slots/);
   assert.match(admin, /Available closure time slots/);
+  assert.match(admin, /Only available times are shown on mobile/);
   assert.match(admin, /state\|\|"Available"/);
   assert.match(admin, /state\?s\.slotUnavailable/);
   assert.match(admin, /custom\?!customValid:!selection/);
@@ -413,7 +414,9 @@ test("keeps every admin area usable on phones and small tablets", async () => {
   assert.match(css, /\.timeSlots\{display:grid;grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
   assert.match(css, /\.timeSlots>\.slotSelected\{[^}]*background:var\(--n\)/);
   assert.match(css, /\.timeSlots>\.slotUnavailable\{[^}]*repeating-linear-gradient/);
-  assert.match(css, /@media\(max-width:760px\)[^{]*\{\.closureForm[^}]+[\s\S]*?\.timeSlots\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(css, /@media\(max-width:760px\)[^{]*\{\.closureForm[^}]+[\s\S]*?\.timeSlots\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+  assert.match(css, /\.timeSlots>\.slotUnavailable\{display:none\}/);
+  assert.match(css, /\.mobileSlotNote\{display:block/);
   assert.match(css, /\.rowActions button:disabled\{[^}]*opacity:\.46/);
   assert.match(css, /\.todayQueue \.paper>header\{[^}]*flex-direction:column/);
   assert.match(css, /\.headerActions>a,\.headerActions>button\{width:44px!important;height:44px!important\}/);
