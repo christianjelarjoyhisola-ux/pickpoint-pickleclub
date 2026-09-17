@@ -20,10 +20,10 @@
 .headerActions>a,.headerActions>button{width:42px!important;height:42px!important;display:grid;place-items:center;border:1px solid #d4dde9!important;border-radius:12px!important;background:#f8fafc!important;color:#24364d!important;cursor:pointer;transition:border-color .16s ease,background .16s ease,transform .16s ease}
 .headerActions>a:hover,.headerActions>button:hover,.headerActions>button.headerActionActive{border-color:#a9bfd9!important;background:#edf5ff!important;color:var(--b)!important;transform:translateY(-1px)}
 .headerActions>button.signOut{border-color:#efc7cc!important;background:#fff7f7!important;color:#c43f4d!important}.headerActions svg{width:18px;height:18px}
-.header nav{position:fixed;top:74px;bottom:0;left:0;width:min(290px,calc(100vw - 42px));height:auto;max-height:none;padding:14px 12px;display:grid;grid-template-columns:1fr;align-content:start;gap:6px;overflow:auto;border:0;border-right:1px solid var(--line);border-radius:0 18px 18px 0;background:rgba(255,255,255,.98);box-shadow:18px 24px 60px rgba(3,20,45,.2);opacity:0;visibility:hidden;pointer-events:none;transform:translateX(-100%);transition:transform .24s ease,opacity .2s ease,visibility 0s linear .24s}
+.header nav{position:absolute;top:100%;bottom:auto;left:0;width:min(290px,calc(100vw - 42px));height:calc(100dvh - 74px);max-height:none;padding:14px 12px;display:grid;grid-template-columns:1fr;align-content:start;gap:6px;overflow-x:hidden;overflow-y:auto;border:0;border-right:1px solid var(--line);border-radius:0 18px 18px 0;background:rgba(255,255,255,.98);box-shadow:18px 24px 60px rgba(3,20,45,.2);opacity:0;visibility:hidden;pointer-events:none;transform:translateX(-100%);transition:transform .24s ease,opacity .2s ease,visibility 0s linear .24s}
 .header nav.navOpen{opacity:1;visibility:visible;pointer-events:auto;transform:translateX(0);transition-delay:0s}.header nav button{min-height:52px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 16px;border:0;border-radius:10px;background:transparent;color:#536278;font-size:13px;font-weight:800;text-align:left;text-transform:none}
 .header nav button:hover{background:#f1f5f9;color:var(--i)}.header nav button.active{border:0;background:var(--n);color:white}.header nav button svg{width:15px;color:var(--l)}
-@media(max-width:620px){.header{height:68px;min-height:68px;padding:0 12px}.header>a{gap:7px}.header>a img{width:128px;height:44px}.header>a i{font-size:9px;padding-left:8px}.headerActions{gap:5px!important}.headerActions>a,.headerActions>button{width:38px!important;height:38px!important;border-radius:11px!important}.header nav{top:68px;width:min(280px,calc(100vw - 36px));padding-bottom:max(14px,env(safe-area-inset-bottom))}.work{padding-top:30px}}
+@media(max-width:620px){.header{height:68px;min-height:68px;padding:0 12px}.header>a{gap:7px}.header>a img{width:128px;height:44px}.header>a i{font-size:9px;padding-left:8px}.headerActions{gap:5px!important}.headerActions>a,.headerActions>button{width:38px!important;height:38px!important;border-radius:11px!important}.header nav{top:100%;width:min(280px,calc(100vw - 36px));height:calc(100dvh - 68px);padding-bottom:max(14px,env(safe-area-inset-bottom))}.work{padding-top:30px}}
 @media(max-width:410px){.header>a i{display:none}.header>a img{width:112px}.headerActions>a,.headerActions>button{width:36px!important;height:36px!important}.headerActions{gap:4px!important}}
 
 /* Consistent feedback for every admin mutation. */
@@ -154,7 +154,7 @@
 
 @media(max-width:760px){
   .headerActions>a,.headerActions>button{width:44px!important;height:44px!important}
-  .header nav{max-height:calc(100dvh - 78px);padding-bottom:max(10px,env(safe-area-inset-bottom))}
+  .header nav{max-height:none;padding-bottom:max(10px,env(safe-area-inset-bottom))}
   .work{padding:26px 14px 70px}
   .title{gap:18px;margin-bottom:22px}
   .title h1{font-size:31px;line-height:1.04}
