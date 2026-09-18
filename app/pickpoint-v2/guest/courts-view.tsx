@@ -25,9 +25,10 @@ export function CourtsView() {
   const live = isPublicBookingReady(data);
   return (
     <GuestShell current="courts">
-      <section className="pp-page-head"><p className="pp-kicker">Court ledger</p><h1>Pick your playing space.</h1><p>Tap a court to see its photo and details.</p></section>
+      <section className="pp-page-head"><p className="pp-kicker">Courts &amp; venue</p><h1>Explore PickPoint.</h1><p>See the venue, then choose the court for your next game.</p></section>
       <VenueGallery bookingOpen={live || loading} />
       <section className="pp-court-list" aria-live="polite">
+        <header className="pp-court-list-head"><p className="pp-kicker">Court selection</p><h2>Choose your court.</h2><p>Open a court to see its details and available booking option.</p></header>
         {loading && <div className="pp-state"><span className="pp-spinner" /> Checking the court setup…</div>}
         {error && <div className="pp-state pp-error"><strong>Courts are unavailable right now.</strong><span>{error}</span></div>}
         {data && data.courts.length === 0 && <div className="pp-state"><strong>No courts have been published yet.</strong><span>The venue team is still completing setup. Check back before opening day.</span></div>}

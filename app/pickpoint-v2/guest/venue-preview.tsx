@@ -94,10 +94,7 @@ export function VenueGallery({ bookingOpen }: { bookingOpen: boolean }) {
   return (
     <section className="pp-venue-gallery" aria-labelledby="venue-gallery-title">
       <header className="pp-venue-gallery-head">
-        <div>
-          <p className="pp-kicker">Venue preview</p>
-          <h2 id="venue-gallery-title">A closer look at PickPoint.</h2>
-        </div>
+        <h2 id="venue-gallery-title">Venue preview</h2>
         <p>These architectural renderings show the planned courts and clubhouse. Final finishes and landscaping may vary.</p>
       </header>
       <div className="pp-gallery-progress" aria-live="polite">
