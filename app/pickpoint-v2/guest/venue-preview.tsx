@@ -95,7 +95,7 @@ export function VenueGallery({ bookingOpen }: { bookingOpen: boolean }) {
     <section className="pp-venue-gallery" aria-labelledby="venue-gallery-title">
       <header className="pp-venue-gallery-head">
         <h2 id="venue-gallery-title">Venue preview</h2>
-        <p>These architectural renderings show the planned courts and clubhouse. Final finishes and landscaping may vary.</p>
+        <p>Artist&apos;s perspective · final details may vary.</p>
       </header>
       <div className="pp-gallery-progress" aria-live="polite">
         <span>Swipe to explore</span>
@@ -116,9 +116,7 @@ export function VenueGallery({ bookingOpen }: { bookingOpen: boolean }) {
           </figure>
         ))}
       </div>
-      <p className="pp-rendering-note">Artist&apos;s perspectives shown for visualization purposes.</p>
       <div className="pp-gallery-action">
-        <div><small>Ready for your next rally?</small><strong>Find a time that works for your group.</strong></div>
         {bookingOpen
           ? <Link className="pp-button pp-button-lime" href="/book#booking-times">Check available times <ArrowRight aria-hidden="true" /></Link>
           : <span className="pp-pill">Online booking opening soon</span>}

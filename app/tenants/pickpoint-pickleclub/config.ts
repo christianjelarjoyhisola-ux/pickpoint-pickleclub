@@ -95,8 +95,8 @@ export const pickPointConfig = {
     slotMinutes: 60,
     holdMinutes: 10,
     offPeakEndsAt: "17:00",
-    offPeakHourlyRate: 270,
-    peakHourlyRate: 320,
+    offPeakHourlyRate: 235,
+    peakHourlyRate: 285,
     paymentFlow: "manual-full-payment-receipt",
     cancellation:
       "Unpaid holds can be cancelled online. Paid-booking changes are handled by the venue team until the owner publishes a final refund policy.",

@@ -460,8 +460,8 @@ test("pins every browser request to the PickPoint tenant and shared project", as
   assert.match(registry, /ACTIVE_TENANT_SLUG = "pickpoint-pickleclub" as const/);
   assert.match(config, /productionDomain: "pickpointpickle\.com"/);
   assert.match(config, /minimumLeadMinutes: 0/);
-  assert.match(config, /offPeakHourlyRate: 270/);
-  assert.match(config, /peakHourlyRate: 320/);
+  assert.match(config, /offPeakHourlyRate: 235/);
+  assert.match(config, /peakHourlyRate: 285/);
   assert.match(client, /neqvrwtofiolcuxewdze\.supabase\.co/);
   assert.match(client, /SHARED_SUPABASE_PUBLISHABLE_KEY/);
   assert.match(client, /NEXT_PUBLIC_SUPABASE_URL\?\.trim\(\) \|\| SHARED_SUPABASE_ORIGIN/);
