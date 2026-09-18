@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock3, Copy, Search, Upload } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock3, Copy, MapPinned, Search, Upload, X } from "lucide-react";
 import { bookingStatus, cancelUnpaidBooking, completeBookingDetails, createBooking, getAvailability, submitPaymentReceipt } from "../../lib/platform/client";
 import type { PaymentReceiptSubmission } from "../../lib/platform/client";
 import type { AvailabilityResponse, BookingConfirmation, PaymentMethod, PublicCourt } from "../../lib/platform/types";
@@ -213,6 +214,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   const [step, setStep] = useState<Step>("select");
   const [date, setDate] = useState(() => isoDate(new Date()));
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [layoutOpen, setLayoutOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => isoDate(new Date()).slice(0, 7));
   const [selectedSlotKeys, setSelectedSlotKeys] = useState<string[]>([]);
   const [availability, setAvailability] = useState<AvailabilityResponse | null>(null);
@@ -293,6 +295,20 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
       document.removeEventListener("keydown", closeOnEscape);
     };
   }, [calendarOpen]);
+
+  useEffect(() => {
+    if (!layoutOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setLayoutOpen(false);
+    };
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [layoutOpen]);
 
   useEffect(() => {
     let active = true;
@@ -677,18 +693,21 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
                 <footer><button type="button" onClick={() => chooseDate(minimumDate)}>Today</button><span>Up to {maximumAdvanceDays} days ahead</span></footer>
               </section>}
             </div>
-            <div className="pp-schedule-heading"><div><strong>Choose court times</strong></div>{selectedSlots.length > 0 && <button type="button" onClick={() => setSelectedSlotKeys([])}>Clear</button>}</div>
-            <ul className="pp-slot-legend" aria-label="Court time status colors"><li className="is-available">Available</li><li className="is-processing">Processing</li><li className="is-pending">Pending</li><li className="is-booked">Booked</li><li className="is-maintenance">Maintenance</li></ul>
-            <div className="pp-schedule-scroll" aria-busy={!availability}>
-              {visibleScheduleTimes.length > 0 ? <table className="pp-schedule">
-                <thead><tr><th scope="col">Time</th>{courts.map((item) => <th scope="col" key={item.id}><strong>{item.name}</strong><small>{timeLabel(item.opensAt)}–{timeLabel(item.closesAt)}</small></th>)}</tr></thead>
-                <tbody>{visibleScheduleTimes.map((time) => <tr key={time}><th scope="row">{timeRangeLabel(time)}</th>{courts.map((item) => { const key = slotKey(item.id, time); const selected = selectedSet.has(key); const state = slotState(item, time); const available = state === "available"; const rate = customerRateFor(item, time, data?.bookingFee); const leadMinutes = numberSetting(item.publicConfig?.minimumLeadMinutes, 0); const leadLabel = leadMinutes % 60 === 0 ? `${leadMinutes / 60}h notice` : `${leadMinutes}m notice`; return <td key={item.id}><button type="button" aria-pressed={selected} disabled={!available} className={`${selected ? "is-selected " : ""}slot-${state}`} onClick={() => toggleSlot(item, time)}><span>{selected ? <><Check aria-hidden="true" /> Selected</> : slotStateLabel[state]}</span>{available && rate != null && <small>{money(rate, item.currency)}</small>}{state === "lead-time" && leadMinutes > 0 && <small>{leadLabel}</small>}</button></td>; })}</tr>)}</tbody>
-              </table> : <div className="pp-no-times"><strong>Today’s court times are finished.</strong><span>Choose another date to see available slots.</span></div>}
-              {!availability && <div className="pp-schedule-loading">Checking availability…</div>}
+            <div className="pp-schedule-heading"><div><strong>Choose court times</strong></div><div className="pp-schedule-actions"><button className="pp-layout-button" type="button" onClick={() => setLayoutOpen(true)}><MapPinned aria-hidden="true" /> Court layout</button>{selectedSlots.length > 0 && <button className="pp-clear-selection" type="button" onClick={() => setSelectedSlotKeys([])}>Clear</button>}</div></div>
+            <div className="pp-schedule-panel">
+              <div className="pp-schedule-scroll" aria-busy={!availability}>
+                {visibleScheduleTimes.length > 0 ? <table className="pp-schedule">
+                  <thead><tr><th scope="col">Time</th>{courts.map((item) => <th scope="col" key={item.id}><strong>{item.name}</strong><small>{timeLabel(item.opensAt)}–{timeLabel(item.closesAt)}</small></th>)}</tr></thead>
+                  <tbody>{visibleScheduleTimes.map((time) => <tr key={time}><th scope="row">{timeRangeLabel(time)}</th>{courts.map((item) => { const key = slotKey(item.id, time); const selected = selectedSet.has(key); const state = slotState(item, time); const available = state === "available"; const rate = customerRateFor(item, time, data?.bookingFee); const leadMinutes = numberSetting(item.publicConfig?.minimumLeadMinutes, 0); const leadLabel = leadMinutes % 60 === 0 ? `${leadMinutes / 60}h notice` : `${leadMinutes}m notice`; return <td key={item.id}><button type="button" aria-pressed={selected} disabled={!available} className={`${selected ? "is-selected " : ""}slot-${state}`} onClick={() => toggleSlot(item, time)}><span>{selected ? <><Check aria-hidden="true" /> Selected</> : slotStateLabel[state]}</span>{available && rate != null && <small>{money(rate, item.currency)}</small>}{state === "lead-time" && leadMinutes > 0 && <small>{leadLabel}</small>}</button></td>; })}</tr>)}</tbody>
+                </table> : <div className="pp-no-times"><strong>Today’s court times are finished.</strong><span>Choose another date to see available slots.</span></div>}
+                {!availability && <div className="pp-schedule-loading">Checking availability…</div>}
+              </div>
+              <ul className="pp-slot-legend" aria-label="Court time status colors"><li className="is-available">Available</li><li className="is-processing">Processing</li><li className="is-pending">Pending</li><li className="is-booked">Booked</li><li className="is-maintenance">Maintenance</li></ul>
             </div>
             <p className="pp-grid-note">Past times are hidden. All selected slots will be reserved together under one booking reference.</p>
             {message && <p className="pp-form-message" role="alert">{message}</p>}
             <div className="pp-card-action"><span>{selectedSlots.length ? <><small>{selectedSlots.length} court-hour{selectedSlots.length === 1 ? "" : "s"} · booking fee FREE</small><strong>{money(estimatedGrandTotal, primaryCourt?.currency)}</strong></> : "Choose at least one court time"}</span><button className="pp-button pp-button-blue" disabled={busy || !selectedSlots.length || !policy?.version} onClick={holdSelection}>{busy ? "Securing your times…" : "Continue"} <ArrowRight /></button></div>
+            {layoutOpen && <div className="pp-layout-scrim" onMouseDown={(event) => { if (event.target === event.currentTarget) setLayoutOpen(false); }}><section className="pp-layout-dialog" role="dialog" aria-modal="true" aria-labelledby="court-layout-title"><header><div><small>PickPoint venue</small><h2 id="court-layout-title">Court layout</h2></div><button type="button" autoFocus onClick={() => setLayoutOpen(false)} aria-label="Close court layout"><X aria-hidden="true" /></button></header><div className="pp-layout-image"><Image src="/images/venue/court-layout.jpg" alt="Overhead layout showing Court 1 on the left, Court 2 on the right, and the player's lounge below the courts" width={1200} height={1689} unoptimized /></div><p>Court 1 is on the left, Court 2 is on the right, and the player&apos;s lounge is beside the court entrance.</p></section></div>}
           </section>
         )}
 
