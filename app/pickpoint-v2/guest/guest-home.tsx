@@ -5,6 +5,7 @@ import { ArrowRight, CalendarDays, Clock3, MapPin } from "lucide-react";
 import { GuestShell } from "./guest-shell";
 import { isPublicBookingReady } from "./readiness";
 import { useTenant } from "./use-tenant";
+import { HomeVenuePreview } from "./venue-preview";
 
 export function GuestHome() {
   const { data, loading } = useTenant();
@@ -43,6 +44,7 @@ export function GuestHome() {
           </dl>
         </div>
       </section>
+      <HomeVenuePreview />
       <section className="pp-how" aria-labelledby="how-title">
         <div><p className="pp-kicker">The simple way to play</p><h2 id="how-title">Three decisions. One booking.</h2></div>
         <ol>
