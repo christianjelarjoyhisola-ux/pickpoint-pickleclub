@@ -101,10 +101,11 @@
 .pp-venue-gallery-head { display: grid; grid-template-columns: minmax(0,1fr) minmax(280px,.55fr); gap: 50px; align-items: end; margin-bottom: 30px; }
 .pp-venue-gallery-head h2 { max-width: 680px; margin: 0; font-size: clamp(2rem,4vw,3.5rem); line-height: 1; letter-spacing: -.055em; }
 .pp-venue-gallery-head > p { margin: 0; color: #5d6c81; font-size: .9rem; line-height: 1.65; }
+.pp-gallery-progress { display: none; }
 .pp-gallery-grid { display: grid; grid-template-columns: 1.12fr 1fr 1fr; grid-auto-rows: 260px; gap: 12px; }
 .pp-gallery-grid figure { position: relative; min-width: 0; margin: 0; overflow: hidden; border-radius: 16px; background: #cfd8e5; }
-.pp-gallery-grid .pp-gallery-overview { grid-row: span 2; }
-.pp-gallery-grid .pp-gallery-wide { grid-column: span 2; }
+.pp-gallery-grid .pp-gallery-overview { grid-column: 1; grid-row: 1 / span 2; }
+.pp-gallery-grid .pp-gallery-wide { grid-column: 2 / span 2; grid-row: 1; }
 .pp-gallery-grid figure:nth-child(6) { grid-column: span 2; }
 .pp-gallery-grid img { width: 100%; height: 100%; object-fit: cover; transition: transform .45s ease,filter .45s ease; }
 .pp-gallery-grid figure:hover img { transform: scale(1.025); filter: saturate(1.05); }
@@ -112,6 +113,11 @@
 .pp-gallery-grid figcaption { position: absolute; z-index: 1; right: 16px; bottom: 15px; left: 16px; display: flex; align-items: center; gap: 10px; color: white; font-size: .78rem; font-weight: 750; }
 .pp-gallery-grid figcaption span { color: var(--pp-lime); font-family: var(--font-display); font-size: .68rem; letter-spacing: .08em; }
 .pp-rendering-note { margin: 16px 2px 0; color: #68778b; font-size: .72rem; }
+.pp-gallery-action { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 28px; padding-top: 25px; border-top: 1px solid #ccd6e2; }
+.pp-gallery-action > div { display: grid; gap: 3px; }
+.pp-gallery-action small { color: var(--pp-blue); font-size: .67rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.pp-gallery-action strong { font-size: 1rem; }
+.pp-gallery-action .pp-button { flex: 0 0 auto; }
 .pp-court-list { min-height: 360px; padding-bottom: 100px; }
 .pp-court-row { border-top: 1px solid var(--pp-line); }
 .pp-court-row:last-child { border-bottom: 1px solid var(--pp-line); }
@@ -515,11 +521,17 @@
   .pp-venue-gallery-head { width: calc(100% - (var(--pp-mobile-gutter) * 2)); margin: 0 auto 22px; grid-template-columns: 1fr; gap: 14px; }
   .pp-venue-gallery-head h2 { font-size: 2.25rem; }
   .pp-venue-gallery-head > p { font-size: .84rem; line-height: 1.55; }
+  .pp-gallery-progress { width: calc(100% - (var(--pp-mobile-gutter) * 2)); display: flex; align-items: center; justify-content: space-between; margin: 0 auto 10px; color: #607086; font-size: .69rem; font-weight: 800; letter-spacing: .055em; text-transform: uppercase; }
+  .pp-gallery-progress span::after { content: "  →"; color: var(--pp-blue); }
+  .pp-gallery-progress strong { color: var(--pp-navy); font-size: .7rem; }
   .pp-gallery-grid { display: flex; gap: 10px; grid-auto-rows: auto; overflow-x: auto; padding: 0 var(--pp-mobile-gutter) 9px; scroll-snap-type: x mandatory; scrollbar-width: none; }
   .pp-gallery-grid::-webkit-scrollbar { display: none; }
-  .pp-gallery-grid figure, .pp-gallery-grid .pp-gallery-overview, .pp-gallery-grid .pp-gallery-wide, .pp-gallery-grid figure:nth-child(6) { width: min(82vw,390px); aspect-ratio: 4/3; flex: 0 0 auto; grid-row: auto; grid-column: auto; scroll-snap-align: center; border-radius: 15px; }
-  .pp-gallery-grid figure:first-child { width: min(72vw,340px); aspect-ratio: .91; scroll-snap-align: start; }
+  .pp-gallery-grid figure, .pp-gallery-grid .pp-gallery-overview, .pp-gallery-grid .pp-gallery-wide, .pp-gallery-grid figure:nth-child(6) { width: min(86vw,400px); aspect-ratio: 4/3; flex: 0 0 auto; grid-row: auto; grid-column: auto; scroll-snap-align: center; border-radius: 15px; }
+  .pp-gallery-grid figure:first-child { scroll-snap-align: start; }
   .pp-rendering-note { width: calc(100% - (var(--pp-mobile-gutter) * 2)); margin: 12px auto 0; }
+  .pp-gallery-action { width: calc(100% - (var(--pp-mobile-gutter) * 2)); margin: 22px auto 0; padding-top: 20px; align-items: stretch; flex-direction: column; gap: 16px; }
+  .pp-gallery-action .pp-button { width: 100%; min-height: 54px; border-radius: 12px; }
+  .pp-gallery-action .pp-pill { align-self: flex-start; }
   .pp-book-head { padding: 22px 0 14px; text-align: left; }
   .pp-book-head .pp-kicker { margin-bottom: 6px; font-size: .6rem; }
   .pp-book-head h1 { max-width: 100%; font-size: clamp(1.65rem, 7vw, 1.9rem); line-height: 1.05; letter-spacing: -.04em; }

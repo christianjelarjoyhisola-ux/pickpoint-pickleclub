@@ -26,7 +26,7 @@ export function CourtsView() {
   return (
     <GuestShell current="courts">
       <section className="pp-page-head"><p className="pp-kicker">Court ledger</p><h1>Pick your playing space.</h1><p>Tap a court to see its photo and details.</p></section>
-      <VenueGallery />
+      <VenueGallery bookingOpen={live || loading} />
       <section className="pp-court-list" aria-live="polite">
         {loading && <div className="pp-state"><span className="pp-spinner" /> Checking the court setup…</div>}
         {error && <div className="pp-state pp-error"><strong>Courts are unavailable right now.</strong><span>{error}</span></div>}

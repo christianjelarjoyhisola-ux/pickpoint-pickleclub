@@ -1,19 +1,22 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { useRef, useState } from "react";
 
 const venueViews = [
-  {
-    src: "/images/venue/venue-overview.jpg",
-    alt: "Aerial artist's perspective of the two PickPoint courts and clubhouse",
-    label: "The complete venue",
-    className: "pp-gallery-overview",
-  },
   {
     src: "/images/venue/courts-main.jpg",
     alt: "Artist's perspective across both PickPoint pickleball courts",
     label: "Two dedicated courts",
     className: "pp-gallery-wide",
+  },
+  {
+    src: "/images/venue/venue-overview.jpg",
+    alt: "Aerial artist's perspective of the two PickPoint courts and clubhouse",
+    label: "The complete venue",
+    className: "pp-gallery-overview",
   },
   {
     src: "/images/venue/courts-sunset.jpg",
@@ -73,7 +76,21 @@ export function HomeVenuePreview() {
   );
 }
 
-export function VenueGallery() {
+export function VenueGallery({ bookingOpen }: { bookingOpen: boolean }) {
+  const galleryRef = useRef<HTMLDivElement>(null);
+  const [currentView, setCurrentView] = useState(1);
+
+  function updateCurrentView() {
+    const gallery = galleryRef.current;
+    if (!gallery) return;
+    const cards = Array.from(gallery.querySelectorAll<HTMLElement>("figure"));
+    const closest = cards.reduce((best, card, index) => {
+      const distance = Math.abs(card.offsetLeft - gallery.scrollLeft - gallery.clientLeft);
+      return distance < best.distance ? { index, distance } : best;
+    }, { index: 0, distance: Number.POSITIVE_INFINITY });
+    setCurrentView(closest.index + 1);
+  }
+
   return (
     <section className="pp-venue-gallery" aria-labelledby="venue-gallery-title">
       <header className="pp-venue-gallery-head">
@@ -83,15 +100,19 @@ export function VenueGallery() {
         </div>
         <p>These architectural renderings show the planned courts and clubhouse. Final finishes and landscaping may vary.</p>
       </header>
-      <div className="pp-gallery-grid">
+      <div className="pp-gallery-progress" aria-live="polite">
+        <span>Swipe to explore</span>
+        <strong>{currentView} of {venueViews.length}</strong>
+      </div>
+      <div className="pp-gallery-grid" ref={galleryRef} onScroll={updateCurrentView} aria-label="Venue perspectives">
         {venueViews.map((view, index) => (
           <figure className={view.className} key={view.src}>
             <Image
               src={view.src}
               alt={view.alt}
               width={1289}
-              height={index === 0 ? 1424 : 723}
-              sizes={index === 0 ? "(max-width: 780px) 88vw, 38vw" : "(max-width: 780px) 88vw, 30vw"}
+              height={view.className === "pp-gallery-overview" ? 1424 : 723}
+              sizes={view.className === "pp-gallery-overview" ? "(max-width: 780px) 88vw, 38vw" : "(max-width: 780px) 88vw, 30vw"}
               unoptimized
             />
             <figcaption><span>{String(index + 1).padStart(2, "0")}</span>{view.label}</figcaption>
@@ -99,6 +120,12 @@ export function VenueGallery() {
         ))}
       </div>
       <p className="pp-rendering-note">Artist&apos;s perspectives shown for visualization purposes.</p>
+      <div className="pp-gallery-action">
+        <div><small>Ready for your next rally?</small><strong>Find a time that works for your group.</strong></div>
+        {bookingOpen
+          ? <Link className="pp-button pp-button-lime" href="/book#booking-times">Check available times <ArrowRight aria-hidden="true" /></Link>
+          : <span className="pp-pill">Online booking opening soon</span>}
+      </div>
     </section>
   );
 }
