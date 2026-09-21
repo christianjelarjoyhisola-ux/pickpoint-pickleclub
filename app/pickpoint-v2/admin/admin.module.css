@@ -15,7 +15,8 @@
 @media(max-width:620px){.miniForm{grid-template-columns:1fr}.miniForm .wide,.formActions{grid-column:1}.receipt{padding:18px}.receipt iframe{height:44vh}}
 
 /* Compact command bar: primary work areas stay organized inside one deliberate menu. */
-.header{min-height:74px;height:74px;padding:0 clamp(16px,3vw,34px);grid-template-columns:minmax(0,1fr) auto;border-bottom:1px solid var(--line);background:rgba(255,255,255,.97);color:var(--i);box-shadow:0 8px 30px rgba(3,20,45,.07);backdrop-filter:blur(18px)}
+/* A filtered ancestor contains fixed children, collapsing the drawer to the header height. */
+.header{min-height:74px;height:74px;padding:0 clamp(16px,3vw,34px);grid-template-columns:minmax(0,1fr) auto;border-bottom:1px solid var(--line);background:#fff;color:var(--i);box-shadow:0 8px 30px rgba(3,20,45,.07);backdrop-filter:none;-webkit-backdrop-filter:none}
 .header>a{min-width:0;color:var(--i)}.header>a img{width:158px;height:50px}.header>a i{border-left-color:var(--line);color:var(--i);font-weight:850;white-space:nowrap}
 .headerActions{justify-self:end;display:flex!important;align-items:center;gap:7px!important}.headerActions span{display:none!important}
 .headerActions>a,.headerActions>button{width:42px!important;height:42px!important;display:grid;place-items:center;border:1px solid #d4dde9!important;border-radius:12px!important;background:#f8fafc!important;color:#24364d!important;cursor:pointer;transition:border-color .16s ease,background .16s ease,transform .16s ease}
@@ -514,6 +515,7 @@
 .login form h2{color:var(--n);letter-spacing:-.045em}
 
 @media(min-width:1024px){
+  .navBackdrop{display:none}
   .header{position:fixed;inset:0 0 auto;z-index:40;height:78px;min-height:78px;padding:0 24px;grid-template-columns:250px minmax(0,1fr) auto;border-bottom:1px solid #dce5ee;background:rgba(255,255,255,.985);box-shadow:0 5px 22px rgba(6,26,51,.055);backdrop-filter:none}
   .header>a{width:max-content}
   .header>a img{width:160px;height:52px}
@@ -533,10 +535,12 @@
 }
 
 @media(max-width:1023px){
+  .header nav{grid-row:auto;grid-column:auto;justify-content:stretch;height:calc(100dvh - 74px)}
   .header nav button>span{display:flex;align-items:center;gap:11px}
   .header nav button>span svg{width:17px;height:17px;color:#71849a}
   .header nav button.active>span svg{color:var(--l)}
 }
+@media(max-width:620px){.header nav{height:calc(100dvh - 68px)}}
 
 @media(max-width:760px){
   .app{background:linear-gradient(180deg,#eef3f7 0,#f7f9fb 210px,#f4f7fa 100%)}
