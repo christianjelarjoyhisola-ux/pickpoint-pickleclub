@@ -45,6 +45,7 @@ export type BookingReadiness = {
 export type BookingCapabilities = {
   /** Enable only when the server explicitly returns true. */
   atomicMultiSessionBookingV1?: boolean;
+  weatherCreditsV1?: boolean;
 };
 
 export type PublicPromotion = {
@@ -150,6 +151,9 @@ export type BookingConfirmationSession = BookingSessionInput & {
 };
 
 export type BookingConfirmation = {
+  weatherCreditAmount?: number;
+  weatherCreditBalance?: number;
+  weatherCreditCode?: string;
   reference: string;
   status: string;
   expiresAt?: string | null;

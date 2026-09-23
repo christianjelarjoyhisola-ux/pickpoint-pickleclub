@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock3, Copy, MapPinned, Search, Upload, X } from "lucide-react";
-import { bookingStatus, cancelUnpaidBooking, completeBookingDetails, createBooking, getAvailability, submitPaymentReceipt } from "../../lib/platform/client";
+import { applyWeatherCredit, bookingStatus, cancelUnpaidBooking, completeBookingDetails, createBooking, getAvailability, submitPaymentReceipt } from "../../lib/platform/client";
 import type { PaymentReceiptSubmission } from "../../lib/platform/client";
 import type { AvailabilityResponse, BookingConfirmation, PaymentMethod, PublicCourt } from "../../lib/platform/types";
 import { GuestShell } from "./guest-shell";
@@ -58,7 +58,7 @@ const durationRangeLabel = (time: string, durationHours: number) => {
   const endTime = `${pad(Math.floor(endMinutes / 60))}:${pad(endMinutes % 60)}`;
   return `${compactHourLabel(time)}-${compactHourLabel(endTime)}`;
 };
-const money = (amount: number, currency = "PHP") => new Intl.NumberFormat("en-PH", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
+const money = (amount: number, currency = "PHP") => new Intl.NumberFormat("en-PH", { style: "currency", currency, minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(amount);
 const bookingDateLabel = (date: string) => new Intl.DateTimeFormat("en-PH", { weekday: "short", day: "numeric", month: "short", year: "numeric" }).format(new Date(`${date}T12:00:00`));
 const paymentCode = (method: PaymentMethod) => method.code || method.methodCode || method.displayName.toLowerCase().replace(/[^a-z0-9]+/g, "_");
 const isGcash = (method: PaymentMethod | null | undefined) => Boolean(method && paymentCode(method) === "gcash");
@@ -100,7 +100,7 @@ function CompleteBookingSummary({ confirmation, bookingDate, defaultExpanded = f
     <div className="pp-summary-expanded-head"><span><small>Booking summary</small><strong>Reservation details</strong></span><span>{courtHours} court-hour{courtHours === 1 ? "" : "s"}</span></div>
     <dl className="pp-summary-meta"><div><dt>Playing date</dt><dd>{bookingDateLabel(bookingDate)}</dd></div><div><dt>Booking reference</dt><dd>{confirmation.reference}</dd></div></dl>
     <ul className="pp-summary-courts">{courtGroups.map((court) => { const customerCourtTotal = court.subtotalAmount + feePerHour * court.courtHours; return <li key={court.courtId} className="pp-summary-court"><header><strong>{court.courtName}</strong><span>{court.courtHours} hour{court.courtHours === 1 ? "" : "s"} · {money(customerCourtTotal, confirmation.currency)}</span></header><ul>{court.sessions.map((session, index) => { const venueHourlyRate = session.durationHours ? session.subtotalAmount / session.durationHours : session.subtotalAmount; const customerHourlyRate = venueHourlyRate + feePerHour; const customerSessionTotal = session.subtotalAmount + feePerHour * session.durationHours; return <li key={`${session.startTime}-${index}`}><span>{durationRangeLabel(session.startTime, session.durationHours)}</span><small>{money(customerHourlyRate, confirmation.currency)} × {session.durationHours} hour{session.durationHours === 1 ? "" : "s"}</small><strong>{money(customerSessionTotal, confirmation.currency)}</strong></li>; })}</ul></li>; })}</ul>
-    <dl className="pp-price-breakdown"><div><dt>Court time</dt><dd>{money(confirmation.totalAmount, confirmation.currency)}</dd></div><div><dt>Booking fee</dt><dd><span className="pp-free-fee">FREE</span></dd></div><div><dt>Total amount</dt><dd>{money(confirmation.totalAmount, confirmation.currency)}</dd></div></dl>
+    <dl className="pp-price-breakdown"><div><dt>Court time</dt><dd>{money(confirmation.totalAmount + (confirmation.weatherCreditAmount || 0), confirmation.currency)}</dd></div><div><dt>Booking fee</dt><dd><span className="pp-free-fee">FREE</span></dd></div>{Boolean(confirmation.weatherCreditAmount) && <div className="pp-credit-deduction"><dt>Weather credit</dt><dd>−{money(confirmation.weatherCreditAmount!, confirmation.currency)}</dd></div>}<div><dt>{confirmation.weatherCreditAmount ? "Left to pay" : "Total amount"}</dt><dd>{money(confirmation.totalAmount, confirmation.currency)}</dd></div></dl>{Boolean(confirmation.weatherCreditAmount) && <p className="pp-credit-balance">{money(confirmation.weatherCreditBalance || 0, confirmation.currency)} stays on your voucher for another visit.</p>}
   </details>;
 }
 
@@ -233,6 +233,9 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
   const [lookupResult, setLookupResult] = useState<Record<string, unknown> | null>(null);
   const [bookingClock] = useState(() => Date.now());
   const [holdIntro, setHoldIntro] = useState(false);
+  const [weatherCode, setWeatherCode] = useState("");
+  const [creditPolicyAccepted, setCreditPolicyAccepted] = useState(false);
+  const [creditEmailPending, setCreditEmailPending] = useState(false);
   const [holdEndsAt, setHoldEndsAt] = useState<number | null>(null);
   const [remainingHoldSeconds, setRemainingHoldSeconds] = useState<number | null>(null);
   const bookingAttemptId = useRef<string | null>(null);
@@ -352,6 +355,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
       setPaymentMethodCode(draft.paymentMethodCode || "");
       setPaymentReference(draft.paymentReference || "");
       setConfirmation(draft.confirmation);
+      setWeatherCode(draft.confirmation?.weatherCreditCode || "");
       setHoldEndsAt(activeReservation ? draft.holdEndsAt : null);
       setRemainingHoldSeconds(activeReservation && draft.holdEndsAt ? Math.max(0, Math.ceil((draft.holdEndsAt - Date.now()) / 1000)) : null);
       setStep(activeReservation ? draft.step : "select");
@@ -370,7 +374,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     const draft: BookingResumeDraft = {
       version: 2,
       savedAt: Date.now(),
-      step: step === "done" ? "select" : step,
+      step,
       date,
       selectedSlotKeys,
       confirmation,
@@ -491,7 +495,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     setMessage("");
   }
 
-  const resetSelection = () => { setStep("select"); setConfirmation(null); setHoldEndsAt(null); setRemainingHoldSeconds(null); setSelectedSlotKeys([]); setPaymentPolicyAccepted(false); setPaymentMethodCode(""); setPaymentReference(""); setReceipt(null); setReceiptOutcome(null); setMessage(""); bookingAttemptId.current = null; };
+  const resetSelection = () => { setWeatherCode(""); setCreditPolicyAccepted(false); setCreditEmailPending(false); setStep("select"); setConfirmation(null); setHoldEndsAt(null); setRemainingHoldSeconds(null); setSelectedSlotKeys([]); setPaymentPolicyAccepted(false); setPaymentMethodCode(""); setPaymentReference(""); setReceipt(null); setReceiptOutcome(null); setMessage(""); bookingAttemptId.current = null; };
 
   async function holdSelection() {
     if (!selectedSlots.length || !live || !policy?.version) return;
@@ -538,7 +542,22 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     if (!confirmation) return;
     setBusy(true); setMessage("");
     try {
-      await completeBookingDetails({ reference: confirmation.reference, token: confirmation.bookingToken, customer });
+      const code = confirmation.weatherCreditCode || weatherCode.trim().toUpperCase();
+      if (code && !creditPolicyAccepted && !confirmation.weatherCreditAmount) throw new Error("Please accept the court rules before using your credit.");
+      let recoveredCredit: Awaited<ReturnType<typeof applyWeatherCredit>> | undefined;
+      try {
+        await completeBookingDetails({ reference: confirmation.reference, token: confirmation.bookingToken, customer });
+      } catch (error) {
+        if (!code) throw error;
+        // A previous request may have confirmed the booking before its response
+        // reached this device. The same voucher/booking pair is safe to retry.
+        recoveredCredit = await applyWeatherCredit({ reference: confirmation.reference, token: confirmation.bookingToken, code, email: customer.email });
+      }
+      if (code) {
+        const credit = recoveredCredit ?? await applyWeatherCredit({ reference: confirmation.reference, token: confirmation.bookingToken, code, email: customer.email });
+        setConfirmation({ ...confirmation, status: credit.status, subtotalAmount: credit.subtotalAmount, totalAmount: credit.totalAmount, weatherCreditAmount: credit.appliedAmount, weatherCreditBalance: credit.remainingBalance, weatherCreditCode: code });
+        if (credit.status === "confirmed") { setHoldEndsAt(null); setRemainingHoldSeconds(null); setCreditEmailPending(credit.emailSent === false); setStep("done"); return; }
+      }
       setStep(paymentMethods.length ? "method" : "done");
     } catch (reason) {
       const text = reason instanceof Error ? reason.message : "Your player details could not be saved.";
@@ -716,10 +735,17 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
             <button type="button" className="pp-back" disabled={busy} onClick={releaseHoldAndReturn}><ArrowLeft /> Change time</button>
             <div className="pp-hold-notice"><span className="pp-pulse" /><div><strong>Booking in progress.</strong><span>{holdExpiryLabel ? `Finish your details before ${holdExpiryLabel} to keep these times.` : "Finish your details before the booking timer ends."}</span></div></div>
             <div className="pp-fields-row"><label>Full name<input value={customer.name} onChange={(event) => setCustomer({ ...customer, name: event.target.value })} autoComplete="name" required /></label><label>Mobile number<input value={customer.phone} onChange={(event) => setCustomer({ ...customer, phone: event.target.value })} autoComplete="tel" inputMode="tel" required /></label></div>
-            <label>Email address<input type="email" value={customer.email} onChange={(event) => setCustomer({ ...customer, email: event.target.value })} autoComplete="email" required /></label>
+            <label>Email address<input type="email" readOnly={Boolean(confirmation.weatherCreditAmount)} value={customer.email} onChange={(event) => setCustomer({ ...customer, email: event.target.value })} autoComplete="email" required /></label>
+            {(data?.capabilities?.weatherCreditsV1 || confirmation.weatherCreditAmount) && <details className="pp-weather-credit" open={confirmation.weatherCreditAmount ? true : undefined}>
+              <summary>{confirmation.weatherCreditAmount ? "Weather credit applied" : "Have a weather credit?"}<span>No account needed</span></summary>
+              <div><p>Use the private code from your email, with the same email address above. Unused credit stays on your code.</p>
+              <label>Voucher code<input value={confirmation.weatherCreditCode || weatherCode} onChange={event => { setWeatherCode(event.target.value.toUpperCase()); setCreditPolicyAccepted(false); }} readOnly={Boolean(confirmation.weatherCreditAmount)} autoComplete="off" spellCheck={false} maxLength={40} placeholder="RAIN-…" /></label>
+              {!confirmation.weatherCreditAmount && weatherCode.trim() && policy && <><details className="pp-policy"><summary>Court rules &amp; policies</summary><div><p>{policy.content}</p></div></details><label className="pp-check"><input type="checkbox" checked={creditPolicyAccepted} onChange={event => setCreditPolicyAccepted(event.target.checked)} required/><span>I agree to the court rules and booking policies.</span></label></>}
+              <small>Credit covers court charges. Any separate booking fee remains payable.</small></div>
+            </details>}
             <CompleteBookingSummary confirmation={confirmation} bookingDate={date} />
             {message && <p className="pp-form-message" role="alert">{message}</p>}
-            <div className="pp-card-action pp-card-action-only"><button className="pp-button pp-button-blue" disabled={busy}>{busy ? "Saving details…" : "Continue to payment method"} <ArrowRight /></button></div>
+            <div className="pp-card-action pp-card-action-only"><button className="pp-button pp-button-blue" disabled={busy}>{busy ? "Saving details…" : weatherCode.trim() || confirmation.weatherCreditAmount ? "Apply credit & continue" : "Continue to payment method"} <ArrowRight /></button></div>
           </form>
         )}
 
@@ -750,7 +776,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
           </form>
         )}
         {step === "done" && confirmation && (
-          <section className="pp-book-card pp-confirmed is-submitted"><div className="pp-checkmark"><Check /></div><p className="pp-kicker">Receipt submitted</p><h2>{confirmation.reference}</h2><p>Your payment receipt has been submitted for review. Once approved, you’ll receive your booking confirmation. Keep this reference to check your status.</p><dl><div><dt>Court</dt><dd>{confirmation.courtName}</dd></div><div><dt>Total</dt><dd>{money(confirmation.totalAmount, confirmation.currency)}</dd></div><div><dt>Payment</dt><dd>Receipt submitted</dd></div><div><dt>Booking</dt><dd>{bookingStatusLabel(receiptOutcome?.booking.status)}</dd></div></dl><div className="pp-actions"><button className="pp-button pp-button-outline" onClick={resetSelection}>Book another time</button><Link className="pp-button pp-button-blue" href="/book?mode=manage">View this booking</Link></div></section>
+          <section className="pp-book-card pp-confirmed is-submitted"><div className="pp-checkmark"><Check /></div><p className="pp-kicker">{confirmation.status === "confirmed" ? "You’re booked" : "Receipt submitted"}</p><h2>{confirmation.reference}</h2><p>{confirmation.status === "confirmed" ? "Your weather credit has covered this booking. Your court time is confirmed—see you on court." : "Your payment receipt has been submitted for review. Once approved, you’ll receive your booking confirmation. Keep this reference to check your status."}</p>{creditEmailPending && <p>Your booking is confirmed, but the email could not be sent yet. Keep this reference.</p>}<dl><div><dt>Court</dt><dd>{confirmation.courtName}</dd></div><div><dt>Total</dt><dd>{money(confirmation.totalAmount, confirmation.currency)}</dd></div><div><dt>Payment</dt><dd>{confirmation.status === "confirmed" ? "Paid with weather credit" : "Receipt submitted"}</dd></div><div><dt>Booking</dt><dd>{bookingStatusLabel(confirmation.status === "confirmed" ? "confirmed" : receiptOutcome?.booking.status)}</dd></div></dl>{Boolean(confirmation.weatherCreditAmount) && <p className="pp-credit-balance">{money(confirmation.weatherCreditAmount!, confirmation.currency)} credit used · {money(confirmation.weatherCreditBalance || 0, confirmation.currency)} left on your voucher.</p>}<div className="pp-actions"><button className="pp-button pp-button-outline" onClick={resetSelection}>Book another time</button><Link className="pp-button pp-button-blue" href="/book?mode=manage">View this booking</Link></div></section>
         )}
       </div>
     </GuestShell>

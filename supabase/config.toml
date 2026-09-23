@@ -1,0 +1,4 @@
+# Public guest redemption validates its booking token in PostgreSQL.
+# Owner actions forward and validate the authenticated owner's JWT there too.
+[functions.pickpoint-weather-credit]
+verify_jwt = false

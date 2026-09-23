@@ -788,6 +788,29 @@ export async function uploadTenantCourtPhoto(
   return { url, storagePath, contentType: file.type as CourtPhotoAsset["contentType"] };
 }
 
+export type WeatherCreditRecord = {
+  eligible: boolean;
+  maximumAmount: number;
+  email: string;
+  emailPending?: boolean;
+  credit: null | { id: string; code: string; amount: number; balance: number; reason: string; emailSent: boolean };
+};
+
+export async function manageWeatherCredit(bookingId: string, action: "get" | "issue" | "email", amount?: number, reason?: string): Promise<WeatherCreditRecord> {
+  managementHostname({ mutation: action !== "get" });
+  const session = await currentOwnerSession();
+  if (!session) throw new Error("Sign in again to manage weather credits.");
+  return authenticatedFunction<WeatherCreditRecord>("pickpoint-weather-credit", session.access_token, { action, bookingId, amount, reason });
+}
+
+export async function applyWeatherCredit(input: { reference: string; token: string; code: string; email: string }) {
+  const response = await fetch(edgeUrl("pickpoint-weather-credit"), {
+    method: "POST", headers: publicHeaders(),
+    body: JSON.stringify({ ...input, action: "apply", tenantSlug: activeTenant.identity.slug }),
+  });
+  return responseJson<{ appliedAmount: number; remainingBalance: number; totalAmount: number; subtotalAmount: number; status: string; emailSent?: boolean }>(response);
+}
+
 const PAYMENT_QR_METHODS = new Set(["gcash", "maya", "bdo", "bpi", "gotyme", "pnb"]);
 
 export async function uploadTenantPaymentQr(
