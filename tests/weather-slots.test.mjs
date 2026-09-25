@@ -69,6 +69,7 @@ async function slotFixture() {
  `);
  await db.exec(await readFile(new URL('../supabase/migrations/20260925010000_pickpoint_slot_weather_credits.sql',import.meta.url),'utf8'));
  await db.exec(await readFile(new URL('../supabase/migrations/20260925011000_hide_archived_weather_slots.sql',import.meta.url),'utf8'));
+ await db.exec(await readFile(new URL('../supabase/migrations/20260925012000_pickpoint_power_outage_credits.sql',import.meta.url),'utf8'));
  const source=async(ref='SOURCE',email='player@example.com')=>{
  const {rows:[b]}=await db.query(`insert into bookings(tenant_id,reference,court_id,customer_email,subtotal_amount,service_fee_amount,total_amount,metadata) values($1,$2,'00000000-0000-4000-8000-000000000003',$3,450,30,480,'{"courtSubtotalAmount":450,"rateBreakdown":[{"startTime":"16:00","hourlyRate":200},{"startTime":"17:00","hourlyRate":250}]}') returning id`,[tenant,ref,email]);
  await db.query(`insert into booking_slots(booking_id,tenant_id,court_id,starts_at,ends_at,status) values($1,$2,'00000000-0000-4000-8000-000000000003','2026-09-25 08:00Z','2026-09-25 09:00Z','confirmed'),($1,$2,'00000000-0000-4000-8000-000000000003','2026-09-25 09:00Z','2026-09-25 10:00Z','confirmed')`,[b.id,tenant]);return b.id;
@@ -138,5 +139,17 @@ test('discounted slots use the price actually paid and exclude equipment rental'
  await db.query(`update bookings set subtotal_amount=425,total_amount=455,metadata=metadata||'{"equipmentRentalFeeAmount":25,"promotionApplications":[{"courtId":"00000000-0000-4000-8000-000000000003","startsAt":"2026-09-25T08:00:00Z","discountAmount":50}]}'::jsonb where id=$1`,[bid]);
  const {slots}=await list();assert.deepEqual(slots.map(s=>s.amount),[165,265]);
  const {credits}=await issueSlots(slots);assert.equal(credits[0].amount,430);
+ }finally{await db.close();}
+});
+
+test('power outage credits retain fee coverage, redemption and slot duplicate protection',async()=>{
+ const {db,source,list,booking,apply,issueSlots}=await slotFixture();try{
+ await source();const {slots}=await list();
+ const selection=JSON.stringify([{slotId:slots[1].slot_id,quoteToken:slots[1].quote_token}]);
+ const {rows:[{result}]}=await db.query("select issue_pickpoint_weather_slots($1,$2,$3::jsonb,$4,'power_outage') result",[host,'2026-09-25',selection,'00000000-0000-4000-8000-000000000099']);
+ const credit=result.credits[0];assert.equal(credit.reason,'power_outage');assert.equal(credit.amount,265);assert.equal(credit.coversBookingFee,true);
+ await assert.rejects(issueSlots([slots[1]]),/Already credited/);
+ await booking('OUTAGE',250,true,15);assert.equal((await apply('OUTAGE',credit.code)).totalAmount,0);
+ await assert.rejects(db.query("select issue_pickpoint_weather_slots($1,$2,$3::jsonb,$4,'invalid')",[host,'2026-09-25',selection,'00000000-0000-4000-8000-000000000098']),/credit reason/);
  }finally{await db.close();}
 });

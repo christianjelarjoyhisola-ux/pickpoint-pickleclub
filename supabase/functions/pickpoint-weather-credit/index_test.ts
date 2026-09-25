@@ -49,7 +49,7 @@ Deno.test('fully credited booking remains confirmed when confirmation email fail
 });
 Deno.test('slot issuance emails the saved affected times and fee-inclusive credit; retry reuses saved voucher', async () => {
  const original=globalThis.fetch;let sent=0,claimed=false;let mailBody='';
- const c={...credit.credit,email:'player@example.com',reference:'PB-RAIN-TEST',customer:'Player',reason:'rain',coversBookingFee:true,slots:[{court:'Court 1',startsAt:'2026-09-25T09:00:00Z',endsAt:'2026-09-25T10:00:00Z',amount:265}]};
+ const c={...credit.credit,email:'player@example.com',reference:'PB-RAIN-TEST',customer:'Player',reason:'power_outage',coversBookingFee:true,slots:[{court:'Court 1',startsAt:'2026-09-25T09:00:00Z',endsAt:'2026-09-25T10:00:00Z',amount:265}]};
  globalThis.fetch=((url: string|URL|Request,init?:RequestInit)=>{
  const target=String(url);
  if(target.includes('issue_pickpoint_weather_slots')) return Promise.resolve(Response.json({credits:[c]}));
@@ -60,9 +60,9 @@ Deno.test('slot issuance emails the saved affected times and fee-inclusive credi
  throw new Error('Unexpected request');
  }) as typeof fetch;
  try {
- const body={action:'issue_slots',date:'2026-09-25',selection:[],requestId:'test',reason:'rain'};
+ const body={action:'issue_slots',date:'2026-09-25',selection:[],requestId:'test',reason:'power_outage'};
  const result=await(await handler(request(body))).json();assertEquals(result.credits[0].emailSent,true);
- assertEquals(mailBody.includes('Court 1'),true);assertEquals(mailBody.includes('5:00'),true);assertEquals(mailBody.includes('includes the booking fee'),true);
+ assertEquals(mailBody.includes('power outage'),true);assertEquals(mailBody.includes('booking credit is confirmed'),true);assertEquals(mailBody.includes('rain check'),false);assertEquals(mailBody.includes('Court 1'),true);assertEquals(mailBody.includes('5:00'),true);assertEquals(mailBody.includes('includes the booking fee'),true);
  await handler(request(body));assertEquals(sent,1);
  }finally{globalThis.fetch=original;}
 });

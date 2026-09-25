@@ -1,10 +1,13 @@
-# PickPoint weather credits
+# PickPoint booking credits
 
-System Owners and Court Owners open **Weather credits** in the management sidebar,
+System Owners and Court Owners open **Booking credits** in the management sidebar,
 choose a date and court, select completely unused affected slots, review the
 per-customer totals, and click **Issue credits & email**. Staff and admins cannot
 issue credits. Each selected booking receives a voucher and an email listing its
 affected slots, amount, reason, code, and redemption instructions.
+Reasons include Rain, Wet court, Unsafe weather, and Power outage. All reasons
+use the same fee-inclusive ledger, duplicate protection, redemption, and email
+retry process. Existing voucher codes and backend API names remain compatible.
 Guests enter the code in player details,
 using that same email, before submitting payment. Partial use keeps the remaining
 balance; fully covered bookings confirm without a receipt. No customer account,
@@ -35,7 +38,9 @@ emails were sent to players. Frontend deployment alone does not install the back
    functions: owner JWTs and guest booking tokens are validated by the database.
    The handler accepts only registered PickPoint origins and the PickPoint slug.
 2. Apply `20260923010000_pickpoint_weather_credits.sql`, followed by
-   `20260925010000_pickpoint_slot_weather_credits.sql` to that same project.
+   `20260925010000_pickpoint_slot_weather_credits.sql`,
+   `20260925011000_hide_archived_weather_slots.sql`, and
+   `20260925012000_pickpoint_power_outage_credits.sql` to that same project.
    It depends on the existing bookings, booking tokens, slots, memberships,
    settings, and weather-refund migrations. The migration enables the guest
    feature flag only after creating its database contracts.

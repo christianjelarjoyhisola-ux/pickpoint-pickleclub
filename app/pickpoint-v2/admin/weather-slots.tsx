@@ -9,7 +9,7 @@ const money = (value: number) => new Intl.NumberFormat("en-PH", { style: "curren
 const clock = (value: string) => new Intl.DateTimeFormat("en-PH", { timeZone: "Asia/Manila", hour: "numeric", minute: "2-digit" }).format(new Date(value));
 const dateTime = (value: string) => new Intl.DateTimeFormat("en-PH", { timeZone: "Asia/Manila", dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Manila", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
-const errorText = (error: unknown) => error instanceof Error ? error.message : "Weather credits could not be loaded.";
+const errorText = (error: unknown) => error instanceof Error ? error.message : "Booking credits could not be loaded.";
 
 export function WeatherSlots() {
   const [date, setDate] = useState(today), [court, setCourt] = useState("");
@@ -64,12 +64,12 @@ export function WeatherSlots() {
     } catch (e) { setError(errorText(e)); }
     finally { setBusy(false); }
   }
-  return <section className={s.weatherWorkspace} aria-label="Weather credits">
-    <header><p className={s.weatherEyebrow}><CloudRain /> RAIN CHECKS</p><h1>Weather credits</h1><p>Select completely unused hours affected by rain. Credit includes the booking fee at the original paid rate.</p></header>
+  return <section className={s.weatherWorkspace} aria-label="Booking credits">
+    <header><p className={s.weatherEyebrow}><CloudRain /> BOOKING CREDITS</p><h1>Booking credits</h1><p>Select completely unused hours affected by rain or a power outage. Credit includes the booking fee at the original paid rate.</p></header>
     <div className={s.weatherToolbar}>
       <label>Affected date<input type="date" value={date} disabled={busy} onChange={e => { if (e.target.value) { setDate(e.target.value); setSelected([]); setReview(false); setCourt(""); setNotice(""); setLoading(true); } }} /></label>
       <label>Court<select value={court} disabled={busy || loading} onChange={e => { setCourt(e.target.value); setSelected([]); setReview(false); }}><option value="">All courts</option>{[...new Map(data.slots.map(slot => [slot.court_id, slot.court_name])).entries()].map(([id, name]) => <option key={id} value={id}>{name}</option>)}</select></label>
-      <label>Reason<select value={reason} disabled={busy} onChange={e => { setReason(e.target.value); setReview(false); }}><option value="rain">Rain</option><option value="wet_court">Wet court</option><option value="unsafe_weather">Unsafe weather</option></select></label>
+      <label>Reason<select value={reason} disabled={busy} onChange={e => { setReason(e.target.value); setReview(false); }}><option value="rain">Rain</option><option value="wet_court">Wet court</option><option value="unsafe_weather">Unsafe weather</option><option value="power_outage">Power outage</option></select></label>
       <button type="button" disabled={busy || loading} onClick={() => { setSelected([]); setReview(false); void load(); }}><RefreshCw /> Refresh</button>
     </div>
     {error && <p className={s.weatherError} role="alert">{error}</p>}
@@ -81,10 +81,10 @@ export function WeatherSlots() {
       </label>)}</div>}
       <div className={s.weatherSelection}><span>{chosen.length} slot(s) · {groups.length} booking(s) · <strong>{money(total)}</strong></span><button className={s.primary} disabled={busy || loading || !chosen.length || chosen.length > 100} onClick={() => setReview(true)}>Review credits</button></div>
     </section>
-    {review && <section className={s.weatherPanel} aria-label="Review weather credits"><h2>Review before issuing</h2>{groups.map(group => <div className={s.weatherReview} key={group.booking_id}><div><strong>{group.customer} · {group.reference}</strong><p>Email to {group.email}</p>{group.slots.map(slot => <p key={slot.slot_id}>{slot.court_name} · {clock(slot.starts_at)}–{clock(slot.ends_at)} · {money(Number(slot.amount))}</p>)}</div><strong>{money(group.total)}</strong></div>)}<p>Issue {money(total)} in reusable credit. Each booking receives its own voucher and email. Selected slots cannot be credited again.</p><button className={s.primary} disabled={busy} onClick={() => void issue()}>{busy ? "Issuing credits & sending emails…" : "Issue credits & email"}</button></section>}
+    {review && <section className={s.weatherPanel} aria-label="Review booking credits"><h2>Review before issuing</h2>{groups.map(group => <div className={s.weatherReview} key={group.booking_id}><div><strong>{group.customer} · {group.reference}</strong><p>Email to {group.email}</p>{group.slots.map(slot => <p key={slot.slot_id}>{slot.court_name} · {clock(slot.starts_at)}–{clock(slot.ends_at)} · {money(Number(slot.amount))}</p>)}</div><strong>{money(group.total)}</strong></div>)}<p>Issue {money(total)} in reusable credit. Each booking receives its own voucher and email. Selected slots cannot be credited again.</p><button className={s.primary} disabled={busy} onClick={() => void issue()}>{busy ? "Issuing credits & sending emails…" : "Issue credits & email"}</button></section>}
     <section className={s.weatherPanel}><h2>Credit history for this date</h2><p>Original booking and payment records are retained. Credits remain available until used.</p>{data.history.length ? data.history.map(credit => <article className={s.weatherHistory} key={credit.id}>
       <div><h3>{credit.customer} · {credit.reference}</h3><p>{dateTime(credit.issuedAt)} · {credit.reason.replaceAll("_", " ")}</p><p>{credit.slots.map(slot => `${slot.court} ${clock(slot.startsAt)}–${clock(slot.endsAt)}`).join("; ") || "Legacy booking credit"}</p><code>{credit.code}</code><p>{credit.emailSent ? "Email sent" : "Email pending"} · {credit.email}</p></div>
       <div><strong>{money(Number(credit.amount))} issued</strong><p>{money(Number(credit.balance))} available</p>{!credit.emailSent && <button disabled={busy} onClick={() => void retryEmail(credit.id)}>Retry email</button>}</div>
-    </article>) : <p>No weather credits issued for this date.</p>}</section>
+    </article>) : <p>No booking credits issued for this date.</p>}</section>
   </section>;
 }

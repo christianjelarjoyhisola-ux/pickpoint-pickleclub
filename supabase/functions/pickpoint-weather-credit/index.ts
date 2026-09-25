@@ -37,7 +37,7 @@ Deno.serve(async request => {
     const rpc = async (name: string, args: Record<string, unknown>) => {
       const response = await fetch(`${base}/rest/v1/rpc/${name}`, { method: 'POST', headers: publicHeaders, body: JSON.stringify({ p_hostname: hostname, ...args }) });
       const result = await response.json();
-      if (!response.ok) throw Object.assign(new Error(result.message || 'Weather credit request failed.'), {status: response.status===401||response.status===403?403:400});
+      if (!response.ok) throw Object.assign(new Error(result.message || 'Booking credit request failed.'), {status: response.status===401||response.status===403?403:400});
       return result;
     };
     const sendCredit = async (credit: MailCredit, recipient: string) => {
@@ -53,10 +53,10 @@ Deno.serve(async request => {
         const date = (v: string) => new Intl.DateTimeFormat('en-PH',{timeZone:'Asia/Manila',dateStyle:'medium',timeStyle:'short'}).format(new Date(v));
         const slots = (credit.slots || []).map((slot) => `${slot.court}: ${date(slot.startsAt)} – ${date(slot.endsAt)} (PHT), ${money(slot.amount)}`);
         const coverage = credit.coversBookingFee ? 'Your credit includes the booking fee and can cover the total price of your next booking.' : 'This legacy credit covers court charges; any separate booking fee remains payable.';
-        const plain = `Weather credit confirmed for ${credit.reference || 'your booking'}. Reason: ${String(credit.reason || 'rain').replaceAll('_',' ')}.\n${slots.join('\n')}\nCredit issued: ${money(credit.amount)}. Available balance: ${money(credit.balance)}. Code: ${credit.code}.\n${coverage} Book at https://pickpointpickle.com/book using this email and enter the code before payment. Unused credit stays on your code. Keep it private.`;
-        await sendMailerooEmail({apiKey:env('MAILEROO_API_KEY'),fromAddress:env('MAILEROO_FROM_EMAIL'),fromName:'PickPoint Pickle Club',replyTo:settings.reply_to_email||settings.contact_email,to:recipient,subject:'Your PickPoint weather credit is confirmed',
+        const plain = `Booking credit confirmed for ${credit.reference || 'your booking'}. Reason: ${String(credit.reason || 'rain').replaceAll('_',' ')}.\n${slots.join('\n')}\nCredit issued: ${money(credit.amount)}. Available balance: ${money(credit.balance)}. Code: ${credit.code}.\n${coverage} Book at https://pickpointpickle.com/book using this email and enter the code before payment. Unused credit stays on your code. Keep it private.`;
+        await sendMailerooEmail({apiKey:env('MAILEROO_API_KEY'),fromAddress:env('MAILEROO_FROM_EMAIL'),fromName:'PickPoint Pickle Club',replyTo:settings.reply_to_email||settings.contact_email,to:recipient,subject:'Your PickPoint booking credit is confirmed',
           referenceId:credit.id.replaceAll('-','').slice(0,24),
-          plainText:plain,html:`<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;padding:28px;color:#102a43"><h1>Your rain check is ready</h1><p>Booking ${escape(credit.reference || '')} · ${escape(String(credit.reason || 'rain').replaceAll('_',' '))}</p><ul>${slots.map((line: string)=>'<li>'+escape(line)+'</li>').join('')}</ul><h2>${escape(money(credit.amount))} weather credit</h2><p>Available balance: ${escape(money(credit.balance))}</p><p style="font-family:monospace;font-size:18px">${escape(credit.code)}</p><p>${escape(coverage)}</p><p>Use this email and enter your code before payment. Any unused balance stays on your code.</p><a href="https://pickpointpickle.com/book">Book your next game</a><p>Keep your voucher code private.</p></div>`});
+          plainText:plain,html:`<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;padding:28px;color:#102a43"><h1>Your booking credit is ready</h1><p>Booking ${escape(credit.reference || '')} · ${escape(String(credit.reason || 'rain').replaceAll('_',' '))}</p><ul>${slots.map((line: string)=>'<li>'+escape(line)+'</li>').join('')}</ul><h2>${escape(money(credit.amount))} booking credit</h2><p>Available balance: ${escape(money(credit.balance))}</p><p style="font-family:monospace;font-size:18px">${escape(credit.code)}</p><p>${escape(coverage)}</p><p>Use this email and enter your code before payment. Any unused balance stays on your code.</p><a href="https://pickpointpickle.com/book">Book your next game</a><p>Keep your voucher code private.</p></div>`});
         const saved=await fetch(`${base}/rest/v1/pickpoint_weather_credits?id=eq.${creditId}&tenant_id=eq.${tenantId}`,{method:'PATCH',headers:serviceHeaders(),body:JSON.stringify({email_sent_at:new Date().toISOString()})});
         if(!saved.ok)throw new Error('Email status could not be saved.');
         return {...credit,emailSent:true};
@@ -83,6 +83,6 @@ Deno.serve(async request => {
       result.credit=await sendCredit(result.credit,result.email);
       if(result.credit.emailPending)result.emailPending=true;
       return reply(result);
-    } catch(error) { return reply({message:error instanceof Error?error.message:'Weather credit request failed.'},error instanceof Error && 'status' in error ? Number(error.status) : 400); }
-  } catch { return reply({ message: 'Weather credits are temporarily unavailable. Please try again.' }, 503); }
+    } catch(error) { return reply({message:error instanceof Error?error.message:'Booking credit request failed.'},error instanceof Error && 'status' in error ? Number(error.status) : 400); }
+  } catch { return reply({ message: 'Booking credits are temporarily unavailable. Please try again.' }, 503); }
 });

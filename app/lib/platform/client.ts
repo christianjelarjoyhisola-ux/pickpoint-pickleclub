@@ -813,7 +813,7 @@ export type WeatherSlotData = {slots:WeatherSlot[];history:SlotWeatherCredit[]};
 export async function weatherSlotRequest<T>(input:Record<string,unknown>):Promise<T> {
  managementHostname({mutation:input.action!=="slots"});
  const session=await currentOwnerSession();
- if(!session)throw new Error("Sign in again to manage weather credits.");
+ if(!session)throw new Error("Sign in again to manage booking credits.");
  return authenticatedFunction<T>("pickpoint-weather-credit",session.access_token,input);
 }
 
@@ -828,7 +828,7 @@ export type WeatherCreditRecord = {
 export async function manageWeatherCredit(bookingId: string, action: "get" | "issue" | "email", amount?: number, reason?: string): Promise<WeatherCreditRecord> {
   managementHostname({ mutation: action !== "get" });
   const session = await currentOwnerSession();
-  if (!session) throw new Error("Sign in again to manage weather credits.");
+  if (!session) throw new Error("Sign in again to manage booking credits.");
   return authenticatedFunction<WeatherCreditRecord>("pickpoint-weather-credit", session.access_token, { action, bookingId, amount, reason });
 }
 
