@@ -687,3 +687,5 @@
 .pp-weather-credit input:not([type=checkbox]){font-family:monospace;letter-spacing:.5px;font-size:14px}
 .pp-credit-deduction{color:#397344}
 .pp-credit-balance{padding:12px 14px;background:#edf4e8;border-radius:10px;color:#397344;font-size:12px;line-height:1.6}
+
+.pp-payment-qr{display:grid;justify-items:center;gap:12px;margin-top:20px;padding:18px;border:1px solid #d8e4ee;border-radius:12px;background:white;text-align:center}.pp-payment-qr img{max-width:100%;height:auto;object-fit:contain}.pp-payment-qr a{color:#0874d1;text-decoration:underline;min-height:44px;display:flex;align-items:center}.pp-payment-qr small{line-height:1.5;color:#61758e}

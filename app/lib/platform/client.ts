@@ -687,6 +687,22 @@ export async function listManagerBookings(
   );
 }
 
+export async function setBookingArchived(
+  accessToken: string, bookingId: string, updatedAt: string, archived: boolean,
+) {
+  return rpc<{ bookingId: string; archived: boolean; updatedAt: string }>(
+    archived ? "archive_tenant_booking" : "restore_tenant_booking",
+    {
+      p_tenant_slug: activeTenant.identity.slug,
+      p_hostname: managementHostname({ mutation: true }),
+      p_booking_id: bookingId,
+      p_expected_updated_at: updatedAt,
+      ...(archived ? { p_reason: "Moved to Trash by the system owner" } : {}),
+    },
+    accessToken,
+  );
+}
+
 export async function listManagerBlocks(
   accessToken: string,
   filters: Record<string, unknown> = {},
@@ -786,6 +802,19 @@ export async function uploadTenantCourtPhoto(
     }).catch(() => undefined);
   }
   return { url, storagePath, contentType: file.type as CourtPhotoAsset["contentType"] };
+}
+
+export type WeatherSlot = {
+ slot_id:string;booking_id:string;reference:string;customer:string;email:string;court_id:string;court_name:string;
+ starts_at:string;ends_at:string;court_amount:number;fee_amount:number;amount:number;quote_token:string;eligible:boolean;unavailable_reason:string|null;
+};
+export type SlotWeatherCredit = {id:string;bookingId:string;reference:string;customer:string;email:string;code:string;amount:number;balance:number;reason:string;issuedAt:string;issuedBy:string;emailSent:boolean;emailPending?:boolean;coversBookingFee:boolean;slots:Array<{slotId:string;court:string;startsAt:string;endsAt:string;amount:number;feeAmount:number}>};
+export type WeatherSlotData = {slots:WeatherSlot[];history:SlotWeatherCredit[]};
+export async function weatherSlotRequest<T>(input:Record<string,unknown>):Promise<T> {
+ managementHostname({mutation:input.action!=="slots"});
+ const session=await currentOwnerSession();
+ if(!session)throw new Error("Sign in again to manage weather credits.");
+ return authenticatedFunction<T>("pickpoint-weather-credit",session.access_token,input);
 }
 
 export type WeatherCreditRecord = {

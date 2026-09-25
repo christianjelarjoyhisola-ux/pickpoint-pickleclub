@@ -36,7 +36,7 @@ Deno.test('email failure returns the issued voucher and permits an owner retry',
     if (target.startsWith('https://smtp.maileroo.com/')) return Promise.resolve(Response.json({ success: false }, { status: 503 }));
     throw new Error('Unexpected request');
   }) as typeof fetch;
-  try { const result = await (await handler(request({ action: 'issue', bookingId: 'test', amount: 500 }))).json(); assertEquals(result.credit, credit.credit); assertEquals(result.emailPending, true); }
+  try { const result = await (await handler(request({ action: 'issue', bookingId: 'test', amount: 500 }))).json(); assertEquals(result.credit, {...credit.credit,emailPending:true}); assertEquals(result.emailPending, true); }
   finally { globalThis.fetch = original; }
 });
 Deno.test('fully credited booking remains confirmed when confirmation email fails', async () => {
@@ -46,4 +46,28 @@ Deno.test('fully credited booking remains confirmed when confirmation email fail
     : Response.json({ message: 'Email unavailable' }, { status: 503 }))) as typeof fetch;
   try { const result = await (await handler(request({ action: 'apply', reference: 'TEST', code: 'RAIN-TEST', email: 'player@example.com', token: 'test' }))).json(); assertEquals(result.status, 'confirmed'); assertEquals(result.totalAmount, 0); assertEquals(result.emailSent, false); }
   finally { globalThis.fetch = original; }
+});
+Deno.test('slot issuance emails the saved affected times and fee-inclusive credit; retry reuses saved voucher', async () => {
+ const original=globalThis.fetch;let sent=0,claimed=false;let mailBody='';
+ const c={...credit.credit,email:'player@example.com',reference:'PB-RAIN-TEST',customer:'Player',reason:'rain',coversBookingFee:true,slots:[{court:'Court 1',startsAt:'2026-09-25T09:00:00Z',endsAt:'2026-09-25T10:00:00Z',amount:265}]};
+ globalThis.fetch=((url: string|URL|Request,init?:RequestInit)=>{
+ const target=String(url);
+ if(target.includes('issue_pickpoint_weather_slots')) return Promise.resolve(Response.json({credits:[c]}));
+ if(target.includes('/pickpoint_weather_credits')&&target.includes('email_sent_at=is.null')) {if(claimed)return Promise.resolve(Response.json([]));claimed=true;return Promise.resolve(Response.json([c]));}
+ if(target.includes('/pickpoint_weather_credits'))return Promise.resolve(Response.json([c]));
+ if(target.includes('/tenants'))return Promise.resolve(Response.json([{reply_to_email:'venue@example.com'}]));
+ if(target.startsWith('https://smtp.maileroo.com/')) {sent++;mailBody=String(init?.body);return Promise.resolve(Response.json({success:true}));}
+ throw new Error('Unexpected request');
+ }) as typeof fetch;
+ try {
+ const body={action:'issue_slots',date:'2026-09-25',selection:[],requestId:'test',reason:'rain'};
+ const result=await(await handler(request(body))).json();assertEquals(result.credits[0].emailSent,true);
+ assertEquals(mailBody.includes('Court 1'),true);assertEquals(mailBody.includes('5:00'),true);assertEquals(mailBody.includes('includes the booking fee'),true);
+ await handler(request(body));assertEquals(sent,1);
+ }finally{globalThis.fetch=original;}
+});
+Deno.test('slot preview is read-only and does not send any email', async()=>{
+ const original=globalThis.fetch;let count=0;
+ globalThis.fetch=((url:string|URL|Request)=>{count++;assertEquals(String(url).includes('get_pickpoint_weather_slots'),true);return Promise.resolve(Response.json({slots:[],history:[]}));}) as typeof fetch;
+ try{const result=await(await handler(request({action:'slots',date:'2026-09-25'}))).json();assertEquals(result,{slots:[],history:[]});assertEquals(count,1);}finally{globalThis.fetch=original;}
 });

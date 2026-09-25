@@ -25,6 +25,7 @@ import {
   getTenantPolicy,
   listManagerBlocks,
   listManagerBookings,
+  setBookingArchived,
   manageBlockedDates,
   manageTenantCourt,
   platformMode,
@@ -45,6 +46,7 @@ export type TenantRole = "owner" | "admin" | "staff" | "host";
 export type ManagementCapability =
   | "booking:create"
   | "booking:update"
+  | "booking:archive"
   | "booking:cancel"
   | "booking:check-in"
   | "payment:review"
@@ -83,6 +85,9 @@ export type BookingPaymentStatus =
   | "unknown";
 
 export type Booking = {
+  updatedAt?: string | null;
+  archivedAt?: string | null;
+  archiveReason?: string | null;
   bookingId: string;
   bookingType: "regular" | "event";
   reference: string;
@@ -545,6 +550,7 @@ export type SetupItem = {
 };
 
 export type ManagementSnapshot = {
+  archivedBookings?: Booking[];
   tenant: {
     slug: string;
     name: string;
@@ -1040,6 +1046,7 @@ export const managementAdapter: ManagementAdapter = {
       blockAccessResult,
       policyResult,
       remittanceResult,
+      archivedResult,
     ] = await Promise.all([
       listManagerBookings(session.access_token, { activeOnly: false, limit: 500 }),
       listManagerBlocks(session.access_token, { limit: 100 }),
@@ -1058,6 +1065,9 @@ export const managementAdapter: ManagementAdapter = {
       canReadManagerSettings
         ? getRemittanceDestination(session.access_token).catch(() => null)
         : Promise.resolve(null),
+      serverSession.isSystemOwner
+        ? listManagerBookings(session.access_token, { archiveState: "archived", activeOnly: false, limit: 500 })
+        : Promise.resolve({ bookings: [] }),
     ]);
 
     const bookingRows = bookingResult.bookings;
@@ -1101,6 +1111,7 @@ export const managementAdapter: ManagementAdapter = {
         lastSynced: formatManilaDateTime(new Date()),
       },
       bookings,
+      archivedBookings: archivedResult.bookings.map((row) => mapLiveBooking(row, courtNames)),
       customers: deriveLiveCustomers(bookingRows, courtNames),
       courts,
       schedule: deriveLiveSchedule(bookingRows, blockRows, courtNames),
@@ -1415,6 +1426,19 @@ export const managementAdapter: ManagementAdapter = {
       await getManagerSession(session.access_token),
     );
 
+    if (action.type === "booking:archive" || action.type === "booking:restore") {
+      if (!authority.isSystemOwner) throw new Error("BOOKING_ARCHIVE_PLATFORM_OWNER_REQUIRED");
+      const payload = payloadObject(action.payload, "BOOKING_ARCHIVE_INPUT_INVALID");
+      assertAllowedKeys(payload, new Set(["updatedAt"]), "BOOKING_ARCHIVE_INPUT_INVALID");
+      if (!validIsoRevision(payload.updatedAt)) throw new Error("BOOKING_ARCHIVE_STALE_REFRESH_REQUIRED");
+      await setBookingArchived(session.access_token,
+        requiredUuid(action.resourceId, "BOOKING_ID_INVALID"),
+        payload.updatedAt as string, action.type === "booking:archive");
+      return { ok: true, message: action.type === "booking:archive"
+        ? "Booking moved to Trash. You can restore it at any time."
+        : "Booking restored to the list. Its reservation and payment status are unchanged." };
+    }
+
     if (action.type === "payment:approve" || action.type === "payment:reject") {
       assertPaymentReviewer(authority);
       const verificationId = requiredUuid(
@@ -1433,6 +1457,18 @@ export const managementAdapter: ManagementAdapter = {
           ? "The receipt was approved and the booking is confirmed."
           : "The receipt was rejected. The server updated the booking or balance-payment state.",
       };
+    }
+
+    if (action.type === "payment:asset-upload") {
+      assertPaymentAssetManager(authority);
+      const payload = payloadObject(action.payload, "PAYMENT_QR_UPLOAD_INPUT_INVALID");
+      assertAllowedKeys(payload, new Set(["methodCode", "file"]), "PAYMENT_QR_UPLOAD_INPUT_INVALID");
+      if (!(payload.file instanceof File)) throw new Error("Choose a QR image to upload.");
+      const result = await uploadTenantPaymentQr(session.access_token, paymentQrMethodCode(payload.methodCode), payload.file);
+      if (!result.asset || !isAllowedCustomerQrUrl(result.asset.url) || !validIsoRevision(result.tenantRevision)) {
+        throw new Error("PAYMENT_ASSET_RESPONSE_INVALID");
+      }
+      return { ok: true, message: "The payment QR image was saved and is now shown at checkout.", tenantRevision: result.tenantRevision };
     }
 
     if (action.type === "payment:asset-remove") {
@@ -2043,6 +2079,7 @@ function businessPaymentConfiguration(
 function authorityCapabilities(session: VerifiedManagerSession): ManagementCapability[] {
   if (session.isSystemOwner) {
     return [
+      "booking:archive",
       "booking:create",
       "booking:update",
       "booking:cancel",
@@ -3728,6 +3765,9 @@ function mapLiveBooking(
   const email = value(row, ["customer_email", "customerEmail"]);
   return {
     bookingId,
+    updatedAt: parsedInstant(row, ["updated_at"])?.toISOString() ?? null,
+    archivedAt: parsedInstant(row, ["archived_at"])?.toISOString() ?? null,
+    archiveReason: value(row, ["archive_reason"]) || null,
     bookingType,
     reference,
     id: reference,
