@@ -324,7 +324,7 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(adminStyles, /\.receiptDetails\{[^}]*height:100%[^}]*display:grid[^}]*grid-template-rows:minmax\(0,1fr\) auto/);
   assert.match(adminStyles, /\.receiptDetailsScroll\{[^}]*min-height:0[^}]*overflow-y:auto/);
   assert.doesNotMatch(admin, />Check in</);
-  assert.match(admin, /Every booking in one place/);
+  assert.match(admin, /Unfinished, expired bookings are hidden/);
   assert.match(admin, /status updates automatically/i);
   assert.match(admin, /Time & date/);
   assert.match(admin, /Reference & total/);

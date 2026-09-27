@@ -1097,7 +1097,7 @@ export const managementAdapter: ManagementAdapter = {
           activeTenant.identity.name,
         )
       : activeTenant.identity.name;
-    const bookings = bookingRows.map((row) => mapLiveBooking(row, courtNames));
+    const bookings = bookingRows.map((row) => mapLiveBooking(row, courtNames)).filter(isVisibleDeskBooking);
     const blocks = blockRows.map((row) => mapLiveBlock(row, courtNames));
 
     return {
@@ -1193,7 +1193,7 @@ export const managementAdapter: ManagementAdapter = {
     }
     const courtNames = new Map(current.courts.map((court) => [court.id, court.name]));
     return {
-      bookings: bookingResult.bookings.map((row) => mapLiveBooking(row, courtNames)),
+      bookings: bookingResult.bookings.map((row) => mapLiveBooking(row, courtNames)).filter(isVisibleDeskBooking),
       blocks: blockResult.blockedDates.map((row) => mapLiveBlock(row, courtNames)),
     };
   },
@@ -1321,7 +1321,7 @@ export const managementAdapter: ManagementAdapter = {
     const serverSession = normalizeManagerSession(serverSessionResult);
     const bookingRows = bookingResult.bookings;
     const courtNames = new Map(current.courts.map((court) => [court.id, court.name]));
-    const bookings = bookingRows.map((row) => mapLiveBooking(row, courtNames));
+    const bookings = bookingRows.map((row) => mapLiveBooking(row, courtNames)).filter(isVisibleDeskBooking);
 
     return {
       ...current,
@@ -3738,6 +3738,11 @@ function latestPaymentEvidence(
     .filter((candidate): candidate is PaymentEvidence => candidate !== null)
     .sort((left, right) => right.submittedAt.localeCompare(left.submittedAt));
   return evidence[0] ?? null;
+}
+
+// Keep payment evidence visible for review; hide only abandoned, unpaid holds.
+function isVisibleDeskBooking(booking: Booking): boolean {
+  return !(booking.status === "expired" && booking.payment === "unpaid" && !booking.paymentEvidence);
 }
 
 function mapLiveBooking(
