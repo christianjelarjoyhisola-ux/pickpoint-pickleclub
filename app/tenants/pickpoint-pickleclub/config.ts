@@ -89,7 +89,7 @@ export const pickPointConfig = {
   },
   booking: {
     minimumHours: 1,
-    maximumHours: 3,
+    maximumHours: 24,
     minimumLeadMinutes: 0,
     maximumAdvanceDays: 30,
     slotMinutes: 60,

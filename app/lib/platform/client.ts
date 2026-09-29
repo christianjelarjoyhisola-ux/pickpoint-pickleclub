@@ -45,7 +45,7 @@ export class PlatformRequestError extends Error {
 
 const BOOKING_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const WHOLE_HOUR_PATTERN = /^(?:[01]\d|2[0-3]):00$/;
-const MAX_ATOMIC_BOOKING_HOURS = 18;
+const HOURS_PER_DAY = 24;
 
 function bookingWallClockMilliseconds(
   bookingDate: string,
@@ -101,7 +101,7 @@ export function normalizeBookingSessions(
     if (
       !courtId || courtId.length > 128 || /[\u0000-\u001f]/.test(courtId) ||
       startsAt === null || !Number.isSafeInteger(durationHours) ||
-      durationHours < 1 || durationHours > MAX_ATOMIC_BOOKING_HOURS
+      durationHours < 1 || durationHours > HOURS_PER_DAY
     ) {
       return bookingSessionInputError(
         "BOOKING_SESSION_INVALID",
@@ -114,12 +114,7 @@ export function normalizeBookingSessions(
       const key = `${courtId}\u0000${atomStartsAt}`;
       if (!atoms.has(key)) atoms.set(key, { courtId, startsAt: atomStartsAt });
     }
-    if (atoms.size > MAX_ATOMIC_BOOKING_HOURS) {
-      return bookingSessionInputError(
-        "BOOKING_SESSION_HOURS_EXCEEDED",
-        `A booking can contain at most ${MAX_ATOMIC_BOOKING_HOURS} total court-hours.`,
-      );
-    }
+
   }
 
   const orderedAtoms = [...atoms.values()].sort(

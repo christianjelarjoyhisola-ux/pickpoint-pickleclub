@@ -2202,7 +2202,7 @@ function mapLiveCourt(row: JsonObject): Court {
       ? schedule.bands[1]?.hourlyRate ?? null
       : null,
     minimumHours: exactInteger(regular ?? {}, ["minimumHours"]) ?? 1,
-    maximumHours: exactInteger(regular ?? {}, ["maximumHours"]) ?? 3,
+    maximumHours: exactInteger(regular ?? {}, ["maximumHours"]) ?? 24,
     minimumLeadMinutes: exactInteger(publicConfig ?? {}, ["minimumLeadMinutes"]) ?? 0,
     maximumAdvanceDays: exactInteger(publicConfig ?? {}, ["maximumAdvanceDays"]) ?? 30,
     photoUrl,
@@ -2349,7 +2349,7 @@ function validatedReschedulePreviewOption(
     !Number.isFinite(new Date(bookingStartsAt).getTime()) ||
     !Number.isFinite(new Date(bookingEndsAt).getTime()) ||
     !DATE_PATTERN.test(value(booking, ["localBookingDate"])) ||
-    !Number.isSafeInteger(durationHours) || durationHours! < 1 || durationHours! > 18 ||
+    !Number.isSafeInteger(durationHours) || durationHours! < 1 || durationHours! > 24 ||
     value(booking, ["status"]) !== "confirmed" ||
     value(booking, ["paymentStatus"]) !== "paid" ||
     !value(booking, ["customerName"]) ||
@@ -2457,7 +2457,7 @@ function manualBookingPayload(candidate: unknown) {
     throw new Error("MANUAL_PAYMENT_REFERENCE_REQUIRED");
   }
   const durationHours = Number(payload.durationHours);
-  if (!Number.isSafeInteger(durationHours) || durationHours < 1 || durationHours > 18) {
+  if (!Number.isSafeInteger(durationHours) || durationHours < 1 || durationHours > 24) {
     throw new Error("MANUAL_BOOKING_INPUT_INVALID");
   }
   const startTime = safeActionText(payload.startTime, 5, 5, "MANUAL_BOOKING_INPUT_INVALID");
