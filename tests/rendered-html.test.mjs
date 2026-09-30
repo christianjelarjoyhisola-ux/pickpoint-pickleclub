@@ -304,7 +304,7 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(admin, /area==="settings"/);
   assert.doesNotMatch(admin, /area==="setup"/);
   for (const operation of ["loadCalendarDay", "loadPaymentReceipt", "payment:reject", "booking:update", "schedule:unblock", "court:create", "court:update", "business:update", "policy:publish", "remittance:update", "remittance:prepare", "remittance:submit"]) {
-    assert.match(admin, new RegExp(operation.replace(":", "\\:")));
+    assert.match(admin + await source("app/pickpoint-v2/admin/remittance-workflow.tsx"), new RegExp(operation.replace(":", "\\:")));
   }
   assert.match(admin, /Edit court/);
   assert.match(admin, /Save court/);
@@ -376,19 +376,14 @@ test("keeps the admin lean and capability-controlled", async () => {
   assert.match(admin, /mergeRegularBookingReports/);
   assert.match(admin, /Payments needing attention/);
   assert.match(admin, /The next five reservations/);
-  assert.match(admin, /function RemittanceArea/);
+  const remittance = await source("app/pickpoint-v2/admin/remittance-workflow.tsx");
+  assert.match(admin, /<RemittanceWorkflow/);
   assert.match(admin, /managementAdapter\.loadInsights/);
-  assert.match(admin, /Accumulated booking fee/);
-  assert.match(admin, /Remit the booking fee/);
-  assert.match(admin, /Copy payment account/);
-  assert.match(admin, /CURRENT ACCUMULATION PERIOD/);
-  assert.match(admin, /Prepare cutoff/);
-  assert.match(admin, /Upload payment receipt/);
-  assert.match(admin, /maximum 8 MB/);
-  assert.match(admin, /From \$\{pretty\(start\)\} through \$\{pretty\(through\)\}/);
-  assert.match(admin, /second:"2-digit"/);
-  assert.match(admin, /PHT/);
-  assert.match(admin, /remittance history/i);
+  for (const label of ["ACCUMULATED BOOKING FEES", "Ready for payment", "Where to send payment", "Copy account number", "Prepare cutoff", "Upload receipt", "Recent history", "PHT"]) {
+    assert.ok(remittance.includes(label), label);
+  }
+  assert.match(remittance, /dialog.*aria-labelledby/);
+  assert.match(remittance, /proof.size > 8 \* 1024 \* 1024/);
   assert.match(admin, /n!=="remittance"\|\|can\("finance:view"\)/);
   assert.doesNotMatch(admin, /area==="today"[^\n]*<BookingFilters/);
   assert.doesNotMatch(admin, /analytics|revenue chart|customer crm/i);
