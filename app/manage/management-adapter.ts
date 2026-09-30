@@ -1,3 +1,4 @@
+import {calendarBookingRows} from "./calendar-booking-rows";
 import { activeTenant } from "../tenants/registry";
 import { normalizeTwoBandSchedule } from "../lib/operating-hours";
 import {
@@ -85,6 +86,7 @@ export type BookingPaymentStatus =
   | "unknown";
 
 export type Booking = {
+  scheduleKey?: string;
   updatedAt?: string | null;
   archivedAt?: string | null;
   archiveReason?: string | null;
@@ -1193,7 +1195,7 @@ export const managementAdapter: ManagementAdapter = {
     }
     const courtNames = new Map(current.courts.map((court) => [court.id, court.name]));
     return {
-      bookings: bookingResult.bookings.map((row) => mapLiveBooking(row, courtNames)).filter(isVisibleDeskBooking),
+      bookings: bookingResult.bookings.flatMap((row) => calendarBookingRows(row, date)).map((row) => mapLiveBooking(row, courtNames)).filter(isVisibleDeskBooking),
       blocks: blockResult.blockedDates.map((row) => mapLiveBlock(row, courtNames)),
     };
   },
@@ -3770,6 +3772,7 @@ function mapLiveBooking(
   const email = value(row, ["customer_email", "customerEmail"]);
   return {
     bookingId,
+    scheduleKey: value(row, ["schedule_key"]) || undefined,
     updatedAt: parsedInstant(row, ["updated_at"])?.toISOString() ?? null,
     archivedAt: parsedInstant(row, ["archived_at"])?.toISOString() ?? null,
     archiveReason: value(row, ["archive_reason"]) || null,

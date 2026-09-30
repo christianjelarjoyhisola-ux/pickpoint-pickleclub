@@ -12,7 +12,7 @@
     "build": "vinext build",
     "start": "vinext start",
     "deploy:cloudflare": "vinext build && wrangler deploy --config dist/server/wrangler.json",
-    "test": "node --experimental-strip-types --test tests/dashboard-report.test.mjs && npm run build && node --test tests/rendered-html.test.mjs",
+    "test": "node --experimental-strip-types --test tests/dashboard-report.test.mjs tests/calendar-booking-rows.test.mjs && npm run build && node --test tests/rendered-html.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next"
   },
   "dependencies": {
