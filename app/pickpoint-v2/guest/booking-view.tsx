@@ -1,4 +1,5 @@
 "use client";
+import {randomId} from "../../lib/random-id";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
@@ -502,7 +503,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
     if (!selectedSlots.length || !live || !policy?.version) return;
     setBusy(true); setMessage("");
     try {
-      bookingAttemptId.current ||= crypto.randomUUID();
+      bookingAttemptId.current ||= randomId();
       const result = await createBooking({
         sessions: selectedSlots.map((selection) => ({ ...selection, bookingDate: date, durationHours: 1 })),
         customer: {

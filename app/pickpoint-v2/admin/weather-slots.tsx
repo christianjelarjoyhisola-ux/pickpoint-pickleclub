@@ -1,4 +1,5 @@
 "use client";
+import {randomId} from "../../lib/random-id";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CloudRain, RefreshCw } from "lucide-react";
@@ -45,7 +46,7 @@ export function WeatherSlots() {
     setBusy(true); setError(""); setNotice("");
     const selection = chosen.map(slot => ({ slotId: slot.slot_id, quoteToken: slot.quote_token })).sort((a, b) => a.slotId.localeCompare(b.slotId));
     const signature = JSON.stringify({ selection, reason, date });
-    if (request.current?.signature !== signature) request.current = { signature, id: crypto.randomUUID() };
+    if (request.current?.signature !== signature) request.current = { signature, id: randomId() };
     try {
       const result = await weatherSlotRequest<{ credits: SlotWeatherCredit[] }>({ action: "issue_slots", date, selection, requestId: request.current.id, reason });
       const pending = result.credits.filter(credit => !credit.emailSent).length;

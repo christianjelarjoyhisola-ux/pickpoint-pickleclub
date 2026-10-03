@@ -1,3 +1,4 @@
+import {randomId} from "../lib/random-id";
 import {calendarBookingRows} from "./calendar-booking-rows";
 import { activeTenant } from "../tenants/registry";
 import { normalizeTwoBandSchedule } from "../lib/operating-hours";
@@ -1595,7 +1596,7 @@ export const managementAdapter: ManagementAdapter = {
     if (action.type === "remittance:prepare") {
       assertRemittanceManager(authority);
       assertNoPayload(action.payload);
-      await prepareBookingFeeRemittance(session.access_token, crypto.randomUUID());
+      await prepareBookingFeeRemittance(session.access_token, randomId());
       return {
         ok: true,
         message: "The remittance was cut off. New booking fees are now accumulating in a new period.",

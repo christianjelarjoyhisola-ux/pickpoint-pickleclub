@@ -1,4 +1,5 @@
 "use client";
+import {randomId} from "../random-id";
 
 import { createClient, type Session, type SupabaseClient } from "@supabase/supabase-js";
 import { activeTenant } from "../../tenants/registry";
@@ -450,7 +451,7 @@ export async function getAvailability(date: string): Promise<AvailabilityRespons
 export async function createBooking(
   input: CreateBookingInput,
 ): Promise<BookingConfirmation> {
-  const clientRequestId = input.clientRequestId || crypto.randomUUID();
+  const clientRequestId = input.clientRequestId || randomId();
   const sessionsSupplied = input.sessions !== undefined;
   const normalizedSessions = normalizeBookingSessions(
     sessionsSupplied
@@ -749,7 +750,7 @@ export async function uploadTenantCourtPhoto(
     throw new PlatformRequestError(403, "COURT_PHOTO_SCOPE_INVALID", "This court does not belong to PickPoint.");
   }
   const extension = file.type === "image/jpeg" ? "jpg" : file.type === "image/png" ? "png" : "webp";
-  const storagePath = `${tenantId}/courts/${courtId}/${crypto.randomUUID()}.${extension}`;
+  const storagePath = `${tenantId}/courts/${courtId}/${randomId()}.${extension}`;
   const previousStoragePath = typeof court.publicConfig?.photoStoragePath === "string" &&
       court.publicConfig.photoStoragePath.startsWith(`${tenantId}/courts/${courtId}/`)
     ? court.publicConfig.photoStoragePath

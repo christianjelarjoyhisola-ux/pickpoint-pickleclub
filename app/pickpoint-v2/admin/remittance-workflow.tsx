@@ -1,4 +1,5 @@
 "use client";
+import {randomId} from "../../lib/random-id";
 
 import {useEffect, useRef, useState, type FormEvent} from "react";
 import {ArrowUpRight, Check, Copy, FileCheck2, ReceiptText, RefreshCw, Upload, WalletCards, X} from "lucide-react";
@@ -58,7 +59,7 @@ function ReceiptDialog({item, run, busy, close}: {item: RemittanceSummary; run: 
     const ok = await run("remittance:submit", {
       remittanceId: item.id, amount: Number(data.get("amount")), paymentMethod: String(data.get("method")),
       paymentRef: String(data.get("reference")), note: String(data.get("note")),
-      idempotencyKey: crypto.randomUUID(), proof,
+      idempotencyKey: randomId(), proof,
     }, item.id);
     if (ok) close();
     else setError("Receipt could not be submitted. Check the details and try again.");
