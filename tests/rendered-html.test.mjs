@@ -246,7 +246,8 @@ test("protects selected courts, restores progress, and shows authoritative itemi
   assert.match(booking, /I have reviewed and agree to the court rules and booking policies/);
   assert.doesNotMatch(booking, /pp-time-policy|pp-hold-consent/);
   assert.doesNotMatch(booking, /Automatic receipt verification/);
-  assert.match(booking, /13-digit GCash transaction reference/);
+  assert.doesNotMatch(booking, /setPaymentReference|paymentReference/);
+  assert.match(booking, /No typing needed/);
   assert.match(booking, /Submit payment receipt/);
   assert.match(booking, /Copy .* account number/);
   assert.match(booking, /Upload your payment receipt/);

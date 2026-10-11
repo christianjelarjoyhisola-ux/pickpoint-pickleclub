@@ -582,7 +582,7 @@ export async function submitPaymentReceipt(options: {
   reference: string;
   token: string;
   method: string;
-  paymentReference: string;
+  paymentReference?: string;
   file: File;
 }): Promise<PaymentReceiptSubmission> {
   if (platformMode() === "preview") {
@@ -606,7 +606,7 @@ export async function submitPaymentReceipt(options: {
       "X-Booking-Reference": options.reference,
       "X-Booking-Token": options.token,
       "X-Payment-Method": options.method,
-      "X-Payment-Reference": options.paymentReference,
+      ...(options.paymentReference?.trim() ? { "X-Payment-Reference": options.paymentReference.trim() } : {}),
     },
     body: form,
   });
