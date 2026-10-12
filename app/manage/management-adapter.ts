@@ -2734,7 +2734,7 @@ function blockedDatePayload(candidate: unknown) {
     !BLOCK_LABELS.has(publicLabel as "Reserved") ||
     (internalReason !== null && internalReason.length > 200) ||
     ((startsAt === null) !== (endsAt === null)) ||
-    (startsAt !== null && (!WHOLE_HOUR_PATTERN.test(startsAt) || !WHOLE_HOUR_PATTERN.test(endsAt ?? "") || (endDate === startDate && endsAt! <= startsAt)))
+    (startsAt !== null && (!WHOLE_HOUR_PATTERN.test(startsAt) || (endsAt !== "24:00" && !WHOLE_HOUR_PATTERN.test(endsAt ?? "")) || endsAt! <= startsAt))
   ) {
     throw new Error("BLOCK_CONFIGURATION_INVALID");
   }
@@ -3810,6 +3810,7 @@ function normalizedClock(raw: string): string | null {
   if (!match) return null;
   const hour = Number(match[1]);
   const minute = Number(match[2]);
+  if (raw === "24:00" || raw === "24:00:00") return "24:00";
   if (hour > 23 || minute > 59) return null;
   return `${match[1]}:${match[2]}`;
 }
