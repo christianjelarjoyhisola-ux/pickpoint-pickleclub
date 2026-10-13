@@ -1510,3 +1510,12 @@ export async function activateTenantInitially(accessToken: string) {
     accessToken,
   );
 }
+
+export async function expireCheckoutHold(reference: string, token: string) {
+  if (platformMode() === "preview") return { status: "expired" };
+  return rpc<{status: string; paymentInProgress?: boolean}>("expire_pickpoint_checkout_hold", {p_booking_reference: reference, p_booking_token: token});
+}
+export type BookingLifecycle = {status: string; reason: string | null; at: string | null; actor: string};
+export async function getBookingLifecycle(accessToken: string, bookingId: string) {
+  return rpc<BookingLifecycle>("get_pickpoint_booking_lifecycle", {p_booking_id: bookingId}, accessToken);
+}

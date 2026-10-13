@@ -595,3 +595,17 @@ test("keeps hardened production response headers", async () => {
   assert.equal(redirect.status, 308);
   assert.equal(redirect.headers.get("location"), "https://pickpointpickle.com/manage?from=www");
 });
+
+test("separates checkout expiry from staff cancellation and displays reasons", async () => {
+  const guest = await source("app/pickpoint-v2/guest/booking-view.tsx");
+  const admin = await source("app/pickpoint-v2/admin/PickPointDesk.tsx");
+  const timer = guest.slice(guest.indexOf("let expiring = false"), guest.indexOf("const timer = window.setInterval(updateRemaining"));
+  assert.match(timer, /await expireCheckoutHold/);
+  assert.doesNotMatch(timer, /cancelUnpaidBooking/);
+  assert.match(timer, /result.status !== "expired"/);
+  assert.doesNotMatch(admin, /reason:"Cancelled by PickPoint staff"/);
+  assert.match(admin, /reason:cancelReason.trim\(\)/);
+  assert.match(admin, /Cancellation reason/);
+  assert.match(admin, /Cancellation details/);
+  assert.match(admin, /booking.status==="expired"\?"Expired"/);
+});

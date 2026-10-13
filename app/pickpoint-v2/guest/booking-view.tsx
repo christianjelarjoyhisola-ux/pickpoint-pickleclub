@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Clock3, Copy, MapPinned, Search, Upload, X } from "lucide-react";
-import { applyWeatherCredit, bookingStatus, cancelUnpaidBooking, completeBookingDetails, createBooking, getAvailability, submitPaymentReceipt } from "../../lib/platform/client";
+import { applyWeatherCredit, bookingStatus, expireCheckoutHold, cancelUnpaidBooking, completeBookingDetails, createBooking, getAvailability, submitPaymentReceipt } from "../../lib/platform/client";
 import type { PaymentReceiptSubmission } from "../../lib/platform/client";
 import type { AvailabilityResponse, BookingConfirmation, PaymentMethod, PublicCourt } from "../../lib/platform/types";
 import { PaymentQr } from "./payment-qr";
@@ -386,11 +386,26 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
 
   useEffect(() => {
     if (!confirmation || !holdEndsAt || (step !== "details" && step !== "method" && step !== "payment")) return;
-    const updateRemaining = () => {
+    let active = true;
+    let expiring = false;
+    const updateRemaining = async () => {
       const remaining = Math.max(0, Math.ceil((holdEndsAt - Date.now()) / 1000));
       setRemainingHoldSeconds(remaining);
-      if (remaining > 0) return;
-      cancelUnpaidBooking(confirmation.reference, confirmation.bookingToken).catch(() => undefined);
+      if (remaining > 0 || expiring) return;
+      expiring = true;
+      try {
+        const result = await expireCheckoutHold(confirmation.reference, confirmation.bookingToken);
+        if (!active) return;
+        if (result.status !== "expired") {
+          setHoldEndsAt(null);
+          setMessage("Your booking has not expired. Check My bookings for its current payment status.");
+          return;
+        }
+      } catch {
+        if (active) setMessage("Checking your booking status. Please keep this page open.");
+        expiring = false;
+        return;
+      }
       setHoldIntro(false);
       setConfirmation(null);
       setHoldEndsAt(null);
@@ -401,7 +416,7 @@ export function BookingView({ initialMode, initialCourtSlug }: BookingViewProps)
       getAvailability(date).then(setAvailability).catch(() => undefined);
     };
     const timer = window.setInterval(updateRemaining, 1000);
-    return () => window.clearInterval(timer);
+    return () => { active = false; window.clearInterval(timer); };
   }, [confirmation, date, holdEndsAt, step]);
 
   useEffect(() => {
