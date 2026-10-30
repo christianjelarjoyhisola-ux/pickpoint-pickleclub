@@ -58,3 +58,8 @@ verification secrets, or owner passwords to this repository.
 See `operations/PICKPOINT-ONBOARDING.md`. Configure the exact venue address,
 operating hours, real courts and rates, contact/reply-to details, payment and
 remittance destinations, policies, and first owner before activating booking.
+
+## Deployment
+
+Pushes to `main` deploy automatically to pickpointpickle.com through Cloudflare Workers Builds
+(build: `npm run build`, deploy: `npx wrangler deploy --config dist/server/wrangler.json`).
