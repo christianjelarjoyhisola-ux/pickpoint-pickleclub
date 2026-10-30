@@ -80,7 +80,7 @@ export const pickPointConfig = {
     provisional: true,
   },
   venue: {
-    locationLabel: "Teves Residence Chicote",
+    locationLabel: "Pick Point Pickle",
     address: "Purok Gemelina, Don Aurelio Chicote, Governor Generoso, 8210 Davao Oriental, Philippines",
     mapsUrl: "https://maps.app.goo.gl/upBHvityJe8N1MF88",
     coordinates: { latitude: 6.616044, longitude: 126.0849284 },
