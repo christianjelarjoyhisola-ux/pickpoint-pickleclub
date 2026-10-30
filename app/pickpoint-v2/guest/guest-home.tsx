@@ -12,7 +12,7 @@ export function GuestHome() {
   const live = isPublicBookingReady(data);
   const courtCount = data?.courts.length ?? 0;
   const publicConfig = data?.tenant.publicConfig;
-  const locationName = typeof publicConfig?.locationName === "string" ? publicConfig.locationName : "Teves Residence Chicote";
+  const locationName = typeof publicConfig?.locationName === "string" ? publicConfig.locationName : "Pick Point Pickle";
   const address = typeof publicConfig?.address === "string" ? publicConfig.address : "Purok Gemelina, Don Aurelio Chicote, Governor Generoso, 8210 Davao Oriental";
   const mapsUrl = typeof publicConfig?.mapsUrl === "string" ? publicConfig.mapsUrl : "https://maps.app.goo.gl/upBHvityJe8N1MF88";
   return (
