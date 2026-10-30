@@ -13,8 +13,8 @@ export function GuestHome() {
   const courtCount = data?.courts.length ?? 0;
   const publicConfig = data?.tenant.publicConfig;
   const locationName = typeof publicConfig?.locationName === "string" ? publicConfig.locationName : "Teves Residence Chicote";
-  const address = typeof publicConfig?.address === "string" ? publicConfig.address : "Tibanban, Governor Generoso, Davao Oriental";
-  const mapsUrl = typeof publicConfig?.mapsUrl === "string" ? publicConfig.mapsUrl : "https://maps.app.goo.gl/XmD7VMpTBQJinTeP7";
+  const address = typeof publicConfig?.address === "string" ? publicConfig.address : "Purok Gemelina, Don Aurelio Chicote, Governor Generoso, 8210 Davao Oriental";
+  const mapsUrl = typeof publicConfig?.mapsUrl === "string" ? publicConfig.mapsUrl : "https://maps.app.goo.gl/upBHvityJe8N1MF88";
   return (
     <GuestShell current="home">
       <section className="pp-hero">
