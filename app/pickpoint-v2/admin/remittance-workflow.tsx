@@ -13,6 +13,7 @@ type Props = {
   copyAccount: () => void;
   run: (type: string, payload?: unknown, resourceId?: string) => Promise<boolean>;
   busy: (type: string, resourceId?: string) => boolean;
+  actionError?: string;
 };
 const statusLabels: Record<RemittanceSummary["status"], string> = {
   draft: "Ready to pay", due: "Payment due", submitted: "Receipt submitted",
@@ -37,9 +38,44 @@ function Period({item}: {item: RemittanceSummary}) {
   return <span>{dateLabel(item.periodStart)} – {dateLabel(item.periodEnd)}</span>;
 }
 
-function ReceiptDialog({item, run, busy, close}: {item: RemittanceSummary; run: Props["run"]; busy: boolean; close: () => void}) {
+const MAX_RECEIPT_EDGE = 2000;
+const MAX_RECEIPT_BYTES = 8 * 1024 * 1024;
+/** Re-encode any phone photo (HEIC, large camera shots, mislabeled files) as a compact JPEG so
+ * the server's byte-sniffed JPEG/PNG/WebP check and 8 MB limit always pass. */
+async function normalizeReceipt(file: File): Promise<File> {
+  const url = URL.createObjectURL(file);
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const element = new Image();
+      element.onload = () => resolve(element);
+      element.onerror = () => reject(new Error("This image could not be opened. Take a screenshot of the receipt and upload that instead."));
+      element.src = url;
+    });
+    const scale = Math.min(1, MAX_RECEIPT_EDGE / Math.max(image.naturalWidth, image.naturalHeight));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("This browser could not prepare the receipt image.");
+    context.fillStyle = "#fff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    for (const quality of [0.86, 0.72, 0.6]) {
+      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/jpeg", quality));
+      if (blob && blob.size <= MAX_RECEIPT_BYTES) return new File([blob], "receipt.jpg", {type: "image/jpeg"});
+    }
+    throw new Error("The receipt image is too large. Crop it or take a screenshot and try again.");
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+function ReceiptDialog({item, run, busy, close, actionError}: {item: RemittanceSummary; run: Props["run"]; busy: boolean; close: () => void; actionError?: string}) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState("");
+  const [preparing, setPreparing] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const working = busy || preparing;
   useEffect(() => {
     const element = dialog.current;
     element?.showModal();
@@ -49,39 +85,41 @@ function ReceiptDialog({item, run, busy, close}: {item: RemittanceSummary; run: 
   }, []);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy) return;
-    const data = new FormData(event.currentTarget), proof = data.get("proof");
-    if (!(proof instanceof File) || !proof.size) {setError("Choose a payment receipt."); return;}
-    if (proof.size > 8 * 1024 * 1024 || !["image/jpeg", "image/png", "image/webp"].includes(proof.type)) {
-      setError("Choose a JPEG, PNG, or WebP image up to 8 MB."); return;
-    }
-    setError("");
+    if (working) return;
+    const data = new FormData(event.currentTarget), original = data.get("proof");
+    if (!(original instanceof File) || !original.size) {setError("Choose a payment receipt."); return;}
+    setError(""); setFailed(false); setPreparing(true);
+    let proof: File;
+    try {proof = await normalizeReceipt(original);}
+    catch (reason) {setError(reason instanceof Error ? reason.message : "The receipt image could not be prepared."); return;}
+    finally {setPreparing(false);}
     const ok = await run("remittance:submit", {
       remittanceId: item.id, amount: Number(data.get("amount")), paymentMethod: String(data.get("method")),
       paymentRef: String(data.get("reference")), note: String(data.get("note")),
       idempotencyKey: randomId(), proof,
     }, item.id);
     if (ok) close();
-    else setError("Receipt could not be submitted. Check the details and try again.");
+    else setFailed(true);
   }
-  return <dialog ref={dialog} className={s.dialog} aria-labelledby="remittance-upload-title" onCancel={event => {event.preventDefault(); if (!busy) close();}}>
+  const shownError = error || (failed ? actionError || "Receipt could not be submitted. Check the details and try again." : "");
+  return <dialog ref={dialog} className={s.dialog} aria-labelledby="remittance-upload-title" onCancel={event => {event.preventDefault(); if (!working) close();}}>
     <form onSubmit={submit}>
-      <header><div><small>PAYMENT RECEIPT</small><h2 id="remittance-upload-title">Confirm your payment</h2><p>{item.reference}</p></div><button type="button" className={s.iconButton} disabled={busy} onClick={close} aria-label="Close payment upload"><X size={20}/></button></header>
+      <header><div><small>PAYMENT RECEIPT</small><h2 id="remittance-upload-title">Confirm your payment</h2><p>{item.reference}</p></div><button type="button" className={s.iconButton} disabled={working} onClick={close} aria-label="Close payment upload"><X size={20}/></button></header>
       <div className={s.paymentAmount}><span>Cutoff balance</span><strong>{formatPeso(item.remainingBalance)}</strong></div>
       <div className={s.fields}>
         <label>Amount paid<input name="amount" type="number" min="0.01" step="0.01" defaultValue={item.remainingBalance.toFixed(2)} required/></label>
         <label>Payment method<select name="method" defaultValue="gcash"><option value="gcash">GCash</option><option value="maya">Maya</option><option value="bank_transfer">Bank transfer</option><option value="cash">Cash deposit</option><option value="other">Other</option></select></label>
         <label className={s.full}>Transaction reference<input name="reference" minLength={4} maxLength={120} placeholder="Enter the payment reference" required/></label>
-        <label className={`${s.full} ${s.fileField}`}>Upload receipt<input name="proof" type="file" accept="image/jpeg,image/png,image/webp" required/><span>JPEG, PNG, or WebP · up to 8 MB</span></label>
+        <label className={`${s.full} ${s.fileField}`}>Upload receipt<input name="proof" type="file" accept="image/*" required/><span>Photo or screenshot of the receipt</span></label>
         <label className={s.full}>Note <span>(optional)</span><textarea name="note" maxLength={1000} placeholder="Add payment details"/></label>
       </div>
-      {error && <p className={s.warning} role="alert">{error}</p>}
-      <footer><button type="button" className={s.secondary} disabled={busy} onClick={close}>Cancel</button><button className={s.primary} disabled={busy}>{busy ? <RefreshCw className={s.spin} size={17}/> : <Upload size={17}/>} {busy ? "Uploading…" : "Submit receipt"}</button></footer>
+      {shownError && <p className={s.warning} role="alert">{shownError}</p>}
+      <footer><button type="button" className={s.secondary} disabled={working} onClick={close}>Cancel</button><button className={s.primary} disabled={working}>{working ? <RefreshCw className={s.spin} size={17}/> : <Upload size={17}/>} {preparing ? "Preparing image…" : busy ? "Uploading…" : "Submit receipt"}</button></footer>
     </form>
   </dialog>;
 }
 
-export function RemittanceWorkflow({insights, loading, error, copyAccount, run, busy}: Props) {
+export function RemittanceWorkflow({insights, loading, error, copyAccount, run, busy, actionError}: Props) {
   const [paying, setPaying] = useState<RemittanceSummary | null>(null);
   const finance = insights?.finance;
   if (!finance) return <section className={s.notice} role="status">
@@ -141,6 +179,6 @@ export function RemittanceWorkflow({insights, loading, error, copyAccount, run, 
       {recent.length ? <div className={s.history}>{recent.map(item => <article key={item.id}><div><b>{item.reference}</b><Period item={item}/></div><span className={s.status} data-status={item.status}>{statusLabels[item.status]}</span><div className={s.historyAmount}><strong>{formatPeso(item.amountSettled)}</strong><small>Settled · {formatPeso(item.amountDue)} billed</small></div></article>)}</div> : <div className={s.historyEmpty}><FileCheck2 size={22}/><p>No completed remittances yet. Settled and closed cutoffs will appear here.</p></div>}
     </article>
     <p className={s.timezone}>All dates and times are in Philippine time (PHT).</p>
-    {paying && <ReceiptDialog item={paying} run={run} busy={busy("remittance:submit", paying.id)} close={() => setPaying(null)}/>}
+    {paying && <ReceiptDialog item={paying} run={run} busy={busy("remittance:submit", paying.id)} close={() => setPaying(null)} actionError={actionError}/>}
   </section>;
 }
