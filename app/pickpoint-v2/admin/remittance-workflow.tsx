@@ -70,7 +70,9 @@ async function normalizeReceipt(file: File): Promise<File> {
   }
 }
 
-function ReceiptDialog({item, run, busy, close, actionError}: {item: RemittanceSummary; run: Props["run"]; busy: boolean; close: () => void; actionError?: string}) {
+type Paying = {item: RemittanceSummary | null; amount: number; received: boolean};
+
+function ReceiptDialog({paying: {item, amount, received}, run, busy, close, actionError}: {paying: Paying; run: Props["run"]; busy: boolean; close: () => void; actionError?: string}) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState("");
   const [preparing, setPreparing] = useState(false);
@@ -93,34 +95,37 @@ function ReceiptDialog({item, run, busy, close, actionError}: {item: RemittanceS
     try {proof = await normalizeReceipt(original);}
     catch (reason) {setError(reason instanceof Error ? reason.message : "The receipt image could not be prepared."); return;}
     finally {setPreparing(false);}
-    const ok = await run("remittance:submit", {
-      remittanceId: item.id, amount: Number(data.get("amount")), paymentMethod: String(data.get("method")),
+    const ok = await run(received ? "remittance:record-received" : "remittance:submit", {
+      ...(item ? {remittanceId: item.id} : {}), amount: Number(data.get("amount")), paymentMethod: String(data.get("method")),
       paymentRef: String(data.get("reference")), note: String(data.get("note")),
       idempotencyKey: randomId(), proof,
-    }, item.id);
+    }, item?.id);
     if (ok) close();
     else setFailed(true);
   }
   const shownError = error || (failed ? actionError || "Receipt could not be submitted. Check the details and try again." : "");
   return <dialog ref={dialog} className={s.dialog} aria-labelledby="remittance-upload-title" onCancel={event => {event.preventDefault(); if (!working) close();}}>
     <form onSubmit={submit}>
-      <header><div><small>PAYMENT RECEIPT</small><h2 id="remittance-upload-title">Confirm your payment</h2><p>{item.reference}</p></div><button type="button" className={s.iconButton} disabled={working} onClick={close} aria-label="Close payment upload"><X size={20}/></button></header>
-      <div className={s.paymentAmount}><span>Cutoff balance</span><strong>{formatPeso(item.remainingBalance)}</strong></div>
+      <header><div><small>{received ? "PAYMENT RECEIVED" : "PAYMENT RECEIPT"}</small><h2 id="remittance-upload-title">{received ? "Record payment received" : "Confirm your payment"}</h2><p>{item?.reference || "Settles all accumulated booking fees"}</p></div><button type="button" className={s.iconButton} disabled={working} onClick={close} aria-label="Close payment upload"><X size={20}/></button></header>
+      <div className={s.paymentAmount}><span>{item ? "Cutoff balance" : "Accumulated booking fees"}</span><strong>{formatPeso(amount)}</strong></div>
       <div className={s.fields}>
-        <label>Amount paid<input name="amount" type="number" min="0.01" step="0.01" defaultValue={item.remainingBalance.toFixed(2)} required/></label>
+        {/* The received lane must settle the exact balance, so its amount is fixed. */}
+        <label>Amount paid<input name="amount" type="number" min="0.01" step="0.01" defaultValue={amount.toFixed(2)} readOnly={received} required/></label>
         <label>Payment method<select name="method" defaultValue="gcash"><option value="gcash">GCash</option><option value="maya">Maya</option><option value="bank_transfer">Bank transfer</option><option value="cash">Cash deposit</option><option value="other">Other</option></select></label>
         <label className={s.full}>Transaction reference<input name="reference" minLength={4} maxLength={120} placeholder="Enter the payment reference" required/></label>
         <label className={`${s.full} ${s.fileField}`}>Upload receipt<input name="proof" type="file" accept="image/*" required/><span>Photo or screenshot of the receipt</span></label>
-        <label className={s.full}>Note <span>(optional)</span><textarea name="note" maxLength={1000} placeholder="Add payment details"/></label>
+        {received
+          ? <label className={s.full}>Note<textarea name="note" minLength={10} maxLength={1000} placeholder="Example: Already paid directly to me" required/></label>
+          : <label className={s.full}>Note <span>(optional)</span><textarea name="note" maxLength={1000} placeholder="Add payment details"/></label>}
       </div>
       {shownError && <p className={s.warning} role="alert">{shownError}</p>}
-      <footer><button type="button" className={s.secondary} disabled={working} onClick={close}>Cancel</button><button className={s.primary} disabled={working}>{working ? <RefreshCw className={s.spin} size={17}/> : <Upload size={17}/>} {preparing ? "Preparing image…" : busy ? "Uploading…" : "Submit receipt"}</button></footer>
+      <footer><button type="button" className={s.secondary} disabled={working} onClick={close}>Cancel</button><button className={s.primary} disabled={working}>{working ? <RefreshCw className={s.spin} size={17}/> : <Upload size={17}/>} {preparing ? "Preparing image…" : busy ? (received ? "Recording…" : "Uploading…") : received ? "Mark as settled" : "Submit receipt"}</button></footer>
     </form>
   </dialog>;
 }
 
 export function RemittanceWorkflow({insights, loading, error, copyAccount, run, busy, actionError}: Props) {
-  const [paying, setPaying] = useState<RemittanceSummary | null>(null);
+  const [paying, setPaying] = useState<Paying | null>(null);
   const finance = insights?.finance;
   if (!finance) return <section className={s.notice} role="status">
     {loading ? <RefreshCw className={s.spin}/> : <WalletCards/>}
@@ -133,7 +138,12 @@ export function RemittanceWorkflow({insights, loading, error, copyAccount, run, 
   const payable = open.filter(canPay);
   const readyAmount = payable.reduce((sum, item) => sum + item.remainingBalance, 0);
   const recent = history.filter(item => !open.some(active => active.id === item.id)).slice(0, 8);
-  const cutoffReason = dashboard.role === "system_owner" ? "The court owner prepares and pays each cutoff." : !dashboard.canPrepare.allowed ? dashboard.canPrepare.reason : "Freeze this balance to prepare it for payment.";
+  const systemOwner = dashboard.role === "system_owner";
+  const recording = busy("remittance:record-received");
+  const canRecordAccumulated = systemOwner && !open.length && accumulated.amountDue > 0;
+  const cutoffReason = systemOwner
+    ? canRecordAccumulated ? "Paid to you directly? Record it to settle every accumulated fee at once." : open.length ? "Resolve the open cutoff below before recording another payment." : "The court owner prepares and pays each cutoff."
+    : !dashboard.canPrepare.allowed ? dashboard.canPrepare.reason : "Freeze this balance to prepare it for payment.";
   return <section className={s.root} aria-label="Remittance overview">
     {error && <p className={s.warning} role="alert">Showing the last loaded balance. {error}</p>}
     <div className={s.overview}>
@@ -142,7 +152,7 @@ export function RemittanceWorkflow({insights, loading, error, copyAccount, run, 
         <strong className={s.amount}>{formatPeso(accumulated.amountDue)}</strong>
         <p>Fees collected from paid bookings, awaiting cutoff.</p>
         <div className={s.period}><span>Period started</span><b>{accumulated.coverageStartAt ? dateLabel(accumulated.coverageStartAt, true) : "Awaiting first paid booking"}</b><span>Updated {dateLabel(dashboard.serverNow, true)} · PHT</span></div>
-        <div className={s.cutoff}><div><span>Next cutoff date</span><b>{dateLabel(dashboard.nextDueOn)}</b></div>{dashboard.role === "court_owner" && <button className={s.primary} disabled={!dashboard.canPrepare.allowed || preparing || loading || !!error} onClick={() => {if (confirm(`Prepare a cutoff for ${formatPeso(accumulated.amountDue)}? New fees will begin a new period.`)) void run("remittance:prepare");}}>{preparing ? <RefreshCw size={17} className={s.spin}/> : <ArrowUpRight size={17}/>} {preparing ? "Preparing…" : "Prepare cutoff"}</button>}</div>
+        <div className={s.cutoff}><div><span>Next cutoff date</span><b>{dateLabel(dashboard.nextDueOn)}</b></div>{dashboard.role === "court_owner" && <button className={s.primary} disabled={!dashboard.canPrepare.allowed || preparing || loading || !!error} onClick={() => {if (confirm(`Prepare a cutoff for ${formatPeso(accumulated.amountDue)}? New fees will begin a new period.`)) void run("remittance:prepare");}}>{preparing ? <RefreshCw size={17} className={s.spin}/> : <ArrowUpRight size={17}/>} {preparing ? "Preparing…" : "Prepare cutoff"}</button>}{canRecordAccumulated && <button className={s.primary} disabled={recording || loading || !!error} onClick={() => setPaying({item: null, amount: accumulated.amountDue, received: true})}><FileCheck2 size={17}/> Record payment received</button>}</div>
         <p className={s.cutoffHint}>{cutoffReason}</p>
       </article>
       <div className={s.stats}>
@@ -168,7 +178,9 @@ export function RemittanceWorkflow({insights, loading, error, copyAccount, run, 
         {open.length ? <div className={s.cutoffList}>{open.map(item => <article key={item.id} className={s.cutoffCard}>
           <div className={s.recordTop}><b>{item.reference}</b><span className={s.status} data-status={item.status}>{statusLabels[item.status]}</span></div>
           <div className={s.recordPeriod}><Period item={item}/><span>Due {dateLabel(item.cycleDueOn)}</span></div>
-          <div className={s.recordBottom}><div><small>Remaining balance</small><strong>{formatPeso(item.remainingBalance)}</strong></div>{canPay(item) && <button className={s.primary} disabled={!destination?.configured || loading || !!error} onClick={() => setPaying(item)}><Upload size={16}/> Upload receipt</button>}</div>
+          <div className={s.recordBottom}><div><small>Remaining balance</small><strong>{formatPeso(item.remainingBalance)}</strong></div>{systemOwner
+            ? item.externalReceipt && item.status === "due" && item.amountSettled === 0 && <button className={s.primary} disabled={recording || loading || !!error} onClick={() => setPaying({item, amount: item.remainingBalance, received: true})}><FileCheck2 size={16}/> Record payment received</button>
+            : canPay(item) && <button className={s.primary} disabled={!destination?.configured || loading || !!error} onClick={() => setPaying({item, amount: item.remainingBalance, received: false})}><Upload size={16}/> Upload receipt</button>}</div>
           {item.status === "rejected" && <p className={s.paymentNote}>The previous submission was rejected. Check the payment details before resubmitting.</p>}
           {["submitted", "under_review"].includes(item.status) && <p className={s.reviewNote}><Check size={15}/> Receipt received. Awaiting verification.</p>}
         </article>)}</div> : <div className={s.empty}><ReceiptText/><h3>No open cutoffs</h3><p>Once the court owner prepares a cutoff, its payment and receipt status will appear here.</p></div>}
@@ -179,6 +191,6 @@ export function RemittanceWorkflow({insights, loading, error, copyAccount, run, 
       {recent.length ? <div className={s.history}>{recent.map(item => <article key={item.id}><div><b>{item.reference}</b><Period item={item}/></div><span className={s.status} data-status={item.status}>{statusLabels[item.status]}</span><div className={s.historyAmount}><strong>{formatPeso(item.amountSettled)}</strong><small>Settled · {formatPeso(item.amountDue)} billed</small></div></article>)}</div> : <div className={s.historyEmpty}><FileCheck2 size={22}/><p>No completed remittances yet. Settled and closed cutoffs will appear here.</p></div>}
     </article>
     <p className={s.timezone}>All dates and times are in Philippine time (PHT).</p>
-    {paying && <ReceiptDialog item={paying} run={run} busy={busy("remittance:submit", paying.id)} close={() => setPaying(null)} actionError={actionError}/>}
+    {paying && <ReceiptDialog paying={paying} run={run} busy={busy(paying.received ? "remittance:record-received" : "remittance:submit", paying.item?.id)} close={() => setPaying(null)} actionError={actionError}/>}
   </section>;
 }

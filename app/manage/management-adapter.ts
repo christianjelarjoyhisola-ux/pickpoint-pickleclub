@@ -23,6 +23,7 @@ import {
   getManagerSession,
   getPaymentReceiptView,
   prepareBookingFeeRemittance,
+  prepareReceivedBookingFeeRemittance,
   getRemittanceDestination,
   getTenantPolicy,
   listManagerBlocks,
@@ -308,6 +309,8 @@ export type RemittanceSummary = {
   currency: string;
   bookingsCount: number;
   billableHours: number;
+  /** True when the System Owner prepared it to record a payment received directly. */
+  externalReceipt: boolean;
 };
 
 export type RemittanceDashboard = {
@@ -1610,6 +1613,27 @@ export const managementAdapter: ManagementAdapter = {
       return {
         ok: true,
         message: "The payment receipt was uploaded and is now awaiting verification.",
+      };
+    }
+
+    if (action.type === "remittance:record-received") {
+      if (!authority.isSystemOwner) throw new Error("REMITTANCE_SYSTEM_OWNER_REQUIRED");
+      const row = payloadObject(action.payload, "REMITTANCE_SUBMISSION_INPUT_INVALID");
+      let remittanceId = row.remittanceId;
+      // No cutoff yet: freeze the accumulated fees as an external-receipt cutoff first.
+      if (remittanceId === undefined) {
+        const prepared = record(await prepareReceivedBookingFeeRemittance(session.access_token, {
+          expectedAmount: Number(row.amount),
+          reason: typeof row.note === "string" ? row.note.trim() : "",
+          idempotencyKey: typeof row.idempotencyKey === "string" ? `prep-${row.idempotencyKey}` : "",
+        }));
+        remittanceId = record(prepared?.remittance)?.id;
+      }
+      const payload = remittanceSubmissionPayload({...row, remittanceId});
+      await submitBookingFeeRemittance(session.access_token, payload, "record-received");
+      return {
+        ok: true,
+        message: "The payment was recorded as received and the cutoff is now settled.",
       };
     }
 
@@ -3307,6 +3331,7 @@ function remittanceSummary(candidate: unknown): RemittanceSummary {
     currency: reportCurrency(row.currency, errorCode),
     bookingsCount: reportInteger(row.bookings_count, errorCode),
     billableHours: reportNumber(row.billable_hours, errorCode),
+    externalReceipt: row.preparation_source === "system_owner_external_receipt",
   };
 }
 

@@ -1320,6 +1320,24 @@ export async function prepareBookingFeeRemittance(
   );
 }
 
+/** System Owner freezes every accumulated fee into a cutoff it already received directly. */
+export async function prepareReceivedBookingFeeRemittance(
+  accessToken: string,
+  input: { expectedAmount: number; reason: string; idempotencyKey: string },
+): Promise<unknown> {
+  return rpc<unknown>(
+    "prepare_received_booking_fee_remittance",
+    {
+      p_tenant_slug: activeTenant.identity.slug,
+      p_hostname: managementHostname({ mutation: true }),
+      p_expected_amount: input.expectedAmount,
+      p_reason: input.reason,
+      p_idempotency_key: input.idempotencyKey,
+    },
+    accessToken,
+  );
+}
+
 function imageDataUrl(file: File): Promise<string> {
   if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
     throw new PlatformRequestError(
@@ -1356,6 +1374,8 @@ export async function submitBookingFeeRemittance(
     idempotencyKey: string;
     proof: File;
   },
+  // System Owner records a transfer it already received, settling the cutoff at once.
+  lane: "submit-proof" | "record-received" = "submit-proof",
 ): Promise<unknown> {
   managementHostname({ mutation: true });
   const proofDataUrl = await imageDataUrl(input.proof);
@@ -1363,7 +1383,7 @@ export async function submitBookingFeeRemittance(
     "tenant-remittance-asset",
     accessToken,
     {
-      action: "submit-proof",
+      action: lane,
       remittanceId: input.remittanceId,
       amount: input.amount,
       paymentMethod: input.paymentMethod,
