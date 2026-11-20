@@ -311,8 +311,6 @@ export type RemittanceSummary = {
   currency: string;
   bookingsCount: number;
   billableHours: number;
-  /** True when the System Owner prepared it to record a payment received directly. */
-  externalReceipt: boolean;
 };
 
 export type RemittanceDashboard = {
@@ -3350,9 +3348,7 @@ function remittanceSummary(candidate: unknown): RemittanceSummary {
     remainingBalance,
     currency: reportCurrency(row.currency, errorCode),
     bookingsCount: reportInteger(row.bookings_count, errorCode),
-    billableHours: reportNumber(row.billable_hours, errorCode),
-    externalReceipt: row.preparation_source === "system_owner_external_receipt",
-  };
+    billableHours: reportNumber(row.billable_hours, errorCode),  };
 }
 
 function remittanceDashboard(candidate: unknown): RemittanceDashboard {
