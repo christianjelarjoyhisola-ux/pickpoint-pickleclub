@@ -1320,6 +1320,38 @@ export async function prepareBookingFeeRemittance(
   );
 }
 
+export async function getBookingFeeRemittanceDetail(accessToken: string, remittanceId: string) {
+  return rpc<Record<string, unknown>>(
+    "get_booking_fee_remittance_detail",
+    {
+      p_tenant_slug: activeTenant.identity.slug,
+      p_hostname: managementHostname(),
+      p_remittance_id: remittanceId,
+    },
+    accessToken,
+  );
+}
+
+/** System Owner accepts or rejects a court owner's submitted remittance receipt. */
+export async function reviewBookingFeeRemittancePayment(
+  accessToken: string,
+  input: { paymentId: string; decision: "accept" | "reject"; reviewNote?: string | null; idempotencyKey: string },
+): Promise<unknown> {
+  return rpc<unknown>(
+    "review_booking_fee_remittance_payment",
+    {
+      p_tenant_slug: activeTenant.identity.slug,
+      p_hostname: managementHostname({ mutation: true }),
+      p_payment_id: input.paymentId,
+      p_decision: input.decision,
+      p_amount_accepted: null,
+      p_review_note: input.reviewNote ?? null,
+      p_idempotency_key: input.idempotencyKey,
+    },
+    accessToken,
+  );
+}
+
 /** System Owner freezes every accumulated fee into a cutoff it already received directly. */
 export async function prepareReceivedBookingFeeRemittance(
   accessToken: string,

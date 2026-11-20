@@ -24,6 +24,8 @@ import {
   getPaymentReceiptView,
   prepareBookingFeeRemittance,
   prepareReceivedBookingFeeRemittance,
+  getBookingFeeRemittanceDetail,
+  reviewBookingFeeRemittancePayment,
   getRemittanceDestination,
   getTenantPolicy,
   listManagerBlocks,
@@ -1614,6 +1616,24 @@ export const managementAdapter: ManagementAdapter = {
         ok: true,
         message: "The payment receipt was uploaded and is now awaiting verification.",
       };
+    }
+
+    if (action.type === "remittance:approve") {
+      if (!authority.isSystemOwner) throw new Error("REMITTANCE_SYSTEM_OWNER_REQUIRED");
+      assertNoPayload(action.payload);
+      const remittanceId = requiredUuid(action.resourceId, "REMITTANCE_ID_INVALID");
+      const detail = record(await getBookingFeeRemittanceDetail(session.access_token, remittanceId));
+      const pending = (Array.isArray(detail?.payments) ? detail.payments : [])
+        .map(record)
+        .filter((payment): payment is JsonObject => payment?.status === "pending")
+        .sort((a, b) => String(b.submitted_at).localeCompare(String(a.submitted_at)))[0];
+      if (!pending) throw new Error("REMITTANCE_NO_PENDING_RECEIPT");
+      await reviewBookingFeeRemittancePayment(session.access_token, {
+        paymentId: requiredUuid(pending.id, "REMITTANCE_PAYMENT_ID_INVALID"),
+        decision: "accept",
+        idempotencyKey: randomId(),
+      });
+      return { ok: true, message: "The receipt was approved and the cutoff payment was recorded." };
     }
 
     if (action.type === "remittance:record-received") {

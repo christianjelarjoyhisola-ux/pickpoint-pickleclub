@@ -181,8 +181,11 @@ export function RemittanceWorkflow({insights, loading, error, copyAccount, run, 
           <div className={s.recordBottom}><div><small>Remaining balance</small><strong>{formatPeso(item.remainingBalance)}</strong></div>{systemOwner
             ? item.externalReceipt && item.status === "due" && item.amountSettled === 0 && <button className={s.primary} disabled={recording || loading || !!error} onClick={() => setPaying({item, amount: item.remainingBalance, received: true})}><FileCheck2 size={16}/> Record payment received</button>
             : canPay(item) && <button className={s.primary} disabled={!destination?.configured || loading || !!error} onClick={() => setPaying({item, amount: item.remainingBalance, received: false})}><Upload size={16}/> Upload receipt</button>}</div>
+          {systemOwner && !item.externalReceipt && ["draft", "due", "rejected"].includes(item.status) && <p className={s.paymentNote}>Waiting for the court owner to upload this cutoff’s receipt. Once submitted, approve it here to settle it.</p>}
           {item.status === "rejected" && <p className={s.paymentNote}>The previous submission was rejected. Check the payment details before resubmitting.</p>}
-          {["submitted", "under_review"].includes(item.status) && <p className={s.reviewNote}><Check size={15}/> Receipt received. Awaiting verification.</p>}
+          {["submitted", "under_review"].includes(item.status) && (systemOwner
+            ? <div className={s.recordBottom}><p className={s.reviewNote}><Check size={15}/> Receipt submitted by the court owner.</p><button className={s.primary} disabled={busy("remittance:approve", item.id) || loading || !!error} onClick={() => {if (confirm(`Approve the receipt for ${item.reference} and record ${formatPeso(item.remainingBalance)} as paid?`)) void run("remittance:approve", undefined, item.id);}}>{busy("remittance:approve", item.id) ? <RefreshCw size={16} className={s.spin}/> : <Check size={16}/>} Approve & settle</button></div>
+            : <p className={s.reviewNote}><Check size={15}/> Receipt received. Awaiting verification.</p>)}
         </article>)}</div> : <div className={s.empty}><ReceiptText/><h3>No open cutoffs</h3><p>Once the court owner prepares a cutoff, its payment and receipt status will appear here.</p></div>}
       </article>
     </div>
